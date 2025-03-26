@@ -77,6 +77,8 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (User) -> Uni
             Spacer(modifier = Modifier.height(20.dp))
             ShowInputNormal(username, "Username", R.drawable.ic_person_24, { newText -> username = newText })
             Spacer(modifier = Modifier.height(20.dp))
+            ShowInputEmail(email, { newValue -> email = newValue })
+            Spacer(modifier = Modifier.height(20.dp))
             ShowInputPassword(password1, "You create a new password", { newText -> password1 = newText })
             Spacer(modifier = Modifier.height(20.dp))
             ShowInputPassword(password2, "You repeat the new password", { newText -> password2 = newText })
@@ -120,6 +122,26 @@ fun ShowInputNormal(fieldValue: String, label: String, idIcon: Int, addNewFieldV
             onValueChange = addNewFieldValue,
             shape = ShapeDefaults.ExtraSmall,
             leadingIcon = { Icon(painter = painterResource(idIcon), contentDescription = "Icon for name") }
+        )
+    }
+}
+
+@Composable
+fun ShowInputEmail(valueEmail: String, addNewValueEmail: (String) -> Unit) {
+    Column {
+        Text(
+            text = "Email",
+            fontStyle = FontStyle.Italic,
+            color = colorResource(R.color.lightGreen),
+            textAlign = TextAlign.Start,
+            modifier = Modifier.padding(bottom = 10.dp)
+        )
+
+        TextField(
+            value = valueEmail,
+            onValueChange = addNewValueEmail,
+            shape = ShapeDefaults.ExtraSmall,
+            leadingIcon = { Icon(painter = painterResource(R.drawable.ic_email_24), contentDescription = "Email icon") }
         )
     }
 }

@@ -22,6 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -31,6 +33,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
@@ -97,6 +101,18 @@ fun NavScreensWithLoginScreen() {
 
         composable<RegistrationRoute> {
             RegistrationScreen({ navController.popBackStack() }, { user -> navController.navigate(RegistrationQuestionsRoute(user)) })
+        }
+
+        composable<RegistrationQuestionsRoute> { navBackStackEntry ->
+            val registrationQuestionsRoute: RegistrationQuestionsRoute = navBackStackEntry.toRoute()
+            val registrationQuestionsViewmodel: RegistrationQuestionsViewmodel = viewModel {
+                RegistrationQuestionsViewmodel(
+                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions
+                )
+            }
+            val allQuestions = registrationQuestionsViewmodel.allQuestions
+
+            RegistrationQuestionsScreen(registrationQuestionsRoute.user, allQuestions)
         }
     }
 
