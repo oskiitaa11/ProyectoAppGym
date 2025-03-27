@@ -29,23 +29,27 @@ import com.example.proyectoappgym.entity.User
 fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
     var progress by remember { mutableIntStateOf(0) }
     var allChecked = remember { mutableStateMapOf<String, MutableList<Boolean>>() }
-    var indexForCheckedList = remember { 0 }
+    var indexForCheckedList = 0
+    var actualQuestion = allQuestions[progress]
 
     Column(modifier = Modifier.fillMaxSize().background(color = colorResource(R.color.lightBlack))) {
         LinearProgressIndicator(
             progress = { progress.toFloat() }
         )
 
+        for (response in actualQuestion.responses) {
+            allChecked[actualQuestion.question]?.plus(false)
+            ShowRowCheckbox(response, { newChecked -> allChecked[actualQuestion.question]?.set(indexForCheckedList, newChecked) })
+            indexForCheckedList++
+        }
+
+        progress++
         for(question in allQuestions) {
             ShowQuestion(question)
-            allChecked[question.question] = mutableListOf()
-            for (response in question.responses) {
-                allChecked[question.question]?.plus(false)
-                ShowRowCheckbox(response, { newChecked -> allChecked[question.question]?.set(indexForCheckedList, newChecked) })
-                indexForCheckedList++
-            }
 
-            progress++
+
+
+
         }
 
     }

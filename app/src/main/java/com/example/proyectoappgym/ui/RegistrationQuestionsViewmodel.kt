@@ -6,7 +6,7 @@ import com.example.proyectoappgym.db_questions.RepositoryQuestions
 import com.example.proyectoappgym.entity.Question
 import kotlinx.coroutines.launch
 
-class RegistrationQuestionsViewmodel(val repositoryQuestions: RepositoryQuestions):ViewModel() {
+class RegistrationQuestionsViewmodel(val repositoryQuestions: RepositoryQuestions): ViewModel() {
     var allQuestions: List<Question> = listOf()
 
     init {

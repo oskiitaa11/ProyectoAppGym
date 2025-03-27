@@ -57,7 +57,7 @@ fun NavGraphBuilder.registrationDestination(onBack: () -> Unit) {
 }*/
 
 @Composable
-fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (User) -> Unit) {
+fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String) -> Unit) {
     var name by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -85,7 +85,7 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (User) -> Uni
             Spacer(modifier = Modifier.height(20.dp))
             ShowInputBirthdate(birthdate, { newText -> birthdate = newText })
             Spacer(modifier = Modifier.height(20.dp))
-            ShowButtonForLoginOrRegister("Sign in", { onRegistrationQuestion(User(username, password1, email, birthdate)) })
+            ShowButtonForLoginOrRegister("Sign in", { onRegistrationQuestion(name, username, password1, email, birthdate) })
 
         }
     }

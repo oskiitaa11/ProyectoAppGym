@@ -45,7 +45,7 @@ object LoginRoute
 @Serializable
 object RegistrationRoute
 @Serializable
-data class RegistrationQuestionsRoute(val user: User)
+data class RegistrationQuestionsRoute(val name: String, val username: String, val password: String, val email: String, val birthdate: String)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,7 +100,7 @@ fun NavScreensWithLoginScreen() {
         }
 
         composable<RegistrationRoute> {
-            RegistrationScreen({ navController.popBackStack() }, { user -> navController.navigate(RegistrationQuestionsRoute(user)) })
+            RegistrationScreen({ navController.popBackStack() }, { name, username, password, email, birthdate -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate)) })
         }
 
         composable<RegistrationQuestionsRoute> { navBackStackEntry ->
@@ -111,8 +111,12 @@ fun NavScreensWithLoginScreen() {
                 )
             }
             val allQuestions = registrationQuestionsViewmodel.allQuestions
+            var user : User
+            with(registrationQuestionsRoute) {
+                user = User(name, username, password, email, birthdate)
+            }
 
-            RegistrationQuestionsScreen(registrationQuestionsRoute.user, allQuestions)
+            RegistrationQuestionsScreen(user, allQuestions)
         }
     }
 
