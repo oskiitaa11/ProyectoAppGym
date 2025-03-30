@@ -8,4 +8,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="lightGreen">#1CF4BA</color>
     <color name="lightBlack">#2F2A2A</color>
+    <color name="pink">#FF69B4</color>
+    <color name="blue">#1E90FF</color>
+    <color name="red_error">#FF4848</color>
 </resources>

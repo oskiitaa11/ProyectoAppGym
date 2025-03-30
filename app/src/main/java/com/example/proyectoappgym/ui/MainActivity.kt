@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
 import kotlinx.serialization.Serializable
@@ -45,7 +46,7 @@ object LoginRoute
 @Serializable
 object RegistrationRoute
 @Serializable
-data class RegistrationQuestionsRoute(val name: String, val username: String, val password: String, val email: String, val birthdate: String)
+data class RegistrationQuestionsRoute(val name: String, val username: String, val password: String, val email: String, val birthdate: String, val gender: Gender)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,7 +101,7 @@ fun NavScreensWithLoginScreen() {
         }
 
         composable<RegistrationRoute> {
-            RegistrationScreen({ navController.popBackStack() }, { name, username, password, email, birthdate -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate)) })
+            RegistrationScreen({ navController.popBackStack() }, { name, username, password, email, birthdate, gender -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)) })
         }
 
         composable<RegistrationQuestionsRoute> { navBackStackEntry ->
@@ -113,7 +114,7 @@ fun NavScreensWithLoginScreen() {
             val allQuestions = registrationQuestionsViewmodel.allQuestions
             var user : User
             with(registrationQuestionsRoute) {
-                user = User(name, username, password, email, birthdate)
+                user = User(username, password, email, name, birthdate, gender)
             }
 
             RegistrationQuestionsScreen(user, allQuestions)

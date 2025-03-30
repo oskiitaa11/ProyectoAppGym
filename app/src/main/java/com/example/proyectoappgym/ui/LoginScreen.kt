@@ -19,10 +19,10 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ShapeDefaults
-import androidx.compose.material3.Shapes
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -43,6 +42,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
@@ -102,7 +102,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit){
         ) {
             ShowInputUsername(username, { newText -> username = newText })
             Spacer(modifier = Modifier.height(20.dp))
-            ShowInputPassword(password, "Password", { newText -> password = newText })
+            ShowInputPassword(passwordValue = password, label = "Password", addNewPasswordValue = { newText -> password = newText })
             Spacer(modifier = Modifier.height(30.dp))
             ShowButtonForLoginOrRegister("Login", {  })
             Spacer(modifier = Modifier.height(15.dp))
@@ -136,13 +136,13 @@ fun ShowInputUsername(usernameValue: String, addNewUsernameValue: (String) -> Un
             value = usernameValue,
             onValueChange = addNewUsernameValue,
             leadingIcon = { Icon(imageVector = Icons.Sharp.Person, contentDescription = "Icono de Input") },
-            shape = ShapeDefaults.ExtraSmall
+            shape = ShapeDefaults.ExtraSmall,
         )
     }
 }
 
 @Composable
-fun ShowInputPassword(passwordValue: String, label: String, addNewPasswordValue: (String) -> Unit) {
+fun ShowInputPassword(passwordValue: String, label: String, heightField: Dp = TextFieldDefaults.MinHeight, addNewPasswordValue: (String) -> Unit) {
     var canShowPassword by remember { mutableStateOf(false) } //Variable para cambiar la contraseña
 
     Column {
@@ -168,7 +168,8 @@ fun ShowInputPassword(passwordValue: String, label: String, addNewPasswordValue:
             leadingIcon = { Icon(painter = painterResource(R.drawable.ic_lock_24), contentDescription = "Icon password") },
             shape = ShapeDefaults.ExtraSmall,
             //Con el visualTransformation le digo que se transforme el texto a asterisco o no
-            visualTransformation = if(canShowPassword) VisualTransformation.None else PasswordVisualTransformation()
+            visualTransformation = if(canShowPassword) VisualTransformation.None else PasswordVisualTransformation(),
+            modifier = Modifier.height(heightField)
         )
     }
 }
