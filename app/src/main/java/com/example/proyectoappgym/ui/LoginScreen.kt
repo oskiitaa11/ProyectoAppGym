@@ -2,6 +2,7 @@ package com.example.proyectoappgym.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
+import java.lang.Error
 
 /*@Serializable
 object LoginRoute
@@ -102,7 +104,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit){
         ) {
             ShowInputUsername(username, { newText -> username = newText })
             Spacer(modifier = Modifier.height(20.dp))
-            ShowInputPassword(passwordValue = password, label = "Password", addNewPasswordValue = { newText -> password = newText })
+            ShowInputPassword(passwordValue = password, label = "Password", isError = false, addNewPasswordValue = { newText -> password = newText })
             Spacer(modifier = Modifier.height(30.dp))
             ShowButtonForLoginOrRegister("Login", {  })
             Spacer(modifier = Modifier.height(15.dp))
@@ -142,7 +144,7 @@ fun ShowInputUsername(usernameValue: String, addNewUsernameValue: (String) -> Un
 }
 
 @Composable
-fun ShowInputPassword(passwordValue: String, label: String, heightField: Dp = TextFieldDefaults.MinHeight, addNewPasswordValue: (String) -> Unit) {
+fun ShowInputPassword(passwordValue: String, label: String, heightField: Dp = TextFieldDefaults.MinHeight, isError: Boolean, addNewPasswordValue: (String) -> Unit) {
     var canShowPassword by remember { mutableStateOf(false) } //Variable para cambiar la contraseña
 
     Column {
@@ -170,6 +172,7 @@ fun ShowInputPassword(passwordValue: String, label: String, heightField: Dp = Te
             //Con el visualTransformation le digo que se transforme el texto a asterisco o no
             visualTransformation = if(canShowPassword) VisualTransformation.None else PasswordVisualTransformation(),
             modifier = Modifier.height(heightField)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
         )
     }
 }

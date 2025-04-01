@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.icu.util.Calendar
 import android.widget.DatePicker
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
@@ -74,11 +77,15 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
     val getInitialErrorsFieldsMap: (List<String>) -> List<Pair<String, String>> = {
         it.map { field -> Pair(field, "") }
     }
+    /*Se crea un mapa por cada campo se inserta el texto de error,
+    inicialmente esta vacio. Cuando este vacio el campo es porque todavia
+    no ha dado ningun error*/
     var allErrorsFields = remember {
         SnapshotStateMap<String, String>().apply {
             putAll(getInitialErrorsFieldsMap(listOf("name", "username", "birthdate", "password", "email", "gender")))
         }
     }
+    //Se valida cada campo para que el usuario cumpla con los requisitos minimos
     val validateFields: () -> Unit = {
         allErrorsFields.forEach { field, errorText -> allErrorsFields[field] = ""}
         validateTextUsername(
@@ -100,15 +107,15 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             .fillMaxSize()
             .background(color = colorResource(R.color.lightBlack))
         ) {
-            ShowInputNormal(name, "Name", R.drawable.ic_man_24, { newText -> name = newText })
+            ShowInputNormal(name, "Name(Optional)", R.drawable.ic_man_24, false, { newText -> name = newText })
             Spacer(modifier = Modifier.height(15.dp))
-            ShowInputNormal(username, "Username", R.drawable.ic_person_24, { newText -> username = newText })
+            ShowInputNormal(username, "Username", R.drawable.ic_person_24, allErrorsFields["username"]?.isNotEmpty() as Boolean, { newText -> username = newText })
             ShowErrorText(allErrorsFields["username"] as String, 5.dp)
             Spacer(modifier = Modifier.height(15.dp))
-            ShowInputEmail(email, { newValue -> email = newValue })
+            ShowInputEmail(email, allErrorsFields["username"]?.isNotEmpty() as Boolean, { newValue -> email = newValue })
             ShowErrorText(allErrorsFields["email"] as String, 5.dp)
             Spacer(modifier = Modifier.height(15.dp))
-            ShowInputPassword(passwordValue = password, label = "You create the new password", heightField = 50.dp, addNewPasswordValue = { newText -> password = newText })
+            ShowInputPassword(passwordValue = password, label = "You create the new password", heightField = 50.dp, allErrorsFields["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
             ShowErrorText(allErrorsFields["password"] as String, 5.dp)
             Spacer(modifier = Modifier.height(15.dp))
             Row(
@@ -117,21 +124,21 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
                 modifier = Modifier.padding(horizontal = 30.dp)
             ) {
                 Column {
-                    ShowInputBirthdate(birthdate, { newText -> birthdate = newText })
+                    ShowInputBirthdate(birthdate, allErrorsFields["birthdate"]?.isNotEmpty() as Boolean, { newText -> birthdate = newText })
                 }
 
                 ShowGender(gender, { newGender ->  gender = newGender})
             }
-            ShowErrorText(allErrorsFields["birthdate"] as String, 0.dp)
+            ShowErrorText(allErrorsFields["birthdate"] as String, 0.dp, 15.dp)
             Spacer(modifier = Modifier.height(15.dp))
             /*Se comprobará si todos los valores del mapa estan vacios, si es asin, no ha habido ningun error
             y se pasara a la pantalla de preguntas*/
             ShowButtonForLoginOrRegister(
-                "Sign in",
+                "Register",
                 {
                     validateFields()
-                    if(allErrorsFields.values.all { it.isNotEmpty() }) {
-                        onRegistrationQuestion(name, username, password, email, birthdate, gender)
+                    if(allErrorsFields.values.all { it.isEmpty() }) {
+                        onRegistrationQuestion(name.trim(), username.trim(), password.trim(), email.trim(), birthdate, gender)
                     }
                 }
             )
@@ -155,10 +162,10 @@ fun TopAppBarRegistration(onBack: () -> Unit) {
 }
 
 @Composable
-fun ShowErrorText(errorText: String, startPadding: Dp) {
+fun ShowErrorText(errorText: String, startPadding: Dp, endPadding: Dp = 0.dp) {
     if(errorText.isNotEmpty()) {//Si el texto de error esta vacio es porque no ha habido ningun error
         Row(
-            modifier = Modifier.fillMaxWidth(0.8f).padding(startPadding),
+            modifier = Modifier.fillMaxWidth(0.8f).padding(start = startPadding, top = 2.dp),
             verticalAlignment = Alignment.Top    ,
             horizontalArrangement = Arrangement.Start
         ) {
@@ -174,7 +181,8 @@ fun ShowErrorText(errorText: String, startPadding: Dp) {
                 fontStyle = FontStyle.Italic,
                 fontSize = 12.sp,
                 textAlign = TextAlign.Start,
-                lineHeight = 12.sp
+                lineHeight = 12.sp,
+                modifier = Modifier.padding(end = endPadding)
             )
         }
     }
@@ -189,7 +197,7 @@ fun ShowGender(gender: Gender, changeGender: (Gender) -> Unit) {
         modifier = Modifier.fillMaxWidth(1f).padding(start = 20.dp)
     ) {
         Text(
-            "Sex",
+            "Sex(Optional)",
             fontStyle = FontStyle.Italic,
             modifier = Modifier.padding(bottom = 5.dp),
             color = Color.White,
@@ -204,7 +212,7 @@ fun ShowGender(gender: Gender, changeGender: (Gender) -> Unit) {
 }
 
 @Composable
-fun ShowInputNormal(fieldValue: String, label: String, idIcon: Int, addNewFieldValue: (String) -> Unit) {
+fun ShowInputNormal(fieldValue: String, label: String, idIcon: Int, isError: Boolean, addNewFieldValue: (String) -> Unit) {
 
     Column {
         Text(
@@ -221,12 +229,13 @@ fun ShowInputNormal(fieldValue: String, label: String, idIcon: Int, addNewFieldV
             shape = ShapeDefaults.ExtraSmall,
             leadingIcon = { Icon(painter = painterResource(idIcon), contentDescription = "Icon for name") },
             modifier = Modifier.height(50.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
         )
     }
 }
 
 @Composable
-fun ShowInputEmail(valueEmail: String, addNewValueEmail: (String) -> Unit) {
+fun ShowInputEmail(valueEmail: String, isError: Boolean, addNewValueEmail: (String) -> Unit) {
     Column {
         Text(
             text = "Email",
@@ -242,19 +251,20 @@ fun ShowInputEmail(valueEmail: String, addNewValueEmail: (String) -> Unit) {
             shape = ShapeDefaults.ExtraSmall,
             leadingIcon = { Icon(painter = painterResource(R.drawable.ic_email_24), contentDescription = "Email icon") },
             modifier = Modifier.height(50.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall),
         )
     }
 }
 
 @Composable
-fun ShowInputBirthdate(birthdateValue: String, addNewFieldValue: (String) -> Unit){
+fun ShowInputBirthdate(birthdateValue: String, isError: Boolean, addNewFieldValue: (String) -> Unit){
     var showCalendarDialog by remember { mutableStateOf(false) }
     val calendar = Calendar.getInstance()
     val datePickerDialog: DatePickerDialog
 
     Column {
         Text(
-            text = "Birtdate",
+            text = "Birthdate",
             fontStyle = FontStyle.Italic,
             color = colorResource(R.color.lightGreen),
             textAlign = TextAlign.Start,
@@ -271,7 +281,9 @@ fun ShowInputBirthdate(birthdateValue: String, addNewFieldValue: (String) -> Uni
                     Icon(painter = painterResource(R.drawable.ic_calendar_month_24), contentDescription = "Calendar icon")
                 }
             },
-            modifier = Modifier.width(150.dp).height(50.dp)
+            modifier = Modifier.width(150.dp)
+                .height(50.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
         )
     }
 
@@ -345,8 +357,11 @@ fun validatePassword(valuePassword: String, changeValueField: (String) -> Unit):
     if(valuePassword.isEmpty()) {
         changeValueField("The field password can't be empty")
         return true
-    } else if(valuePassword.length !in 10..50) {
-        changeValueField("Must have between from 10 to 50 characters ")
+    } else if(valuePassword.length < 10) {
+        changeValueField("Must have between more tha 10 characters")
+        return true
+    } else if(valuePassword.length > 50) {
+        changeValueField("Must have between more tha 50 characters")
         return true
     } else if(!(valuePassword.contains(Regex("[A-Z]")))) {
         changeValueField("Must have at least one upper case")
@@ -385,4 +400,3 @@ fun validateEmail(valueEmail: String, changeValueField: (String) -> Unit): Boole
 
     return false
 }
-

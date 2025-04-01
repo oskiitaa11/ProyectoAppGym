@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.Icon
@@ -27,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
@@ -51,12 +54,13 @@ import kotlin.inc
 fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
     var progress by remember { mutableIntStateOf(0) }
-    var allChecked = remember {
+    val allChecked = remember {
         mutableMapOf<String, SnapshotStateMap<String, Boolean>>().apply {
             putAll(getInitialQuestionsMap(allQuestions))
         }
     }
     val actualQuestion = allQuestions[progress]
+    var showError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -78,7 +82,7 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             color = colorResource(R.color.lightGreen),
             lineHeight = 40.sp,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 40.dp)
+            modifier = Modifier.padding(top = 30.dp)
         )
         LinearProgressIndicator(
             /*Divido entre 10, ya que el LinearProgress tiene un rango entre
@@ -86,7 +90,7 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             para que el indicador llegue al final y solo son 7 preguntas, entonces mutiplico por 1,55
             para que el valor vaya aunmentando mas en funcion de progress*/
             progress = { (progress.toFloat() * 1.55f) / 10 },
-            modifier = Modifier.padding(start = 30.dp, top = 80.dp, end = 30.dp).fillMaxWidth()
+            modifier = Modifier.padding(start = 30.dp, top = 70.dp, end = 30.dp).fillMaxWidth()
         )
 
 
@@ -94,9 +98,15 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxSize().padding(horizontal = 30.dp).padding(top = 60.dp)
+            modifier = Modifier.padding(horizontal = 30.dp).padding(top = 45.dp)
         ) {
-            ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+            if(actualQuestion != allQuestions.last()) {
+                ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+            } else {
+                ShowLastQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+            }
+
+            if(showError) ShowErrorText("You must answer to the questions", 0.dp)
         }
 
 
@@ -105,17 +115,20 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
     Column(
         verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.End,
-        modifier = Modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp, bottom = 50.dp)
+        modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 50.dp)
     ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                ShowButtonForNextOrPreviousQuestion("Back", R.drawable.ic_arrow_back_ios_new_24, { if(progress>0) progress-- })
-                ShowButtonForNextOrPreviousQuestion("Next", R.drawable.ic_arrow_forward_ios_24, { progress++ })
-            }
-
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            ShowButtonForNextOrPreviousQuestion("Back", R.drawable.ic_arrow_back_ios_new_24, { if(progress>0) progress-- })
+            ShowButtonForNextOrPreviousQuestion(
+                "Next", R.drawable.ic_arrow_forward_ios_24,
+                {
+                    showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
+                    if(!showError) progress++
+                }
+            )
         }
 
     }
@@ -164,8 +177,9 @@ fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<Strin
                 /*Por cada respuesta se asigna el valor a false por si existe alguna respuesta
                 a true, ya que con radioButton solo se puede poner una respuesta a true.
                 Si es un checkbox se asigna el valor que ya tiene, dejandose igual*/
-                allCheckedActualQuestions.forEach { (responseList, value) ->
-                    allCheckedActualQuestions[responseList] = if(question.responsesTypes == ResponsesType.RADIOBUTTON) false else value
+                if(question.responsesTypes == ResponsesType.RADIOBUTTON)
+                allCheckedActualQuestions.forEach { (responseList, _) ->
+                    allCheckedActualQuestions[responseList] = false
                 }
                 allCheckedActualQuestions[response] = !allCheckedActualQuestions[response]!!
             },
@@ -175,9 +189,44 @@ fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<Strin
 }
 
 @Composable
+fun ShowLastQuestion(question: Question, allCheckedActualQuestions: MutableMap<String, Boolean>){
+    val responsesFirstColumn = question.responses.slice(0..3)
+    var responsesSecondColumn = question.responses.slice(4..question.responses.lastIndex)
+
+    Text(
+        question.question,
+        color = Color.White,
+        fontSize = 20.sp,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(bottom = 25.dp)
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            responsesFirstColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes) }
+        }
+
+        Column (
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            responsesSecondColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes) }
+        }
+    }
+
+}
+
+@Composable
 fun ShowRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> Unit, responseType: ResponsesType){
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 20.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp).background(Color.Red),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -185,26 +234,54 @@ fun ShowRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> U
             Checkbox(
                 checked = isChecked,
                 onCheckedChange = { changeChecked() },
-                colors = CheckboxColors(Color.White, Color.Transparent, colorResource(R.color.lightGreen), Color.Transparent, Color.LightGray, Color.LightGray, Color.LightGray, Color.White, Color.White, Color.LightGray, Color.LightGray, Color.LightGray)
+                colors = CheckboxColors(Color.White, Color.Transparent, colorResource(R.color.lightGreen), Color.Transparent, Color.LightGray, Color.LightGray, Color.LightGray, Color.White, Color.White, Color.LightGray, Color.LightGray, Color.LightGray),
+                modifier = Modifier.size(40.dp)
             )
         } else {
             RadioButton(
                 selected = isChecked,
                 onClick = changeChecked,
-                colors = RadioButtonColors(colorResource(R.color.lightGreen), Color.White, Color.LightGray, Color.LightGray)
+                colors = RadioButtonColors(colorResource(R.color.lightGreen), Color.White, Color.LightGray, Color.LightGray),
+                modifier = Modifier.size(40.dp)
             )
         }
-        Text(response, color = Color.White)
+        Text(response, color = Color.White, modifier = Modifier.background(Color.Blue))
     }
 }
 
 @Composable
-fun ShowButtonForNextOrPreviousQuestion(label: String, idIcon: Int, incrementProgress: () -> Unit) {
+fun ShowLastQuestionRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> Unit, responseType: ResponsesType){
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp).background(Color.Red),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if(responseType == ResponsesType.CHECKBOX) {
+            Checkbox(
+                checked = isChecked,
+                onCheckedChange = { changeChecked() },
+                colors = CheckboxColors(Color.White, Color.Transparent, colorResource(R.color.lightGreen), Color.Transparent, Color.LightGray, Color.LightGray, Color.LightGray, Color.White, Color.White, Color.LightGray, Color.LightGray, Color.LightGray),
+                modifier = Modifier.size(40.dp)
+            )
+        } else {
+            RadioButton(
+                selected = isChecked,
+                onClick = changeChecked,
+                colors = RadioButtonColors(colorResource(R.color.lightGreen), Color.White, Color.LightGray, Color.LightGray),
+                modifier = Modifier.size(40.dp)
+            )
+        }
+        Text(response, color = Color.White, modifier = Modifier.background(Color.Blue))
+    }
+}
+
+@Composable
+fun ShowButtonForNextOrPreviousQuestion(label: String, idIcon: Int, onClick: () -> Unit) {
     TextButton(
         shape = ShapeDefaults.ExtraSmall,
         border = BorderStroke(2.dp, Color.White),
-        onClick = incrementProgress,
-        contentPadding = PaddingValues(20.dp, 10.dp)
+        onClick = onClick,
+        contentPadding = PaddingValues(20.dp, 10.dp),
     ) {
         if(label.lowercase() == "back") {
             Icon(

@@ -97,7 +97,8 @@ fun NavScreensWithLoginScreen() {
         modifier = Modifier.fillMaxSize()
     ) {
         composable<LoginRoute> { navBackStackEntry ->
-            LoginScreen({ navController.navigate(RegistrationRoute) })
+
+            LoginScreen({ navController.navigate(RegistrationQuestionsRoute("", "", "", "", "", Gender.IND)) })
         }
 
         composable<RegistrationRoute> {
