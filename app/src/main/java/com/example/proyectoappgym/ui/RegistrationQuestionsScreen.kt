@@ -1,6 +1,17 @@
 package com.example.proyectoappgym.ui
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.Icon
@@ -47,19 +59,21 @@ import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.User
+import java.nio.file.WatchEvent
 import kotlin.inc
 
+@OptIn(ExperimentalAnimationApi::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
-    var progress by remember { mutableIntStateOf(0) }
+    var progress by remember { mutableIntStateOf(6) }
     val allChecked = remember {
         mutableMapOf<String, SnapshotStateMap<String, Boolean>>().apply {
             putAll(getInitialQuestionsMap(allQuestions))
         }
     }
-    val actualQuestion = allQuestions[progress]
+    lateinit var actualQuestion: Question
     var showError by remember { mutableStateOf(false) }
 
     Column(
@@ -93,22 +107,33 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             modifier = Modifier.padding(start = 30.dp, top = 70.dp, end = 30.dp).fillMaxWidth()
         )
 
+        Crossfade(
+            targetState = progress,
+            animationSpec = tween(durationMillis = 800)
+        ) { targetState ->
+            actualQuestion = allQuestions[targetState]
 
+            Column(
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 30.dp).padding(top = 45.dp)
+            ) {
 
-        Column(
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(horizontal = 30.dp).padding(top = 45.dp)
-        ) {
-            if(actualQuestion != allQuestions.last()) {
-                ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
-            } else {
-                ShowLastQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+                /*Si ha llegado a la utlima pregunta que muestra una funcion distinta,
+               para poder mostrar todos las respuestas de esta*/
+                if(actualQuestion != allQuestions.last()) {
+                    ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+                } else if(actualQuestion == allQuestions.last()) {
+                    ShowLastQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+                } else if(actualQuestion == allQuestions[1]) {
+                    if()
+                    ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+                }
+
+                if(showError) ShowErrorText("You must answer to the questions", 0.dp)
             }
 
-            if(showError) ShowErrorText("You must answer to the questions", 0.dp)
         }
-
 
     }
 
@@ -121,11 +146,17 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            ShowButtonForNextOrPreviousQuestion("Back", R.drawable.ic_arrow_back_ios_new_24, { if(progress>0) progress-- })
+            ShowButtonForNextOrPreviousQuestion("Back", R.drawable.ic_arrow_back_ios_new_24,
+                {
+                    if(showError) showError = false
+                    if(progress>0) progress--
+                }
+            )
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24,
                 {
-                    showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
+                    //Si no hay ninguna respuesta a true se asigna true a showError
+                    if(actualQuestion != allQuestions.last()) showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                     if(!showError) progress++
                 }
             )
@@ -147,7 +178,7 @@ fun getInitialQuestionsMap(allQuestions: List<Question>): List<Pair<String, Snap
                 mutableStateMapOf<String, Boolean>().apply {//Le inserto los valores por defecto(false) de cada respuesta
                     putAll(//Con este metodo puedo insertar una lista de Pairs
                         question.responses.map {
-                            response -> Pair(response, false)
+                                response -> Pair(response, false)
                         }
                     )
                 }
@@ -178,9 +209,9 @@ fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<Strin
                 a true, ya que con radioButton solo se puede poner una respuesta a true.
                 Si es un checkbox se asigna el valor que ya tiene, dejandose igual*/
                 if(question.responsesTypes == ResponsesType.RADIOBUTTON)
-                allCheckedActualQuestions.forEach { (responseList, _) ->
-                    allCheckedActualQuestions[responseList] = false
-                }
+                    allCheckedActualQuestions.forEach { (responseList, _) ->
+                        allCheckedActualQuestions[responseList] = false
+                    }
                 allCheckedActualQuestions[response] = !allCheckedActualQuestions[response]!!
             },
             question.responsesTypes
@@ -203,19 +234,20 @@ fun ShowLastQuestion(question: Question, allCheckedActualQuestions: MutableMap<S
 
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.Center
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.fillMaxWidth(0.5f),
+            verticalArrangement = Arrangement.Top
         ) {
             responsesFirstColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes) }
         }
 
         Column (
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             responsesSecondColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes) }
         }
@@ -226,7 +258,7 @@ fun ShowLastQuestion(question: Question, allCheckedActualQuestions: MutableMap<S
 @Composable
 fun ShowRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> Unit, responseType: ResponsesType){
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 20.dp).background(Color.Red),
+        modifier = Modifier.fillMaxWidth().padding(start = 20.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -245,33 +277,7 @@ fun ShowRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> U
                 modifier = Modifier.size(40.dp)
             )
         }
-        Text(response, color = Color.White, modifier = Modifier.background(Color.Blue))
-    }
-}
-
-@Composable
-fun ShowLastQuestionRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> Unit, responseType: ResponsesType){
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 20.dp).background(Color.Red),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if(responseType == ResponsesType.CHECKBOX) {
-            Checkbox(
-                checked = isChecked,
-                onCheckedChange = { changeChecked() },
-                colors = CheckboxColors(Color.White, Color.Transparent, colorResource(R.color.lightGreen), Color.Transparent, Color.LightGray, Color.LightGray, Color.LightGray, Color.White, Color.White, Color.LightGray, Color.LightGray, Color.LightGray),
-                modifier = Modifier.size(40.dp)
-            )
-        } else {
-            RadioButton(
-                selected = isChecked,
-                onClick = changeChecked,
-                colors = RadioButtonColors(colorResource(R.color.lightGreen), Color.White, Color.LightGray, Color.LightGray),
-                modifier = Modifier.size(40.dp)
-            )
-        }
-        Text(response, color = Color.White, modifier = Modifier.background(Color.Blue))
+        Text(response, color = Color.White)
     }
 }
 
@@ -302,4 +308,3 @@ fun ShowButtonForNextOrPreviousQuestion(label: String, idIcon: Int, onClick: () 
         }
     }
 }
-

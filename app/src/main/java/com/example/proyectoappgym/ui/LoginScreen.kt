@@ -118,7 +118,6 @@ fun LoginScreen(onRegistrationScreen: () -> Unit){
             ShowButtonForGoogleLogout()
         }
 
-
     }
 
 }
@@ -206,5 +205,19 @@ fun ShowButtonForGoogleLogout() {
             modifier = Modifier.padding(end = 10.dp)
         )
 
+    }
+}
+
+fun validateUsernameLogin(usernameValue: String, changeErrorText: (String) -> Unit) {
+    if(usernameValue.isEmpty()) {
+        changeErrorText("The field username can't be empty")
+    } else {
+        changeErrorText("Username exist yet")
+    }
+}
+
+fun validatePasswordLogin(passwordValue: String, changeErrorText: (String) -> Unit) {
+    if(passwordValue.isEmpty()) {
+        changeErrorText("The field username can't be empty")
     }
 }
