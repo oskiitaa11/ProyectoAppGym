@@ -73,8 +73,10 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             putAll(getInitialQuestionsMap(allQuestions))
         }
     }
+    var allQuestionsScreen = remember { allQuestions.toMutableList() }
     lateinit var actualQuestion: Question
     var showError by remember { mutableStateOf(false) }
+    lateinit var reponsesActualQuestion: MutableMap<String, Boolean>
 
     Column(
         modifier = Modifier
@@ -111,7 +113,7 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             targetState = progress,
             animationSpec = tween(durationMillis = 800)
         ) { targetState ->
-            actualQuestion = allQuestions[targetState]
+            actualQuestion = allQuestionsScreen[targetState]
 
             Column(
                 verticalArrangement = Arrangement.Top,
@@ -121,10 +123,16 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
 
                 /*Si ha llegado a la utlima pregunta que muestra una funcion distinta,
                para poder mostrar todos las respuestas de esta*/
-                if(actualQuestion != allQuestions.last()) {
+                if(actualQuestion != allQuestionsScreen.last()) {
                     ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
-                } else {
+                } else if(actualQuestion == allQuestionsScreen.last()) {
                     ShowLastQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+                } else if(actualQuestion == allQuestionsScreen[1]) {
+                    reponsesActualQuestion = allChecked[actualQuestion.question] as MutableMap<String, Boolean>
+                    if(reponsesActualQuestion[actualQuestion.responses[0]] == false) {
+
+                    }
+                    ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
                 }
 
                 if(showError) ShowErrorText("You must answer to the questions", 0.dp)
@@ -152,9 +160,20 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24,
                 {
-                    //Si no hay ninguna respuesta a true se asigna true a showError
+                    /*Si no hay ninguna respuesta a true se asigna true a showError,
+                    siempre que nose la ultima pregunta*/
                     if(actualQuestion != allQuestions.last()) showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                     if(!showError) progress++
+                    if(actualQuestion == allQuestionsScreen.first()) {
+                        var isFirstResponse = allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[0]) as Boolean
+                        var isSeconResponse = allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[1]) as Boolean
+
+                        if(isFirstResponse) {
+                            allQuestionsScreen.removeAt(1)
+                        } else if(isSeconResponse) {
+                            allQuestionsScreen.removeAt(2)
+                        }
+                    }
                 }
             )
         }
@@ -175,7 +194,7 @@ fun getInitialQuestionsMap(allQuestions: List<Question>): List<Pair<String, Snap
                 mutableStateMapOf<String, Boolean>().apply {//Le inserto los valores por defecto(false) de cada respuesta
                     putAll(//Con este metodo puedo insertar una lista de Pairs
                         question.responses.map {
-                            response -> Pair(response, false)
+                                response -> Pair(response, false)
                         }
                     )
                 }
@@ -206,9 +225,9 @@ fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<Strin
                 a true, ya que con radioButton solo se puede poner una respuesta a true.
                 Si es un checkbox se asigna el valor que ya tiene, dejandose igual*/
                 if(question.responsesTypes == ResponsesType.RADIOBUTTON)
-                allCheckedActualQuestions.forEach { (responseList, _) ->
-                    allCheckedActualQuestions[responseList] = false
-                }
+                    allCheckedActualQuestions.forEach { (responseList, _) ->
+                        allCheckedActualQuestions[responseList] = false
+                    }
                 allCheckedActualQuestions[response] = !allCheckedActualQuestions[response]!!
             },
             question.responsesTypes
@@ -305,4 +324,3 @@ fun ShowButtonForNextOrPreviousQuestion(label: String, idIcon: Int, onClick: () 
         }
     }
 }
-

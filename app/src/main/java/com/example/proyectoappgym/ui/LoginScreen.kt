@@ -106,10 +106,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit){
             Spacer(modifier = Modifier.height(20.dp))
             ShowInputPassword(passwordValue = password, label = "Password", isError = false, addNewPasswordValue = { newText -> password = newText })
             Spacer(modifier = Modifier.height(30.dp))
-            ShowButtonForLoginOrRegister(
-                "Login",
-                {  }
-            )
+            ShowButtonForLoginOrRegister("Login", {  })
             Spacer(modifier = Modifier.height(15.dp))
             Text("¿Don't you have account? You registrate", color = GetLightGreen(), modifier = Modifier.clickable {
                 onRegistrationScreen()
@@ -120,7 +117,6 @@ fun LoginScreen(onRegistrationScreen: () -> Unit){
             Spacer(modifier = Modifier.height(30.dp))
             ShowButtonForGoogleLogout()
         }
-
 
     }
 
@@ -212,10 +208,16 @@ fun ShowButtonForGoogleLogout() {
     }
 }
 
-fun validateUsername(username: String, changeErrorText: (String) -> Unit) {
-    if(username.isEmpty()) {
-        changeErrorText("Empty field")
-    } else if() {
-        
+fun validateUsernameLogin(usernameValue: String, changeErrorText: (String) -> Unit) {
+    if(usernameValue.isEmpty()) {
+        changeErrorText("The field username can't be empty")
+    } else {
+        changeErrorText("Username exist yet")
+    }
+}
+
+fun validatePasswordLogin(passwordValue: String, changeErrorText: (String) -> Unit) {
+    if(passwordValue.isEmpty()) {
+        changeErrorText("The field username can't be empty")
     }
 }
