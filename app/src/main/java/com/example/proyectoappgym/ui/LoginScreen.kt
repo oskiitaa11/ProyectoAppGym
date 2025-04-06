@@ -25,9 +25,12 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,7 +49,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.entity.User
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.lang.Error
 
 /*@Serializable
@@ -59,10 +65,20 @@ fun NavGraphBuilder.loginDestination(onRegistrationScreen: () -> Unit, onHomeScr
 }*/
 
 @Composable
-fun LoginScreen(onRegistrationScreen: () -> Unit){
+fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, askUserExist: (String) -> Unit, isCorrectPassword: (String, String) -> Boolean){
     var isClickedRegisterText by remember { mutableStateOf(false) }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val allErrorsText = remember { mutableStateMapOf("username" to "", "password" to "") }
+    val validateFieldsLogin: () -> Unit = {
+        allErrorsText.forEach { (field, _) -> allErrorsText[field] = "" }
+        validateUsernameLogin(username, { errorText -> allErrorsText["username"] = errorText })
+        validatePasswordLogin(username, password, { errorText -> allErrorsText["password"] = errorText }, isCorrectPassword)
+    }
+    //Cada vez que userExist cambie se verá si el usuario existe o no, para asignarle el texto de error
+    /*LaunchedEffect(userExist) {
+        if(!userExist) allErrorsText["username"] = "Username not exist"
+    }*/
 
     Column(
         modifier = Modifier.fillMaxSize().background(color = colorResource(R.color.lightBlack)),
@@ -102,11 +118,17 @@ fun LoginScreen(onRegistrationScreen: () -> Unit){
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ShowInputUsername(username, { newText -> username = newText })
+            ShowInputUsername(username, allErrorsText["username"]?.isNotEmpty() as Boolean, { newText -> username = newText })
+            ShowErrorText(allErrorsText["username"] as String, 5.dp)
             Spacer(modifier = Modifier.height(20.dp))
-            ShowInputPassword(passwordValue = password, label = "Password", isError = false, addNewPasswordValue = { newText -> password = newText })
+            ShowInputPassword(passwordValue = password, label = "Password", isError = allErrorsText["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
+            ShowErrorText(allErrorsText["password"] as String, 5.dp)
             Spacer(modifier = Modifier.height(30.dp))
-            ShowButtonForLoginOrRegister("Login", {  })
+            ShowButtonForLoginOrRegister("Login", {
+                validateFieldsLogin()
+                //Si los textos de error estan vacios, el usuario hará login
+                if(allErrorsText.values.all { it.isEmpty() }) signIn(username, password)
+            })
             Spacer(modifier = Modifier.height(15.dp))
             Text("¿Don't you have account? You registrate", color = GetLightGreen(), modifier = Modifier.clickable {
                 onRegistrationScreen()
@@ -123,7 +145,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit){
 }
 
 @Composable
-fun ShowInputUsername(usernameValue: String, addNewUsernameValue: (String) -> Unit){
+fun ShowInputUsername(usernameValue: String, isError: Boolean, addNewUsernameValue: (String) -> Unit){
     Column {
         Text(
             text = "Username",
@@ -138,12 +160,14 @@ fun ShowInputUsername(usernameValue: String, addNewUsernameValue: (String) -> Un
             onValueChange = addNewUsernameValue,
             leadingIcon = { Icon(imageVector = Icons.Sharp.Person, contentDescription = "Icono de Input") },
             shape = ShapeDefaults.ExtraSmall,
+            modifier = Modifier.height(50.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
         )
     }
 }
 
 @Composable
-fun ShowInputPassword(passwordValue: String, label: String, heightField: Dp = TextFieldDefaults.MinHeight, isError: Boolean, addNewPasswordValue: (String) -> Unit) {
+fun ShowInputPassword(passwordValue: String, label: String, isError: Boolean, addNewPasswordValue: (String) -> Unit) {
     var canShowPassword by remember { mutableStateOf(false) } //Variable para cambiar la contraseña
 
     Column {
@@ -170,7 +194,7 @@ fun ShowInputPassword(passwordValue: String, label: String, heightField: Dp = Te
             shape = ShapeDefaults.ExtraSmall,
             //Con el visualTransformation le digo que se transforme el texto a asterisco o no
             visualTransformation = if(canShowPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            modifier = Modifier.height(heightField)
+            modifier = Modifier.height(50.dp)
                 .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
         )
     }
@@ -211,12 +235,10 @@ fun ShowButtonForGoogleLogout() {
 fun validateUsernameLogin(usernameValue: String, changeErrorText: (String) -> Unit) {
     if(usernameValue.isEmpty()) {
         changeErrorText("The field username can't be empty")
-    } else {
-        changeErrorText("Username exist yet")
     }
 }
 
-fun validatePasswordLogin(passwordValue: String, changeErrorText: (String) -> Unit) {
+fun validatePasswordLogin(usernameValue: String, passwordValue: String, changeErrorText: (String) -> Unit, isCorrectPassword: (String, String) -> Boolean) {
     if(passwordValue.isEmpty()) {
         changeErrorText("The field username can't be empty")
     }

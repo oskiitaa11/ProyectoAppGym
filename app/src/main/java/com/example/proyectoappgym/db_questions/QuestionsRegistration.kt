@@ -15,6 +15,6 @@ object QuestionsRegistration: RepositoryQuestions {
     )
 
     override suspend fun allQuestions(): List<Question> {
-        return allQuestions.toList()
+        return allQuestions
     }
 }

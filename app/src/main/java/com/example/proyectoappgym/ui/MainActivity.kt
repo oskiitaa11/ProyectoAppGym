@@ -17,12 +17,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -39,6 +44,13 @@ import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -53,11 +65,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            var isSignIn by remember { mutableStateOf(false) }
+            val changeSignIn: (Boolean) -> Unit = { isSignIn = it }
+
             ProyectoAppGymTheme {
-                if(true) {
-                    NavScreensWithLoginScreen()
-                } else {
+                if(isSignIn) {
                     //NavScreensWithingLoginScreen()
+                } else {
+                    NavScreensWithLoginScreen(changeSignIn)
                 }
 
             }
@@ -88,7 +103,7 @@ fun NavScreensWithingLoginScreen() {
 
 
 @Composable
-fun NavScreensWithLoginScreen() {
+fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
     val navController = rememberNavController()
 
     NavHost(
@@ -97,19 +112,44 @@ fun NavScreensWithLoginScreen() {
         modifier = Modifier.fillMaxSize()
     ) {
         composable<LoginRoute> { navBackStackEntry ->
+            val loginViewmodel: LoginViewmodel = viewModel(navBackStackEntry) {
+                LoginViewmodel(
+                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
+                )
+            }
+            val intCompletedSignIn by loginViewmodel.intCompletedSignIn.collectAsStateWithLifecycle()
 
-            LoginScreen({ navController.navigate(RegistrationQuestionsRoute("", "", "", "", "", Gender.IND)) })
+            LoginScreen(
+                { navController.navigate(RegistrationRoute) },
+                { username, password ->
+                    loginViewmodel.signIn(username, password)
+                    if(intCompletedSignIn == 1) signIn(true)
+                },
+                { },
+                { username, password -> loginViewmodel.isCorrectPassword(username, password) },
+            )
         }
 
-        composable<RegistrationRoute> {
-            RegistrationScreen({ navController.popBackStack() }, { name, username, password, email, birthdate, gender -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)) })
+        composable<RegistrationRoute> { navBacStackEntry ->
+            val registrationViewmodel: RegistrationViewmodel = viewModel(navBacStackEntry) {
+                RegistrationViewmodel(
+                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
+                )
+            }
+
+            RegistrationScreen(
+                { navController.popBackStack() },
+                { name, username, password, email, birthdate, gender -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)) },
+                { username -> registrationViewmodel.userExist(username) }
+            )
         }
 
         composable<RegistrationQuestionsRoute> { navBackStackEntry ->
             val registrationQuestionsRoute: RegistrationQuestionsRoute = navBackStackEntry.toRoute()
             val registrationQuestionsViewmodel: RegistrationQuestionsViewmodel = viewModel {
                 RegistrationQuestionsViewmodel(
-                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions
+                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions,
+                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
                 )
             }
             val allQuestions = registrationQuestionsViewmodel.allQuestions
@@ -118,13 +158,19 @@ fun NavScreensWithLoginScreen() {
                 user = User(username, password, email, name, birthdate, gender)
             }
 
-            RegistrationQuestionsScreen(user, allQuestions)
+            RegistrationQuestionsScreen(
+                user,
+                allQuestions,
+                { userForAdd -> registrationQuestionsViewmodel.addUser(userForAdd) },
+                { navController.popBackStack(LoginRoute, true) }
+            )
         }
     }
 
 }
 
-/*@Composable
+/*
+@Composable
 fun BottomBar(
     currentDestination: NavDestination?,
     navController: NavHostController
@@ -156,7 +202,8 @@ fun BottomBar(
 
         }
     }
-}*/
+}
+*/
 
 @Composable
 fun GetLightGreen(): Color {

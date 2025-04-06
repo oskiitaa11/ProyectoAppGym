@@ -1,6 +1,7 @@
 package com.example.proyectoappgym.ui
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -40,6 +41,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -56,6 +59,7 @@ import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.db_questions.QuestionsRegistration.allQuestions
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.User
@@ -63,9 +67,14 @@ import java.nio.file.WatchEvent
 import kotlin.inc
 
 @OptIn(ExperimentalAnimationApi::class)
-@SuppressLint("UnrememberedMutableState")
+@SuppressLint("UnrememberedMutableState", "RememberReturnType")
 @Composable
-fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
+fun RegistrationQuestionsScreen(
+    user: User,
+    allQuestions: List<Question>,
+    addUser: (User) -> Boolean,
+    onLoginScreen: () -> Unit
+) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
     var progress by remember { mutableIntStateOf(6) }
     val allChecked = remember {
@@ -73,8 +82,15 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             putAll(getInitialQuestionsMap(allQuestions))
         }
     }
+    val allQuestionsScreen = remember {
+        val list = mutableStateListOf<Question>()
+        allQuestions.forEach { list.add(it) }
+        return@remember list
+    }
     lateinit var actualQuestion: Question
     var showError by remember { mutableStateOf(false) }
+    lateinit var reponsesActualQuestion: MutableMap<String, Boolean>
+    var isErrorToAddUser = false
 
     Column(
         modifier = Modifier
@@ -111,7 +127,7 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
             targetState = progress,
             animationSpec = tween(durationMillis = 800)
         ) { targetState ->
-            actualQuestion = allQuestions[targetState]
+            actualQuestion = allQuestionsScreen[targetState]
 
             Column(
                 verticalArrangement = Arrangement.Top,
@@ -121,16 +137,13 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
 
                 /*Si ha llegado a la utlima pregunta que muestra una funcion distinta,
                para poder mostrar todos las respuestas de esta*/
-                if(actualQuestion != allQuestions.last()) {
+                if (actualQuestion != allQuestionsScreen.last()) {
                     ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
-                } else if(actualQuestion == allQuestions.last()) {
+                } else {
                     ShowLastQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
-                } else if(actualQuestion == allQuestions[1]) {
-                    if()
-                    ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
                 }
 
-                if(showError) ShowErrorText("You must answer to the questions", 0.dp)
+                if (showError) ShowErrorText("You must answer to the questions", 0.dp)
             }
 
         }
@@ -148,20 +161,44 @@ fun RegistrationQuestionsScreen(user: User, allQuestions: List<Question>) {
         ) {
             ShowButtonForNextOrPreviousQuestion("Back", R.drawable.ic_arrow_back_ios_new_24,
                 {
-                    if(showError) showError = false
-                    if(progress>0) progress--
+                    if (showError) showError = false
+                    if (progress > 0) progress--
                 }
             )
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24,
                 {
-                    //Si no hay ninguna respuesta a true se asigna true a showError
-                    if(actualQuestion != allQuestions.last()) showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
-                    if(!showError) progress++
+                    /*Si no hay ninguna respuesta a true se asigna true a showError,
+                    siempre que nose la ultima pregunta*/
+                    if (actualQuestion == allQuestionsScreen.last()) {
+                        user.allQuestionsAnswered = getAllQuestionAnswered(allChecked)
+                        isErrorToAddUser = addUser(user)
+                    } else if (actualQuestion == allQuestionsScreen.first()) { //Si la respuesta respondida es la primera
+                        chooseQuestionAccordingToAnswerByFirstQuestion(
+                            allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[0]) as Boolean,
+                            allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[1]) as Boolean,
+                            allQuestionsScreen
+                        )
+                    } else {
+                        showError =
+                            allChecked[actualQuestion.question]?.all { !it.value } as Boolean
+                    }
+                    if (!showError) progress++
+                    //Cuando la pregunta sea la primera, según la respuesta elegida le aparecerá una pregunta u otro
+
                 }
             )
+
         }
 
+    }
+
+    if(isErrorToAddUser) {
+        Toast.makeText(LocalContext.current, "Registered user", Toast.LENGTH_SHORT).show()
+        onLoginScreen()
+    }
+    else {
+        Toast.makeText(LocalContext.current, "Failure to the register to user", Toast.LENGTH_SHORT).show()
     }
 
 }
@@ -307,4 +344,34 @@ fun ShowButtonForNextOrPreviousQuestion(label: String, idIcon: Int, onClick: () 
             )
         }
     }
+}
+
+fun chooseQuestionAccordingToAnswerByFirstQuestion(isFirstResponse: Boolean, isSecondResponse: Boolean, allQuestionsScreen: MutableList<Question>) {
+    if(isFirstResponse) {//Si la es la primera respuesta, se inicia el siguiente bloque
+        choseResponseOfQuestion(2, allQuestionsScreen, 1)
+    } else if(isSecondResponse) {
+        choseResponseOfQuestion(1, allQuestionsScreen, 2)
+    } else { // Si la respuesta es la tercera se añade las dos preguntas si no estan en la lista de preguntas mutable
+        if(!isQuestionInAllQuestions(2, allQuestionsScreen)) allQuestionsScreen.add(2, allQuestions[2])
+        if(!isQuestionInAllQuestions(1, allQuestionsScreen)) allQuestionsScreen.add(1, allQuestions[1])
+    }
+}
+
+fun choseResponseOfQuestion(indexQuestionInOriginalList: Int, allQuestionsScreen: MutableList<Question>, indexQuestionForRemove: Int) {
+    /* Si la respuesta elegida es la primera se coge, se comprueba si la pregunta está en la lista mutable de preguntas
+       si no está se añade y se borra la pregunta, segun la otra respuesta elegida  */
+    if(!isQuestionInAllQuestions(indexQuestionInOriginalList, allQuestionsScreen)) allQuestionsScreen.add(indexQuestionInOriginalList, allQuestions[indexQuestionInOriginalList])
+    allQuestionsScreen.removeAt(indexQuestionForRemove)
+}
+
+fun isQuestionInAllQuestions(indexQuestionInOriginalList: Int, allQuestionsScreen: List<Question>): Boolean{
+    return allQuestionsScreen.any { it == allQuestions[indexQuestionInOriginalList] }
+}
+
+fun getAllQuestionAnswered(allChecked: Map<String, MutableMap<String, Boolean>>): MutableMap<String, List<String>> {
+    val allQuestionsAnswered = mutableMapOf<String, List<String>>()
+    val pairs = allChecked.map { (question, map) -> Pair(question, map.filter { (_, value) -> value }.keys.toList()) }
+    allQuestionsAnswered.putAll(pairs)
+
+    return allQuestionsAnswered
 }

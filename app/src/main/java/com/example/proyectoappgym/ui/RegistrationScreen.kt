@@ -1,8 +1,12 @@
 package com.example.proyectoappgym.ui
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.icu.util.Calendar
 import android.widget.DatePicker
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
@@ -47,27 +52,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
 import androidx.navigation.serialization.generateRouteWithArgs
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Gender
 import java.time.LocalDate
 import java.time.Year
 
-/*@Serializable
-object RegistrationRoute
 
-fun NavController.goToRegistrationScreen(){
+/*fun NavController.goToRegistrationScreen(){
     navigate(RegistrationRoute)
 }
 
-fun NavGraphBuilder.registrationDestination(onBack: () -> Unit) {
+fun NavGraphBuilder.registrationDestination(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit) {
     composable<RegistrationRoute> {
-        RegistrationScreen(onBack)
+        RegistrationScreen(onBack, onRegistrationQuestion)
     }
 }*/
 
 @Composable
-fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit) {
+fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, userExist: (String) -> Boolean) {
     var name by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -81,9 +87,10 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
     inicialmente esta vacio. Cuando este vacio el campo es porque todavia
     no ha dado ningun error*/
     var allErrorsFields = remember {
-        SnapshotStateMap<String, String>().apply {
+        mutableStateMapOf("name" to "", "username" to "", "birthdate" to "", "password" to "", "email" to "", "gender" to "")
+        /*SnapshotStateMap<String, String>().apply {
             putAll(getInitialErrorsFieldsMap(listOf("name", "username", "birthdate", "password", "email", "gender")))
-        }
+        }*/
     }
     //Se valida cada campo para que el usuario cumpla con los requisitos minimos
     val validateFields: () -> Unit = {
@@ -91,7 +98,8 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
         validateTextUsername(
             username,
             username == email.split(Regex("@"))[0],
-            { errorText -> allErrorsFields["username"] = errorText }
+            { errorText -> allErrorsFields["username"] = errorText },
+            userExist
         )
         validatePassword(password, { errorText -> allErrorsFields["password"] = errorText })
         validateBirthdate(birthdate, { errorText -> allErrorsFields["birthdate"] = errorText })
@@ -112,10 +120,10 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             ShowInputNormal(username, "Username", R.drawable.ic_person_24, allErrorsFields["username"]?.isNotEmpty() as Boolean, { newText -> username = newText })
             ShowErrorText(allErrorsFields["username"] as String, 5.dp)
             Spacer(modifier = Modifier.height(15.dp))
-            ShowInputEmail(email, allErrorsFields["username"]?.isNotEmpty() as Boolean, { newValue -> email = newValue })
+            ShowInputEmail(email, allErrorsFields["email"]?.isNotEmpty() as Boolean, { newValue -> email = newValue })
             ShowErrorText(allErrorsFields["email"] as String, 5.dp)
             Spacer(modifier = Modifier.height(15.dp))
-            ShowInputPassword(passwordValue = password, label = "You create the new password", heightField = 50.dp, allErrorsFields["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
+            ShowInputPassword(passwordValue = password, label = "You create the new password", allErrorsFields["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
             ShowErrorText(allErrorsFields["password"] as String, 5.dp)
             Spacer(modifier = Modifier.height(15.dp))
             Row(
@@ -161,8 +169,10 @@ fun TopAppBarRegistration(onBack: () -> Unit) {
     )
 }
 
+@SuppressLint("UseOfNonLambdaOffsetOverload")
 @Composable
 fun ShowErrorText(errorText: String, startPadding: Dp, endPadding: Dp = 0.dp) {
+
     if(errorText.isNotEmpty()) {//Si el texto de error esta vacio es porque no ha habido ningun error
         Row(
             modifier = Modifier.fillMaxWidth(0.8f).padding(start = startPadding, top = 2.dp),
@@ -326,77 +336,72 @@ fun ShowGenderButton(color: Color, gender: Gender, isSelectedActualGender: Boole
     }
 }
 
-fun validateTextUsername(valueText: String, usernameIsEqualToEmail: Boolean, changeValueField: (String) -> Unit): Boolean {
-    var insertedEspecialCharacters: String
+fun validateTextUsername(valueText: String, usernameIsEqualToEmail: Boolean, changeValueField: (String) -> Unit, userExist: (String) -> Boolean) {
+    val insertedEspecialCharacters: String
 
     if(valueText.isEmpty()) {
         changeValueField("The username can't be empty")
-        return true
+        return
     } else if(valueText.length <= 5) {
         changeValueField("Must be greater than 5 characters")
-        return true
+        return
     } else if(valueText.length > 20) {
         changeValueField("Must be less than 20 characters")
-        return true
+        return
     } else if(!valueText.contains(Regex("[A-Z]"))) {
         changeValueField("Must have at least one upper case")
-        return true
+        return
     } else if(valueText.contains(Regex("['´`\"\\-+\\\\/@<>&;^#=():%*|]"))) {
         insertedEspecialCharacters = valueText.filter { it.toString().matches(Regex("[|'´`\"+\\\\/<>;&^#=():%*]")) }
         changeValueField("Invalid characters: $insertedEspecialCharacters")
-        return true
+        return
     } else if(usernameIsEqualToEmail) {
         changeValueField("The username can't be equal than the email")
-        return true
+        return
+    } else if(userExist(valueText)) {
+        changeValueField("Username already exist")
     }
-
-    return false
 }
 
-fun validatePassword(valuePassword: String, changeValueField: (String) -> Unit): Boolean {
+fun validatePassword(valuePassword: String, changeValueField: (String) -> Unit) {
     if(valuePassword.isEmpty()) {
         changeValueField("The field password can't be empty")
-        return true
+        return
     } else if(valuePassword.length < 10) {
         changeValueField("Must have between more tha 10 characters")
-        return true
+        return
     } else if(valuePassword.length > 50) {
         changeValueField("Must have between more tha 50 characters")
-        return true
+        return
     } else if(!(valuePassword.contains(Regex("[A-Z]")))) {
         changeValueField("Must have at least one upper case")
-        return true
+        return
     } else if(!(valuePassword.contains(Regex("[a-z]")))) {
         changeValueField("Must have at least one lower case")
-        return true
+        return
     } else if(!(valuePassword.contains(Regex("[0-9]")))) {
         changeValueField("Must have at least one number")
-        return true
+        return
     } else if (!(valuePassword.contains(Regex("[!\"\$#%&'\\\\()*+,\\-./;:<=>?@^\\[\\]_{|}~`]")))) {
         changeValueField("Must have special characters")
-        return true
     }
 
-    return false
 }
 
-fun validateBirthdate(valueBirthdate: String, changeValueField: (String) -> Unit): Boolean {
+fun validateBirthdate(valueBirthdate: String, changeValueField: (String) -> Unit) {
     if(valueBirthdate.isEmpty()) {
         changeValueField("The field birthdate can't be empty")
-        return true
+        return
     } else if(valueBirthdate.split("/").last().toInt() == Year.now().value) {
         changeValueField("Must be previous to this year")
-        return true
     }
-
-    return false
 }
 
-fun validateEmail(valueEmail: String, changeValueField: (String) -> Unit): Boolean {
-    if(!valueEmail.trim().matches(Regex("(.*)\\b@gmail\\b(\\.)(es|com|net|org|edu|gov|info|int)"))) {
+fun validateEmail(valueEmail: String, changeValueField: (String) -> Unit) {
+    if(valueEmail.isEmpty()) {
+        changeValueField("The field email can't be empty")
+        return
+    } else if(!valueEmail.trim().matches(Regex("(.*)\\b@gmail\\b(\\.)(es|com|net|org|edu|gov|info|int)"))) {
         changeValueField("Insert a valid email")
-        return true
     }
-
-    return false
 }

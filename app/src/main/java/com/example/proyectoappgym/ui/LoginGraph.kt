@@ -6,8 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.navigation
 import kotlinx.serialization.Serializable
 
-/*
-@Serializable
+/*@Serializable
 object LoginGraphRoute
 
 fun NavGraphBuilder.loginGraph(navController: NavHostController) {
