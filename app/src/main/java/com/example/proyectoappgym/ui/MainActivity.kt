@@ -118,15 +118,18 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
                 )
             }
             val intCompletedSignIn by loginViewmodel.intCompletedSignIn.collectAsStateWithLifecycle()
+            val context = LocalContext.current
 
             LoginScreen(
                 { navController.navigate(RegistrationRoute) },
                 { username, password ->
                     loginViewmodel.signIn(username, password)
-                    if(intCompletedSignIn == 1) signIn(true)
+                    if(intCompletedSignIn == 1) {
+                        signIn(true)
+                        showToast("Sesion started", context)
+                    }
                 },
-                { },
-                { username, password -> loginViewmodel.isCorrectPassword(username, password) },
+                intCompletedSignIn
             )
         }
 

@@ -15,11 +15,9 @@ class LoginViewmodel(private val userDatabase: RepositoryUserDatabase): ViewMode
     var intCompletedSignIn: MutableStateFlow<Int> = MutableStateFlow(0)
 
     fun signIn(username: String, password: String) {
-
         viewModelScope.launch {
            intCompletedSignIn.update { userDatabase.signIn(username, password) }
         }
-
     }
 
     fun isCorrectPassword(username: String, password: String): Boolean {

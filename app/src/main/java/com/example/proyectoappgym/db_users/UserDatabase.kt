@@ -16,6 +16,8 @@ import com.google.firebase.firestore.auth.FirebaseAuthCredentialsProvider
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.asDeferred
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class UserDatabase: RepositoryUserDatabase {
 
@@ -49,19 +51,21 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     override suspend fun signIn(email: String, password: String): Int {
-        var showedText = 0
 
-        auth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
-            showedText = 1
-        } .addOnFailureListener { exception ->
-            showedText = when(exception) {
-                is FirebaseAuthInvalidUserException -> 2
-                is FirebaseAuthInvalidCredentialsException -> 3
-                else -> 4
+        return suspendCoroutine { continuation ->
+            auth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
+                continuation.resume(1)
+            }.addOnFailureListener { exception ->
+                val intErrorSignIn = when (exception) {
+                    is FirebaseAuthInvalidUserException -> 2
+                    is FirebaseAuthInvalidCredentialsException -> 3
+                    else -> 4
+                }
+
+                continuation.resume(intErrorSignIn)
             }
         }
 
-        return showedText
     }
 
     override suspend fun signOut() {
