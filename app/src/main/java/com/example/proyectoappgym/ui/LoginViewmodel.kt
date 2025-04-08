@@ -19,14 +19,4 @@ class LoginViewmodel(private val userDatabase: RepositoryUserDatabase): ViewMode
            intCompletedSignIn.update { userDatabase.signIn(username, password) }
         }
     }
-
-    fun isCorrectPassword(username: String, password: String): Boolean {
-        var isError = false
-
-        viewModelScope.launch {
-            isError = userDatabase.isCorrectPassword(username, password)
-        }
-
-        return isError
-    }
 }

@@ -35,6 +35,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -73,24 +74,18 @@ fun NavGraphBuilder.registrationDestination(onBack: () -> Unit, onRegistrationQu
 }*/
 
 @Composable
-fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, userExist: (String) -> Boolean) {
+fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean, emailExist: Boolean) {
     var name by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(Gender.NONE) }
-    val getInitialErrorsFieldsMap: (List<String>) -> List<Pair<String, String>> = {
-        it.map { field -> Pair(field, "") }
-    }
     /*Se crea un mapa por cada campo se inserta el texto de error,
     inicialmente esta vacio. Cuando este vacio el campo es porque todavia
     no ha dado ningun error*/
     var allErrorsFields = remember {
         mutableStateMapOf("name" to "", "username" to "", "birthdate" to "", "password" to "", "email" to "", "gender" to "")
-        /*SnapshotStateMap<String, String>().apply {
-            putAll(getInitialErrorsFieldsMap(listOf("name", "username", "birthdate", "password", "email", "gender")))
-        }*/
     }
     //Se valida cada campo para que el usuario cumpla con los requisitos minimos
     val validateFields: () -> Unit = {
@@ -99,12 +94,23 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             username,
             username == email.split(Regex("@"))[0],
             { errorText -> allErrorsFields["username"] = errorText },
-            userExist
         )
         validatePassword(password, { errorText -> allErrorsFields["password"] = errorText })
         validateBirthdate(birthdate, { errorText -> allErrorsFields["birthdate"] = errorText })
         validateEmail(email, { errorText -> allErrorsFields["email"] = errorText })
 
+    }
+
+    var validateFieldsIfExist by remember { mutableStateOf(false) }
+
+    if(validateFieldsIfExist){
+        ValidateFieldsIfExist(
+            emailExist,
+            userExist,
+            { errorText -> allErrorsFields["email"] = errorText },
+            { errorText -> allErrorsFields["username"] = errorText }
+        )
+        if(allErrorsFields.values.all { it.isEmpty() }) onRegistrationQuestion(name.trim(), username.trim(), password, email.trim(), birthdate, gender)
     }
 
     Scaffold(topBar = { TopAppBarRegistration(onBack) }) { innerPadding ->
@@ -146,7 +152,9 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
                 {
                     validateFields()
                     if(allErrorsFields.values.all { it.isEmpty() }) {
-                        onRegistrationQuestion(name.trim(), username.trim(), password.trim(), email.trim(), birthdate, gender)
+                        validateFieldsIfExist = true
+                        askUserExist(username)
+                        askEmailExist(email)
                     }
                 }
             )
@@ -336,7 +344,7 @@ fun ShowGenderButton(color: Color, gender: Gender, isSelectedActualGender: Boole
     }
 }
 
-fun validateTextUsername(valueText: String, usernameIsEqualToEmail: Boolean, changeValueField: (String) -> Unit, userExist: (String) -> Boolean) {
+fun validateTextUsername(valueText: String, usernameIsEqualToEmail: Boolean, changeValueField: (String) -> Unit) {
     val insertedEspecialCharacters: String
 
     if(valueText.isEmpty()) {
@@ -358,8 +366,6 @@ fun validateTextUsername(valueText: String, usernameIsEqualToEmail: Boolean, cha
     } else if(usernameIsEqualToEmail) {
         changeValueField("The username can't be equal than the email")
         return
-    } else if(userExist(valueText)) {
-        changeValueField("Username already exist")
     }
 }
 
@@ -403,5 +409,25 @@ fun validateEmail(valueEmail: String, changeValueField: (String) -> Unit) {
         return
     } else if(!valueEmail.trim().matches(Regex("(.*)\\b@gmail\\b(\\.)(es|com|net|org|edu|gov|info|int)"))) {
         changeValueField("Insert a valid email")
+    }
+}
+
+@Composable
+fun ValidateFieldsIfExist(emailExist: Boolean, userExist: Boolean, changeErrorTextEmail: (String) -> Unit, changeErrorTextUser: (String) -> Unit) {
+    EmailExist(emailExist, changeErrorTextEmail)
+    UserExist(userExist, changeErrorTextUser)
+}
+
+@Composable
+fun EmailExist(emailExist: Boolean, changeErrorTextEmail: (String) -> Unit){
+    LaunchedEffect(emailExist) {
+        if(emailExist) changeErrorTextEmail("Email already registered")
+    }
+}
+
+@Composable
+fun UserExist(userExist: Boolean, changeErrorTextUser: (String) -> Unit) {
+    LaunchedEffect(userExist) {
+        if(userExist) changeErrorTextUser("Email already registered")
     }
 }

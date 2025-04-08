@@ -128,7 +128,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            ShowInputEmailLogin(email, allErrorsText["email"]?.isNotEmpty() as Boolean, { newText -> email = newText })
+            ShowInputEmail(email, allErrorsText["email"]?.isNotEmpty() as Boolean, { newText -> email = newText })
             ShowErrorText(allErrorsText["email"] as String, 5.dp)
             Spacer(modifier = Modifier.height(20.dp))
             ShowInputPassword(passwordValue = password, label = "Password", isError = allErrorsText["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
@@ -154,7 +154,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
 
 }
 
-@Composable
+/*@Composable
 fun ShowInputEmailLogin(emailValue: String, isError: Boolean, addNewEmailValue: (String) -> Unit){
     Column {
         Text(
@@ -174,7 +174,7 @@ fun ShowInputEmailLogin(emailValue: String, isError: Boolean, addNewEmailValue: 
                 .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
         )
     }
-}
+}*/
 
 @Composable
 fun ShowInputPassword(passwordValue: String, label: String, isError: Boolean, addNewPasswordValue: (String) -> Unit) {

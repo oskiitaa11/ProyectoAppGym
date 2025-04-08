@@ -3,16 +3,23 @@ package com.example.proyectoappgym.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoappgym.db_users.RepositoryUserDatabase
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegistrationViewmodel(val userDatabase: RepositoryUserDatabase): ViewModel() {
-    fun userExist(username: String): Boolean {
-        var isExist = false
+    var emailExist = MutableStateFlow(false)
+    var userExist = MutableStateFlow(false)
 
+    fun userExist(username: String) {
         viewModelScope.launch {
-             isExist = userDatabase.userExist(username)
+             userExist.update { userDatabase.userExist(username) }
         }
+    }
 
-        return isExist
+    fun emailExist(email: String) {
+        viewModelScope.launch {
+            emailExist.update { userDatabase.userExist(email) }
+        }
     }
 }

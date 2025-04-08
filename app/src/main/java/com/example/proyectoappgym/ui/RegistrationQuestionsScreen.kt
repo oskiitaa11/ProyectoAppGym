@@ -76,7 +76,7 @@ fun RegistrationQuestionsScreen(
     onLoginScreen: () -> Unit
 ) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
-    var progress by remember { mutableIntStateOf(6) }
+    var progress by remember { mutableIntStateOf(0) }
     val allChecked = remember {
         mutableMapOf<String, SnapshotStateMap<String, Boolean>>().apply {
             putAll(getInitialQuestionsMap(allQuestions))
@@ -89,7 +89,6 @@ fun RegistrationQuestionsScreen(
     }
     lateinit var actualQuestion: Question
     var showError by remember { mutableStateOf(false) }
-    lateinit var reponsesActualQuestion: MutableMap<String, Boolean>
     var isErrorToAddUser = false
 
     Column(

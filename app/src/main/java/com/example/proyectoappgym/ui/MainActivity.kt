@@ -139,11 +139,16 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
                     (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
                 )
             }
+            val userExist by registrationViewmodel.userExist.collectAsStateWithLifecycle()
+            val emailExist by registrationViewmodel.emailExist.collectAsStateWithLifecycle()
 
             RegistrationScreen(
                 { navController.popBackStack() },
                 { name, username, password, email, birthdate, gender -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)) },
-                { username -> registrationViewmodel.userExist(username) }
+                { email -> registrationViewmodel.emailExist(email) },
+                { username -> registrationViewmodel.userExist(username) },
+                userExist,
+                emailExist
             )
         }
 

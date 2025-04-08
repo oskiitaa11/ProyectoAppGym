@@ -1,5 +1,6 @@
 package com.example.proyectoappgym.db_users
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
@@ -9,6 +10,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthEmailException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -16,6 +18,7 @@ import com.google.firebase.firestore.auth.FirebaseAuthCredentialsProvider
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.asDeferred
+import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -29,29 +32,37 @@ class UserDatabase: RepositoryUserDatabase {
         db = Firebase.firestore
     }
 
+    @SuppressLint("RestrictedApi")
     override suspend fun addUser(user: User): Boolean {
         //val userMap = convertUserToMap(user)
-        var isError = false
+        var isError: Boolean
+        var userFirebase: FirebaseUser?
+        var password = user.password
+        user.password = ""; //Para que la contraseña no se vea desde el archivo de la database
 
-        db.collection("Users").document(user.username).set(user).addOnCompleteListener { documentReference ->
-            isError = true
-        }.addOnFailureListener {
-            isError = false
-        }
+        return suspendCoroutine { continuation ->
 
-        if(!isError) return false
+           userFirebase = auth.createUserWithEmailAndPassword(user.email, password)
+               .result.user
 
-        auth.createUserWithEmailAndPassword(user.email, user.password)
-            .addOnCompleteListener { task ->
-                if(task.isSuccessful) isError = true
-                else isError = false
+            if(userFirebase != null) {
+                db.collection("Users").document(userFirebase.uid).set(user)
+                    .addOnCompleteListener { documentReference ->
+                        continuation.resume(true)
+                    }.addOnFailureListener {
+                        continuation.resume(false)
+                    }
+            } else {
+                continuation.resume(false)
             }
 
-        return isError
+        }
     }
 
     override suspend fun signIn(email: String, password: String): Int {
 
+        /* El suspendCoroutine suspende la suspend funtion hasta que la task ha
+           terminado de ejecutarse, devolviendo el valor pasado en resume()*/
         return suspendCoroutine { continuation ->
             auth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
                 continuation.resume(1)
