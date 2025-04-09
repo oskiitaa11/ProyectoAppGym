@@ -77,9 +77,9 @@ fun NavGraphBuilder.registrationDestination(onBack: () -> Unit, onRegistrationQu
 fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean, emailExist: Boolean) {
     var name by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("Oskiitaa15") }
+    var password by remember { mutableStateOf("Swcdlcmokjoij89_") }
+    var email by remember { mutableStateOf("oskiitaa11@gmail.com") }
     var gender by remember { mutableStateOf(Gender.NONE) }
     /*Se crea un mapa por cada campo se inserta el texto de error,
     inicialmente esta vacio. Cuando este vacio el campo es porque todavia
@@ -110,7 +110,8 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             { errorText -> allErrorsFields["email"] = errorText },
             { errorText -> allErrorsFields["username"] = errorText }
         )
-        if(allErrorsFields.values.all { it.isEmpty() }) onRegistrationQuestion(name.trim(), username.trim(), password, email.trim(), birthdate, gender)
+        validateFieldsIfExist = false
+        //if(allErrorsFields.values.all { it.isEmpty() }) //onRegistrationQuestion(name.trim(), username.trim(), password, email.trim(), birthdate, gender)
     }
 
     Scaffold(topBar = { TopAppBarRegistration(onBack) }) { innerPadding ->
@@ -428,6 +429,6 @@ fun EmailExist(emailExist: Boolean, changeErrorTextEmail: (String) -> Unit){
 @Composable
 fun UserExist(userExist: Boolean, changeErrorTextUser: (String) -> Unit) {
     LaunchedEffect(userExist) {
-        if(userExist) changeErrorTextUser("Email already registered")
+        if(userExist) changeErrorTextUser("username already registered")
     }
 }

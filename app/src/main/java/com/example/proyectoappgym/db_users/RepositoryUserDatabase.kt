@@ -6,8 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 interface RepositoryUserDatabase {
     suspend fun addUser(user: User): Boolean
     suspend fun deleteUser(user: User): String
-    suspend fun signIn(username: String, password: String): Int
+    suspend fun signIn(email: String, password: String): Int
     suspend fun signOut()
+    suspend fun emailExist(email: String): Boolean
     suspend fun userExist(username: String): Boolean
     suspend fun isCorrectPassword(username: String, password: String): Boolean
 }

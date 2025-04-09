@@ -35,7 +35,6 @@ class UserDatabase: RepositoryUserDatabase {
     @SuppressLint("RestrictedApi")
     override suspend fun addUser(user: User): Boolean {
         //val userMap = convertUserToMap(user)
-        var isError: Boolean
         var userFirebase: FirebaseUser?
         var password = user.password
         user.password = ""; //Para que la contraseña no se vea desde el archivo de la database
@@ -59,8 +58,9 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
-    override suspend fun signIn(email: String, password: String): Int {
 
+
+    override suspend fun signIn(email: String, password: String): Int {
         /* El suspendCoroutine suspende la suspend funtion hasta que la task ha
            terminado de ejecutarse, devolviendo el valor pasado en resume()*/
         return suspendCoroutine { continuation ->
@@ -78,6 +78,33 @@ class UserDatabase: RepositoryUserDatabase {
         }
 
     }
+
+    override suspend fun emailExist(email: String): Boolean {
+        /*return suspendCoroutine { continuation ->
+            db.collection("Users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnSuccessListener {
+                    continuation.resume(!it.isEmpty)
+                }.addOnFailureListener {
+                    continuation.resume(false)
+                }
+        }*/
+        var emailExist = false
+
+        db.collection("Users")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnSuccessListener {
+                emailExist = !it.isEmpty
+            }.addOnFailureListener {
+                emailExist = false
+            }.asDeferred().join()
+
+        return emailExist
+
+    }
+
 
     override suspend fun signOut() {
         auth.signOut()
@@ -110,11 +137,14 @@ class UserDatabase: RepositoryUserDatabase {
     override suspend fun userExist(username: String): Boolean {
         var isExist = false
 
-        db.collection("Users").whereEqualTo("username", username).get().addOnSuccessListener {
-            isExist = !it.isEmpty
-        }.addOnFailureListener {
-            isExist = false
-        }.asDeferred().join()
+        db.collection("Users")
+            .whereEqualTo("username", username)
+            .get()
+            .addOnSuccessListener {
+                isExist = !it.isEmpty
+            }.addOnFailureListener {
+                isExist = false
+            }.asDeferred().join()
 
         return isExist
     }

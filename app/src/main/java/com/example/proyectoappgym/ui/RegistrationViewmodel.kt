@@ -19,7 +19,8 @@ class RegistrationViewmodel(val userDatabase: RepositoryUserDatabase): ViewModel
 
     fun emailExist(email: String) {
         viewModelScope.launch {
-            emailExist.update { userDatabase.userExist(email) }
+            emailExist.update { userDatabase.emailExist(email) }
         }
+
     }
 }
