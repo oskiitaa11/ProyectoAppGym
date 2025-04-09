@@ -63,10 +63,8 @@ import com.example.proyectoappgym.db_questions.QuestionsRegistration.allQuestion
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.User
-import java.nio.file.WatchEvent
-import kotlin.inc
 
-@OptIn(ExperimentalAnimationApi::class)
+
 @SuppressLint("UnrememberedMutableState", "RememberReturnType")
 @Composable
 fun RegistrationQuestionsScreen(
@@ -192,13 +190,13 @@ fun RegistrationQuestionsScreen(
 
     }
 
-    if(isErrorToAddUser) {
+    /*if(isErrorToAddUser) {
         Toast.makeText(LocalContext.current, "Registered user", Toast.LENGTH_SHORT).show()
         onLoginScreen()
     }
     else {
         Toast.makeText(LocalContext.current, "Failure to the register to user", Toast.LENGTH_SHORT).show()
-    }
+    }*/
 
 }
 
@@ -223,7 +221,6 @@ fun getInitialQuestionsMap(allQuestions: List<Question>): List<Pair<String, Snap
     }
 
     return allPairs.toList()
-
 }
 
 @Composable
@@ -258,7 +255,7 @@ fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<Strin
 @Composable
 fun ShowLastQuestion(question: Question, allCheckedActualQuestions: MutableMap<String, Boolean>){
     val responsesFirstColumn = question.responses.slice(0..3)
-    var responsesSecondColumn = question.responses.slice(4..question.responses.lastIndex)
+    val responsesSecondColumn = question.responses.slice(4..question.responses.lastIndex)
 
     Text(
         question.question,

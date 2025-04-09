@@ -74,12 +74,12 @@ fun NavGraphBuilder.registrationDestination(onBack: () -> Unit, onRegistrationQu
 }*/
 
 @Composable
-fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean, emailExist: Boolean) {
+fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean?, emailExist: Boolean?, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("Oskiitaa15") }
     var password by remember { mutableStateOf("Swcdlcmokjoij89_") }
-    var email by remember { mutableStateOf("oskiitaa11@gmail.com") }
+    var email by remember { mutableStateOf("oskiitaa12@gmail.com") }
     var gender by remember { mutableStateOf(Gender.NONE) }
     /*Se crea un mapa por cada campo se inserta el texto de error,
     inicialmente esta vacio. Cuando este vacio el campo es porque todavia
@@ -101,17 +101,19 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
 
     }
 
-    var validateFieldsIfExist by remember { mutableStateOf(false) }
-
-    if(validateFieldsIfExist){
-        ValidateFieldsIfExist(
-            emailExist,
-            userExist,
+    // Si se ha preguntado si existe algun usuario o email, estas variables seran nulas y no entrará en el bloque
+    if(userExist != null || emailExist != null){
+        validateFieldsIfExist(
+            emailExist ?: false, //Si emailExist es null significa que no se ha preguntado por este y significa que ya se ha preguntado antes
+            userExist ?: false, //Si userlExist es null significa que no se ha preguntado por este y significa que ya se ha preguntado antes
             { errorText -> allErrorsFields["email"] = errorText },
-            { errorText -> allErrorsFields["username"] = errorText }
+            { errorText -> allErrorsFields["username"] = errorText },
+            setUserExistToNull,
+            setUserExistToNull
+            //Despues se asigna las dos variables a null otra vez
         )
-        validateFieldsIfExist = false
-        //if(allErrorsFields.values.all { it.isEmpty() }) //onRegistrationQuestion(name.trim(), username.trim(), password, email.trim(), birthdate, gender)
+        //Cuando se termine de validar los campos si no hay ningun error todos los valores del mapa estaran a null
+        if(allErrorsFields.values.all { it.isEmpty() }) onRegistrationQuestion(name.trim(), username.trim(), password, email.trim(), birthdate, gender)
     }
 
     Scaffold(topBar = { TopAppBarRegistration(onBack) }) { innerPadding ->
@@ -153,7 +155,6 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
                 {
                     validateFields()
                     if(allErrorsFields.values.all { it.isEmpty() }) {
-                        validateFieldsIfExist = true
                         askUserExist(username)
                         askEmailExist(email)
                     }
@@ -413,22 +414,13 @@ fun validateEmail(valueEmail: String, changeValueField: (String) -> Unit) {
     }
 }
 
-@Composable
-fun ValidateFieldsIfExist(emailExist: Boolean, userExist: Boolean, changeErrorTextEmail: (String) -> Unit, changeErrorTextUser: (String) -> Unit) {
-    EmailExist(emailExist, changeErrorTextEmail)
-    UserExist(userExist, changeErrorTextUser)
+
+fun validateFieldsIfExist(emailExist: Boolean, userExist: Boolean, changeErrorTextEmail: (String) -> Unit, changeErrorTextUser: (String) -> Unit, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit) {
+    valueExist(emailExist, changeErrorTextEmail, setEmailExistToNull, "Email already registered")
+    valueExist(userExist, changeErrorTextUser, setUserExistToNull, "Username already registered")
 }
 
-@Composable
-fun EmailExist(emailExist: Boolean, changeErrorTextEmail: (String) -> Unit){
-    LaunchedEffect(emailExist) {
-        if(emailExist) changeErrorTextEmail("Email already registered")
-    }
-}
-
-@Composable
-fun UserExist(userExist: Boolean, changeErrorTextUser: (String) -> Unit) {
-    LaunchedEffect(userExist) {
-        if(userExist) changeErrorTextUser("username already registered")
-    }
+fun valueExist(fieldExist: Boolean, changeErrorTextField: (String) -> Unit, setFieldExistToNull: () -> Unit, errorText: String){
+    if(fieldExist) changeErrorTextField(errorText)
+    setFieldExistToNull()
 }

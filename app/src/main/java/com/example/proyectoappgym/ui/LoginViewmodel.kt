@@ -19,4 +19,8 @@ class LoginViewmodel(private val userDatabase: RepositoryUserDatabase): ViewMode
            intCompletedSignIn.update { userDatabase.signIn(username, password) }
         }
     }
+
+    fun setNumberCompletedSignInToZero() {
+        intCompletedSignIn.update { 0 }
+    }
 }

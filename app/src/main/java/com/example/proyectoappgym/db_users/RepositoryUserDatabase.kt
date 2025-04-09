@@ -8,7 +8,7 @@ interface RepositoryUserDatabase {
     suspend fun deleteUser(user: User): String
     suspend fun signIn(email: String, password: String): Int
     suspend fun signOut()
-    suspend fun emailExist(email: String): Boolean
-    suspend fun userExist(username: String): Boolean
+    suspend fun emailExist(email: String): Boolean?
+    suspend fun userExist(username: String): Boolean?
     suspend fun isCorrectPassword(username: String, password: String): Boolean
 }

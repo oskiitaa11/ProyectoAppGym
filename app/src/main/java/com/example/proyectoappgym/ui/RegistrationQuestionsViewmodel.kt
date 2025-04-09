@@ -27,14 +27,4 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         return isTaskCompleted
     }
 
-    fun userExist(username: String): Boolean {
-        var userExist = false
-
-        viewModelScope.launch {
-            userExist = userDatabase.userExist(username)
-        }
-
-        return userExist
-    }
-
 }

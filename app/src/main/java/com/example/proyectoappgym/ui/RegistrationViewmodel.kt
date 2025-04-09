@@ -4,12 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoappgym.db_users.RepositoryUserDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegistrationViewmodel(val userDatabase: RepositoryUserDatabase): ViewModel() {
-    var emailExist = MutableStateFlow(false)
-    var userExist = MutableStateFlow(false)
+    var emailExist: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    var userExist: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     fun userExist(username: String) {
         viewModelScope.launch {
@@ -21,6 +22,13 @@ class RegistrationViewmodel(val userDatabase: RepositoryUserDatabase): ViewModel
         viewModelScope.launch {
             emailExist.update { userDatabase.emailExist(email) }
         }
+    }
 
+    fun setEmailExistToNull() {
+        emailExist.update { null }
+    }
+
+    fun setUserExistToNull() {
+        userExist.update { null }
     }
 }

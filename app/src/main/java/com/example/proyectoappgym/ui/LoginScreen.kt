@@ -70,7 +70,7 @@ fun NavGraphBuilder.loginDestination(onRegistrationScreen: () -> Unit, onHomeScr
 }*/
 
 @Composable
-fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, intCompletedSignIn: Int){
+fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, intCompletedSignIn: Int, setNumberToZero: () -> Unit){
     var isClickedRegisterText by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -87,7 +87,8 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
         { errorText ->
             allErrorsText["email"] = errorText
             allErrorsText["password"] = errorText
-        }
+        },
+        setNumberToZero
     )
 
     Column(
@@ -257,16 +258,18 @@ fun validatePasswordLogin(passwordValue: String, changeErrorText: (String) -> Un
 }
 
 @Composable
-fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit) {
+fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit, setNumberToZero: () -> Unit ) {
     val context = LocalContext.current
 
     LaunchedEffect(intCompletedSignIn) {
        when(intCompletedSignIn) {
            1 -> showToast("Session started", context)
            2 -> changeErrorTextEmail("Email not registered")
-           3 -> changeErrorTextInFields("User not exist")
+           3 -> changeErrorTextInFields("User not found")
            4 -> showToast("Error to the sign in", context)
        }
+
+        setNumberToZero()
     }
 }
 

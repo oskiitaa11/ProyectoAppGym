@@ -36,7 +36,7 @@ class UserDatabase: RepositoryUserDatabase {
     override suspend fun addUser(user: User): Boolean {
         //val userMap = convertUserToMap(user)
         var userFirebase: FirebaseUser?
-        var password = user.password
+        val password = user.password
         user.password = ""; //Para que la contraseña no se vea desde el archivo de la database
 
         return suspendCoroutine { continuation ->
@@ -45,7 +45,7 @@ class UserDatabase: RepositoryUserDatabase {
                .result.user
 
             if(userFirebase != null) {
-                db.collection("Users").document(userFirebase.uid).set(user)
+                db.collection("Users").document(userFirebase!!.uid).set(user)
                     .addOnCompleteListener { documentReference ->
                         continuation.resume(true)
                     }.addOnFailureListener {
@@ -79,7 +79,7 @@ class UserDatabase: RepositoryUserDatabase {
 
     }
 
-    override suspend fun emailExist(email: String): Boolean {
+    override suspend fun emailExist(email: String): Boolean? {
         /*return suspendCoroutine { continuation ->
             db.collection("Users")
                 .whereEqualTo("email", email)
@@ -90,16 +90,19 @@ class UserDatabase: RepositoryUserDatabase {
                     continuation.resume(false)
                 }
         }*/
-        var emailExist = false
+        var emailExist: Boolean? = null
 
-        db.collection("Users")
-            .whereEqualTo("email", email)
-            .get()
-            .addOnSuccessListener {
-                emailExist = !it.isEmpty
-            }.addOnFailureListener {
-                emailExist = false
-            }.asDeferred().join()
+        emailExist = suspendCoroutine { continuation ->
+            db.collection("Users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnSuccessListener {
+                    continuation.resume(!it.isEmpty)
+                }.addOnFailureListener {
+                    continuation.resume(false)
+                }
+
+            }
 
         return emailExist
 
@@ -134,8 +137,8 @@ class UserDatabase: RepositoryUserDatabase {
         return textTaskCompleted
     }
 
-    override suspend fun userExist(username: String): Boolean {
-        var isExist = false
+    override suspend fun userExist(username: String): Boolean? {
+        var isExist: Boolean? = null
 
         db.collection("Users")
             .whereEqualTo("username", username)

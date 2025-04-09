@@ -4,6 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -50,6 +58,7 @@ import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 
@@ -109,7 +118,11 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
     NavHost(
         navController = navController,
         startDestination = LoginRoute,
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
+        enterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing)) },
+        exitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing)) },
+        popEnterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000)) },
+        popExitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000)) },
     ) {
         composable<LoginRoute> { navBackStackEntry ->
             val loginViewmodel: LoginViewmodel = viewModel(navBackStackEntry) {
@@ -129,7 +142,8 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
                         showToast("Sesion started", context)
                     }
                 },
-                intCompletedSignIn
+                intCompletedSignIn,
+                { loginViewmodel.setNumberCompletedSignInToZero() }
             )
         }
 
@@ -145,10 +159,12 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
             RegistrationScreen(
                 { navController.popBackStack() },
                 { name, username, password, email, birthdate, gender -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)) },
-                { email -> registrationViewmodel.emailExist(email) },
                 { username -> registrationViewmodel.userExist(username) },
+                { email -> registrationViewmodel.emailExist(email) },
                 userExist,
-                emailExist
+                emailExist,
+                { registrationViewmodel.setUserExistToNull() },
+                { registrationViewmodel.setEmailExistToNull() }
             )
         }
 
