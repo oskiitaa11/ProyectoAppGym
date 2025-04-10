@@ -1,6 +1,7 @@
 package com.example.proyectoappgym.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -70,7 +71,9 @@ import com.example.proyectoappgym.entity.User
 fun RegistrationQuestionsScreen(
     user: User,
     allQuestions: List<Question>,
-    addUser: (User) -> Boolean,
+    thereIsErrorToAddUser: Boolean?,
+    addUser: (User) -> Unit,
+    setErrorAddUserToNull: () -> Unit,
     onLoginScreen: () -> Unit
 ) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
@@ -87,7 +90,10 @@ fun RegistrationQuestionsScreen(
     }
     lateinit var actualQuestion: Question
     var showError by remember { mutableStateOf(false) }
-    var isErrorToAddUser = false
+
+    if(thereIsErrorToAddUser != null) {
+        validateAddedUser(thereIsErrorToAddUser, onLoginScreen, LocalContext.current, setErrorAddUserToNull)
+    }
 
     Column(
         modifier = Modifier
@@ -121,7 +127,7 @@ fun RegistrationQuestionsScreen(
         )
 
         Crossfade(
-            targetState = progress,
+            targetState = if(progress > allQuestionsScreen.size - 1) progress - 1 else progress ,
             animationSpec = tween(durationMillis = 800)
         ) { targetState ->
             actualQuestion = allQuestionsScreen[targetState]
@@ -169,7 +175,7 @@ fun RegistrationQuestionsScreen(
                     siempre que nose la ultima pregunta*/
                     if (actualQuestion == allQuestionsScreen.last()) {
                         user.allQuestionsAnswered = getAllQuestionAnswered(allChecked)
-                        isErrorToAddUser = addUser(user)
+                        addUser(user)
                     } else if (actualQuestion == allQuestionsScreen.first()) { //Si la respuesta respondida es la primera
                         chooseQuestionAccordingToAnswerByFirstQuestion(
                             allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[0]) as Boolean,
@@ -370,4 +376,13 @@ fun getAllQuestionAnswered(allChecked: Map<String, MutableMap<String, Boolean>>)
     allQuestionsAnswered.putAll(pairs)
 
     return allQuestionsAnswered
+}
+
+fun validateAddedUser(thereIsError: Boolean, onLoginScreen: () -> Unit, context: Context, setThereIsErrorToNull: () -> Unit) {
+    if(thereIsError) {
+        showToast("Failure to add a user", context)
+        setThereIsErrorToNull()
+    } else {
+        onLoginScreen()
+    }
 }

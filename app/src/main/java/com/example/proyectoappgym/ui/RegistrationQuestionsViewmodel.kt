@@ -6,10 +6,13 @@ import com.example.proyectoappgym.db_questions.RepositoryQuestions
 import com.example.proyectoappgym.db_users.RepositoryUserDatabase
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.User
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegistrationQuestionsViewmodel(private val repositoryQuestions: RepositoryQuestions, private val userDatabase: RepositoryUserDatabase): ViewModel() {
     var allQuestions: List<Question> = listOf()
+    var thereIsErrorToAddUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     init {
         viewModelScope.launch {
@@ -17,14 +20,16 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         }
     }
 
-    fun addUser(user: User): Boolean {
-        var isTaskCompleted = false
-
+    fun addUser(user: User) {
         viewModelScope.launch {
-            isTaskCompleted = userDatabase.addUser(user)
+           thereIsErrorToAddUser.update { !userDatabase.addUser(user) }
         }
 
-        return isTaskCompleted
+        var o = 1
+    }
+
+    fun setThereIsErrorToNull() {
+        thereIsErrorToAddUser.update { null }
     }
 
 }

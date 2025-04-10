@@ -39,13 +39,19 @@ class UserDatabase: RepositoryUserDatabase {
         val password = user.password
         user.password = ""; //Para que la contraseña no se vea desde el archivo de la database
 
+        userFirebase = suspendCoroutine { continuation ->
+
+           auth.createUserWithEmailAndPassword(user.email, password)
+               .addOnSuccessListener {  result ->
+                   continuation.resume(result.user)
+               }.addOnFailureListener {
+                   continuation.resume(null)
+               }
+        }
+
         return suspendCoroutine { continuation ->
-
-           userFirebase = auth.createUserWithEmailAndPassword(user.email, password)
-               .result.user
-
             if(userFirebase != null) {
-                db.collection("Users").document(userFirebase!!.uid).set(user)
+                db.collection("Users").document(userFirebase.uid).set(user)
                     .addOnCompleteListener { documentReference ->
                         continuation.resume(true)
                     }.addOnFailureListener {
@@ -54,7 +60,6 @@ class UserDatabase: RepositoryUserDatabase {
             } else {
                 continuation.resume(false)
             }
-
         }
     }
 

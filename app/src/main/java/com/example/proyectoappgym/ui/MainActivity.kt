@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -37,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -52,6 +56,7 @@ import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
+import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
@@ -114,17 +119,20 @@ fun NavScreensWithingLoginScreen() {
 @Composable
 fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
     val navController = rememberNavController()
+    val enterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> @JvmSuppressWildcards
+    EnterTransition?)? = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing)) }
+    val exitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> @JvmSuppressWildcards
+    ExitTransition?)? = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing)) }
+
 
     NavHost(
         navController = navController,
         startDestination = LoginRoute,
         modifier = Modifier.fillMaxSize(),
-        enterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing)) },
-        exitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing)) },
         popEnterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000)) },
         popExitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000)) },
     ) {
-        composable<LoginRoute> { navBackStackEntry ->
+        composable<LoginRoute>(enterTransition = enterTransition, exitTransition = exitTransition) { navBackStackEntry ->
             val loginViewmodel: LoginViewmodel = viewModel(navBackStackEntry) {
                 LoginViewmodel(
                     (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
@@ -147,7 +155,7 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
             )
         }
 
-        composable<RegistrationRoute> { navBacStackEntry ->
+        composable<RegistrationRoute>(enterTransition = enterTransition, exitTransition = exitTransition) { navBacStackEntry ->
             val registrationViewmodel: RegistrationViewmodel = viewModel(navBacStackEntry) {
                 RegistrationViewmodel(
                     (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
@@ -168,7 +176,7 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
             )
         }
 
-        composable<RegistrationQuestionsRoute> { navBackStackEntry ->
+        composable<RegistrationQuestionsRoute>(enterTransition = enterTransition, exitTransition = exitTransition) { navBackStackEntry ->
             val registrationQuestionsRoute: RegistrationQuestionsRoute = navBackStackEntry.toRoute()
             val registrationQuestionsViewmodel: RegistrationQuestionsViewmodel = viewModel {
                 RegistrationQuestionsViewmodel(
@@ -181,12 +189,15 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
             with(registrationQuestionsRoute) {
                 user = User(username, password, email, name, birthdate, gender)
             }
+            val thereIsErrorToAddUser by registrationQuestionsViewmodel.thereIsErrorToAddUser.collectAsStateWithLifecycle()
 
             RegistrationQuestionsScreen(
                 user,
                 allQuestions,
+                thereIsErrorToAddUser,
                 { userForAdd -> registrationQuestionsViewmodel.addUser(userForAdd) },
-                { navController.popBackStack(LoginRoute, true) }
+                { registrationQuestionsViewmodel.setThereIsErrorToNull() },
+                { navController.popBackStack(LoginRoute, false) }
             )
         }
     }
