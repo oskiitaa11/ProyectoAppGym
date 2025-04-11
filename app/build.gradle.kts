@@ -76,4 +76,8 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.google.firebase.auth)
     implementation(libs.accompanist.navigation.animation)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.play.services.auth)
 }

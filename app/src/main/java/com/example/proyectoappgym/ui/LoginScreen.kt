@@ -2,8 +2,10 @@ package com.example.proyectoappgym.ui
 
 import android.app.ProgressDialog.show
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import android.widget.Toast.makeText
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,9 +56,14 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.getString
+import androidx.credentials.GetCredentialRequest
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.User
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.lang.Error
 
@@ -70,7 +77,7 @@ fun NavGraphBuilder.loginDestination(onRegistrationScreen: () -> Unit, onHomeScr
 }*/
 
 @Composable
-fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, intCompletedSignIn: Int, setNumberToZero: () -> Unit){
+fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, intCompletedSignIn: Int, isSuccessfulGoogleAuth: Boolean?, setNumberToZero: () -> Unit, launcher: () -> Unit){
     var isClickedRegisterText by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -148,34 +155,14 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
             Spacer(modifier = Modifier.height(30.dp))
             Text("- - - - - - - - - - -  OR  - - - - - - - - - - -", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(30.dp))
-            ShowButtonForGoogleLogout()
+            ShowButtonForGoogleLogout {
+                launcher()
+            }
         }
 
     }
 
 }
-
-/*@Composable
-fun ShowInputEmailLogin(emailValue: String, isError: Boolean, addNewEmailValue: (String) -> Unit){
-    Column {
-        Text(
-            text = "Email",
-            fontStyle = FontStyle.Italic,
-            color = colorResource(R.color.lightGreen),
-            textAlign = TextAlign.Start,
-            modifier = Modifier.padding(bottom = 10.dp)
-        )
-
-        TextField(
-            value = emailValue,
-            onValueChange = addNewEmailValue,
-            leadingIcon = { Icon(imageVector = Icons.Sharp.Person, contentDescription = "Icono de Input") },
-            shape = ShapeDefaults.ExtraSmall,
-            modifier = Modifier.height(50.dp)
-                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
-        )
-    }
-}*/
 
 @Composable
 fun ShowInputPassword(passwordValue: String, label: String, isError: Boolean, addNewPasswordValue: (String) -> Unit) {
@@ -227,8 +214,8 @@ fun ShowButtonForLoginOrRegister(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun ShowButtonForGoogleLogout() {
-    TextButton(onClick = {  }, colors = ButtonColors(Color.White, colorResource(R.color.lightBlack), Color.LightGray, Color.LightGray)) {
+fun ShowButtonForGoogleLogout(onClick: () -> Unit) {
+    TextButton(onClick = onClick, colors = ButtonColors(Color.White, colorResource(R.color.lightBlack), Color.LightGray, Color.LightGray)) {
         Text(
             "Login for Google  ",
             fontSize = 20.sp,
@@ -277,3 +264,18 @@ fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Un
 fun showToast(text: String, context: Context) {
     makeText(context, text, Toast.LENGTH_SHORT).show()
 }
+
+/*fun getCredential(context: Context) {
+    val googleIdOption = GetGoogleIdOption.Builder()
+        // Your server's client ID, not your Android client ID.
+        .setServerClientId(getString(context, R.string.default_web_client_id))
+        // Only show accounts previously used to sign in.
+        .setFilterByAuthorizedAccounts(true)
+        .build()
+
+// Create the Credential Manager request
+    val request = GetCredentialRequest.Builder()
+        .addCredentialOption(googleIdOption)
+        .build()
+}*/
+

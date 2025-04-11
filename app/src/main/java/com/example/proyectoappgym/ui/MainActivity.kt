@@ -1,10 +1,19 @@
 package com.example.proyectoappgym.ui
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Telephony
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Easing
@@ -37,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -57,8 +67,9 @@ import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseAuth
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
@@ -75,18 +86,50 @@ object RegistrationRoute
 data class RegistrationQuestionsRoute(val name: String, val username: String, val password: String, val email: String, val birthdate: String, val gender: Gender)
 
 class MainActivity : ComponentActivity() {
+
+
+    private lateinit var launcher: ((String) -> Unit) -> ActivityResultLauncher<Intent>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        launcher = { authWithGoogle ->
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                try {
+                    val account = task.getResult(ApiException::class.java)
+                    authWithGoogle(account.idToken!!)
+                } catch (e: ApiException) {
+                    Log.w("TAG", "Google sign in failed", e)
+                }
+            }
+        }
+
         enableEdgeToEdge()
         setContent {
             var isSignIn by remember { mutableStateOf(false) }
+            val context = LocalContext.current
             val changeSignIn: (Boolean) -> Unit = { isSignIn = it }
+            val signInGoogle: (Context, (String) -> Unit) -> Unit = { context, authWithGoogle ->
+                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestIdToken(
+                        ContextCompat.getString(
+                            context,
+                            R.string.default_web_client_id
+                        )
+                    )
+                    .requestEmail()
+                    .build()
+                val googleSignInClient = GoogleSignIn.getClient(context, gso)
+                val sigInIntent = googleSignInClient.signInIntent
+                launcher(authWithGoogle).launch(sigInIntent)
+            }
 
             ProyectoAppGymTheme {
                 if(isSignIn) {
                     //NavScreensWithingLoginScreen()
                 } else {
-                    NavScreensWithLoginScreen(changeSignIn)
+                    NavScreensWithLoginScreen(changeSignIn, signInGoogle)
                 }
 
             }
@@ -116,13 +159,12 @@ fun NavScreensWithingLoginScreen() {
 }*/
 
 
+@SuppressLint("UnusedCrossfadeTargetStateParameter")
 @Composable
-fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
+fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit, launcher: (Context, (String) -> Unit) -> Unit) {
     val navController = rememberNavController()
-    val enterTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> @JvmSuppressWildcards
-    EnterTransition?)? = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing)) }
-    val exitTransition: (AnimatedContentTransitionScope<NavBackStackEntry>.() -> @JvmSuppressWildcards
-    ExitTransition?)? = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing)) }
+    //val enterTransition: EnterTransition = fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing))
+    //val exitTransition: ExitTransition = fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing))
 
 
     NavHost(
@@ -132,7 +174,7 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
         popEnterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000)) },
         popExitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000)) },
     ) {
-        composable<LoginRoute>(enterTransition = enterTransition, exitTransition = exitTransition) { navBackStackEntry ->
+        composable<LoginRoute> { navBackStackEntry ->
             val loginViewmodel: LoginViewmodel = viewModel(navBackStackEntry) {
                 LoginViewmodel(
                     (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
@@ -140,6 +182,7 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
             }
             val intCompletedSignIn by loginViewmodel.intCompletedSignIn.collectAsStateWithLifecycle()
             val context = LocalContext.current
+            val isSuccessfulWithAuthGoogle by loginViewmodel.isSuccessfulGoogleAuth.collectAsStateWithLifecycle()
 
             LoginScreen(
                 { navController.navigate(RegistrationRoute) },
@@ -151,11 +194,13 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
                     }
                 },
                 intCompletedSignIn,
-                { loginViewmodel.setNumberCompletedSignInToZero() }
+                isSuccessfulWithAuthGoogle,
+                { loginViewmodel.setNumberCompletedSignInToZero() },
+                { launcher(context) { idToken -> loginViewmodel.authWithGoogle(idToken) } }
             )
         }
 
-        composable<RegistrationRoute>(enterTransition = enterTransition, exitTransition = exitTransition) { navBacStackEntry ->
+        composable<RegistrationRoute> { navBacStackEntry ->
             val registrationViewmodel: RegistrationViewmodel = viewModel(navBacStackEntry) {
                 RegistrationViewmodel(
                     (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
@@ -176,7 +221,7 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit) {
             )
         }
 
-        composable<RegistrationQuestionsRoute>(enterTransition = enterTransition, exitTransition = exitTransition) { navBackStackEntry ->
+        composable<RegistrationQuestionsRoute> { navBackStackEntry ->
             val registrationQuestionsRoute: RegistrationQuestionsRoute = navBackStackEntry.toRoute()
             val registrationQuestionsViewmodel: RegistrationQuestionsViewmodel = viewModel {
                 RegistrationQuestionsViewmodel(

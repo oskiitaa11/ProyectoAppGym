@@ -146,7 +146,9 @@ fun RegistrationQuestionsScreen(
                     ShowLastQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
                 }
 
-                if (showError) ShowErrorText("You must answer to the questions", 0.dp)
+                if(showError && actualQuestion == allQuestionsScreen.last()) {
+                    ShowErrorText("You choose two answer to the questions", 0.dp)
+                } else if (showError) ShowErrorText("You choose a answer to the questions", 0.dp)
             }
 
         }
@@ -171,9 +173,10 @@ fun RegistrationQuestionsScreen(
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24,
                 {
+                    showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                     /*Si no hay ninguna respuesta a true se asigna true a showError,
                     siempre que nose la ultima pregunta*/
-                    if (actualQuestion == allQuestionsScreen.last()) {
+                    if (actualQuestion == allQuestionsScreen.last() && !showError) {
                         user.allQuestionsAnswered = getAllQuestionAnswered(allChecked)
                         addUser(user)
                     } else if (actualQuestion == allQuestionsScreen.first()) { //Si la respuesta respondida es la primera
@@ -182,10 +185,8 @@ fun RegistrationQuestionsScreen(
                             allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[1]) as Boolean,
                             allQuestionsScreen
                         )
-                    } else {
-                        showError =
-                            allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                     }
+
                     if (!showError) progress++
                     //Cuando la pregunta sea la primera, según la respuesta elegida le aparecerá una pregunta u otro
 

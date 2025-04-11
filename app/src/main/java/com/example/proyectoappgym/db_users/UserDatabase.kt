@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuthEmailException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -63,7 +64,15 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
-
+    override suspend fun authWithGoogle(idToken: String): Boolean {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        return suspendCoroutine { continuation ->
+            FirebaseAuth.getInstance().signInWithCredential(credential)
+                .addOnCompleteListener { task ->
+                    continuation.resume(task.isSuccessful)
+                }
+        }
+    }
 
     override suspend fun signIn(email: String, password: String): Int {
         /* El suspendCoroutine suspende la suspend funtion hasta que la task ha

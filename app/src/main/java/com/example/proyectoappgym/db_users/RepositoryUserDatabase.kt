@@ -11,4 +11,5 @@ interface RepositoryUserDatabase {
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun isCorrectPassword(username: String, password: String): Boolean
+    suspend fun authWithGoogle(idToken: String): Boolean
 }
