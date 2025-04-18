@@ -1,9 +1,9 @@
-package com.example.proyectoappgym.ui
+package com.example.proyectoappgym.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoappgym.db_questions.RepositoryQuestions
-import com.example.proyectoappgym.db_users.RepositoryUserDatabase
+import com.example.proyectoappgym.db.db_questions.RepositoryQuestions
+import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.User
 import kotlinx.coroutines.flow.MutableStateFlow

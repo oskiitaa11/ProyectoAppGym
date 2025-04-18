@@ -1,11 +1,8 @@
-package com.example.proyectoappgym.ui
+package com.example.proyectoappgym.ui.screens
 
-import android.app.ProgressDialog.show
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import android.widget.Toast.makeText
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,8 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.sharp.Person
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -29,14 +24,12 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,31 +46,13 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat.getString
-import androidx.credentials.GetCredentialRequest
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.proyectoappgym.GetLightGreen
 import com.example.proyectoappgym.R
-import com.example.proyectoappgym.entity.User
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import kotlinx.coroutines.flow.MutableStateFlow
-import java.lang.Error
-
-/*@Serializable
-object LoginRoute
-
-fun NavGraphBuilder.loginDestination(onRegistrationScreen: () -> Unit, onHomeScreen: () -> Unit) {
-    composable<LoginRoute> {
-        LoginScreen(onRegistrationScreen, onHomeScreen)
-    }
-}*/
 
 @Composable
-fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, intCompletedSignIn: Int, isSuccessfulGoogleAuth: Boolean?, setNumberToZero: () -> Unit, launcher: () -> Unit){
+fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, intCompletedSignIn: Int, /*isSuccessfulGoogleAuth: Boolean?*/ setNumberToZero: () -> Unit, reassignLoggedUser: () -> Unit /*launcher: () -> Unit*/){
     var isClickedRegisterText by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -88,14 +63,15 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
         validatePasswordLogin(password, { errorText -> allErrorsText["password"] = errorText })
     }
 
-    if(intCompletedSignIn>1) ValidateSignIn(
+    if(intCompletedSignIn>0) ValidateSignIn(
         intCompletedSignIn,
         { errorText -> allErrorsText["email"] = errorText },
         { errorText ->
             allErrorsText["email"] = errorText
             allErrorsText["password"] = errorText
         },
-        setNumberToZero
+        setNumberToZero,
+        reassignLoggedUser
     )
 
     Column(
@@ -145,7 +121,9 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
             ShowButtonForLoginOrRegister("Login", {
                 validateFieldsLogin()
                 //Si los textos de error estan vacios, el usuario hará login
-                if(allErrorsText.values.all { it.isEmpty() }) signIn(email.trim(), password)
+                if(allErrorsText.values.all { it.isEmpty() }) {
+                    signIn(email.trim(), password)
+                }
             })
             Spacer(modifier = Modifier.height(15.dp))
             Text("¿Don't you have account? You registrate", color = GetLightGreen(), modifier = Modifier.clickable {
@@ -156,7 +134,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
             Text("- - - - - - - - - - -  OR  - - - - - - - - - - -", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(30.dp))
             ShowButtonForGoogleLogout {
-                launcher()
+                //launcher()
             }
         }
 
@@ -245,12 +223,15 @@ fun validatePasswordLogin(passwordValue: String, changeErrorText: (String) -> Un
 }
 
 @Composable
-fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit, setNumberToZero: () -> Unit ) {
+fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit, setNumberToZero: () -> Unit, reassignLoggedUser: () -> Unit ) {
     val context = LocalContext.current
 
     LaunchedEffect(intCompletedSignIn) {
        when(intCompletedSignIn) {
-           1 -> showToast("Session started", context)
+           1 -> {
+               showToast("Session started", context)
+               reassignLoggedUser()//Cuando se termine la parte del perfil, terminar de desarrollar este metodo
+           }
            2 -> changeErrorTextEmail("Email not registered")
            3 -> changeErrorTextInFields("User not found")
            4 -> showToast("Error to the sign in", context)
@@ -264,7 +245,6 @@ fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Un
 fun showToast(text: String, context: Context) {
     makeText(context, text, Toast.LENGTH_SHORT).show()
 }
-
 /*fun getCredential(context: Context) {
     val googleIdOption = GetGoogleIdOption.Builder()
         // Your server's client ID, not your Android client ID.

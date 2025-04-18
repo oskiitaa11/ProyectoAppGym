@@ -1,38 +1,28 @@
-package com.example.proyectoappgym.ui
+package com.example.proyectoappgym
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.provider.Telephony
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,16 +32,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat
+import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -61,21 +52,31 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.proyectoappgym.App
-import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
+import com.example.proyectoappgym.entity.BottomBarItem
+import com.example.proyectoappgym.ui.screens.HomeRoute
+import com.example.proyectoappgym.ui.screens.LoginScreen
+import com.example.proyectoappgym.ui.screens.ProfileGraphRoute
+import com.example.proyectoappgym.ui.viewmodels.LoginViewmodel
+import com.example.proyectoappgym.ui.screens.ProfileRoute
+import com.example.proyectoappgym.ui.screens.RegistrationQuestionsScreen
+import com.example.proyectoappgym.ui.viewmodels.RegistrationQuestionsViewmodel
+import com.example.proyectoappgym.ui.screens.RegistrationScreen
+import com.example.proyectoappgym.ui.screens.ShowTopAppBarProfile
+import com.example.proyectoappgym.ui.viewmodels.RegistrationViewmodel
+import com.example.proyectoappgym.ui.screens.goToHomeScreen
+import com.example.proyectoappgym.ui.screens.goToProfileScreen
+import com.example.proyectoappgym.ui.screens.homeDestination
+import com.example.proyectoappgym.ui.screens.profileDestination
+import com.example.proyectoappgym.ui.screens.profileGraph
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
-import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -107,10 +108,15 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            var isSignIn by remember { mutableStateOf(false) }
-            val context = LocalContext.current
-            val changeSignIn: (Boolean) -> Unit = { isSignIn = it }
-            val signInGoogle: (Context, (String) -> Unit) -> Unit = { context, authWithGoogle ->
+            val contextMainAct = LocalContext.current
+            val app = contextMainAct.applicationContext as App
+            val thereIsLoggedUser by app.isLoggedUser.collectAsStateWithLifecycle(null)
+            val reassignUser = {
+                if(app.userDatabase.getUidLoggedUser() != null)
+                    app.addLoggedUserFromMain(app.userDatabase.getUidLoggedUser()!!)
+
+            }
+            /*val signInGoogle: @Composable (Context, (String) -> Unit) -> Unit = { context, authWithGoogle ->
                 val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(
                         ContextCompat.getString(
@@ -123,13 +129,14 @@ class MainActivity : ComponentActivity() {
                 val googleSignInClient = GoogleSignIn.getClient(context, gso)
                 val sigInIntent = googleSignInClient.signInIntent
                 launcher(authWithGoogle).launch(sigInIntent)
-            }
+            }*/
 
             ProyectoAppGymTheme {
-                if(isSignIn) {
-                    //NavScreensWithingLoginScreen()
+                if(thereIsLoggedUser != null)
+                if(thereIsLoggedUser as Boolean) {
+                    NavScreensWithingLoginScreen()
                 } else {
-                    NavScreensWithLoginScreen(changeSignIn, signInGoogle)
+                    NavScreensWithLoginScreen(reassignUser)
                 }
 
             }
@@ -137,35 +144,42 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-/*@Composable
+@Composable
 fun NavScreensWithingLoginScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val actualRoute = currentDestination?.route?.substringAfterLast(".") ?: ""
 
     Scaffold(
+        topBar = {
+            if(actualRoute == "ProfileRoute"){
+                ShowTopAppBarProfile()
+            }
+        },
         bottomBar = { BottomBar(currentDestination, navController) }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = LoginGraphRoute,
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            startDestination = HomeRoute,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
-            loginGraph(navController)
-            profileDestination()
+            homeDestination()
+            profileGraph(navController)
         }
     }
 
-}*/
+}
 
 
-@SuppressLint("UnusedCrossfadeTargetStateParameter")
+@SuppressLint("UnusedCrossfadeTargetStateParameter", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit, launcher: (Context, (String) -> Unit) -> Unit) {
+fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context, (String) -> Unit) -> Unit*/) {
     val navController = rememberNavController()
     //val enterTransition: EnterTransition = fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing))
     //val exitTransition: ExitTransition = fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing))
-
 
     NavHost(
         navController = navController,
@@ -174,6 +188,7 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit, launcher: (Context, (St
         popEnterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000)) },
         popExitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000)) },
     ) {
+
         composable<LoginRoute> { navBackStackEntry ->
             val loginViewmodel: LoginViewmodel = viewModel(navBackStackEntry) {
                 LoginViewmodel(
@@ -181,22 +196,18 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit, launcher: (Context, (St
                 )
             }
             val intCompletedSignIn by loginViewmodel.intCompletedSignIn.collectAsStateWithLifecycle()
-            val context = LocalContext.current
             val isSuccessfulWithAuthGoogle by loginViewmodel.isSuccessfulGoogleAuth.collectAsStateWithLifecycle()
 
             LoginScreen(
                 { navController.navigate(RegistrationRoute) },
                 { username, password ->
                     loginViewmodel.signIn(username, password)
-                    if(intCompletedSignIn == 1) {
-                        signIn(true)
-                        showToast("Sesion started", context)
-                    }
                 },
                 intCompletedSignIn,
-                isSuccessfulWithAuthGoogle,
+                /*isSuccessfulWithAuthGoogle,*/
                 { loginViewmodel.setNumberCompletedSignInToZero() },
-                { launcher(context) { idToken -> loginViewmodel.authWithGoogle(idToken) } }
+                reassignLoggedUser
+                //{ launcher(context) { idToken -> loginViewmodel.authWithGoogle(idToken) } }
             )
         }
 
@@ -211,7 +222,11 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit, launcher: (Context, (St
 
             RegistrationScreen(
                 { navController.popBackStack() },
-                { name, username, password, email, birthdate, gender -> navController.navigate(RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)) },
+                { name, username, password, email, birthdate, gender ->
+                    navController.navigate(
+                        RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)
+                    )
+                },
                 { username -> registrationViewmodel.userExist(username) },
                 { email -> registrationViewmodel.emailExist(email) },
                 userExist,
@@ -242,14 +257,15 @@ fun NavScreensWithLoginScreen(signIn: (Boolean) -> Unit, launcher: (Context, (St
                 thereIsErrorToAddUser,
                 { userForAdd -> registrationQuestionsViewmodel.addUser(userForAdd) },
                 { registrationQuestionsViewmodel.setThereIsErrorToNull() },
-                { navController.popBackStack(LoginRoute, false) }
+                { navController.navigate(LoginRoute) }
             )
         }
     }
 
+
 }
 
-/*
+
 @Composable
 fun BottomBar(
     currentDestination: NavDestination?,
@@ -258,32 +274,35 @@ fun BottomBar(
     val items = listOf(
         BottomBarItem(
             title = "Home",
-            icon = Icons.Default.Home,
+            iconSelectedBottom = Icons.Default.Home,
+            iconBottom = ImageVector.vectorResource(R.drawable.ic_outline_home_24),
             selected = currentDestination?.hierarchy?.any { it.hasRoute<HomeRoute>() } == true,
             onClick = { navController.goToHomeScreen() }
         ),
 
         BottomBarItem(
             title = "Profile",
-            icon = Icons.Default.AccountCircle,
-            selected = currentDestination?.hierarchy?.any { it.hasRoute<ProfileRoute>() } == true,
+            iconSelectedBottom = ImageVector.vectorResource(R.drawable.ic_person_24),
+            iconBottom = ImageVector.vectorResource(R.drawable.ic_person_outline_24),
+            selected = currentDestination?.hierarchy?.any { it.hasRoute<ProfileGraphRoute>() } == true,
             onClick = { navController.goToProfileScreen() }
         ),
     )
-
-    NavigationBar {
+    HorizontalDivider(thickness = 2.dp)
+    NavigationBar(
+        containerColor = colorResource(R.color.lightBlack)
+    ) {
         items.forEach { item ->
             NavigationBarItem(
                 label = { Text(item.title) },
-                icon = { Icon(imageVector = item.icon, contentDescription = "Go to Screen" ) },
+                icon = { Icon(imageVector = if(item.selected) item.iconSelectedBottom else item.iconBottom, contentDescription = "Go to Screen" )  },
                 selected = item.selected,
-                onClick = item.onClick
+                onClick = item.onClick,
+                colors = NavigationBarItemColors(Color.White, Color.White, Color.Transparent, Color.White, Color.White, Color.Gray, Color.Gray),
             )
-
         }
     }
 }
-*/
 
 @Composable
 fun GetLightGreen(): Color {

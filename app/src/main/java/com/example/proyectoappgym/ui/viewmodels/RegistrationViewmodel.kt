@@ -1,10 +1,9 @@
-package com.example.proyectoappgym.ui
+package com.example.proyectoappgym.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoappgym.db_users.RepositoryUserDatabase
+import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,6 +18,7 @@ class RegistrationViewmodel(val userDatabase: RepositoryUserDatabase): ViewModel
     }
 
     fun emailExist(email: String) {
+
         viewModelScope.launch {
             emailExist.update { userDatabase.emailExist(email) }
         }
@@ -26,6 +26,7 @@ class RegistrationViewmodel(val userDatabase: RepositoryUserDatabase): ViewModel
 
     fun setEmailExistToNull() {
         emailExist.update { null }
+
     }
 
     fun setUserExistToNull() {

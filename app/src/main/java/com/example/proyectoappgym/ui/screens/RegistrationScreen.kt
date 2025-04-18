@@ -1,12 +1,9 @@
-package com.example.proyectoappgym.ui
+package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.icu.util.Calendar
 import android.widget.DatePicker
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -16,7 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
@@ -25,23 +21,18 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldColors
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -53,25 +44,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.NavGraphBuilder
-import androidx.navigation.compose.composable
-import androidx.navigation.serialization.generateRouteWithArgs
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Gender
-import java.time.LocalDate
 import java.time.Year
-
-
-/*fun NavController.goToRegistrationScreen(){
-    navigate(RegistrationRoute)
-}
-
-fun NavGraphBuilder.registrationDestination(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit) {
-    composable<RegistrationRoute> {
-        RegistrationScreen(onBack, onRegistrationQuestion)
-    }
-}*/
 
 @Composable
 fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean?, emailExist: Boolean?, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit) {
@@ -89,7 +64,7 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
     }
     //Se valida cada campo para que el usuario cumpla con los requisitos minimos
     val validateFields: () -> Unit = {
-        allErrorsFields.forEach { field, errorText -> allErrorsFields[field] = ""}
+        allErrorsFields.forEach { (field, _) -> allErrorsFields[field] = ""}
         validateTextUsername(
             username,
             username == email.split(Regex("@"))[0],
@@ -109,7 +84,7 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             { errorText -> allErrorsFields["email"] = errorText },
             { errorText -> allErrorsFields["username"] = errorText },
             setUserExistToNull,
-            setUserExistToNull
+            setEmailExistToNull
             //Despues se asigna las dos variables a null otra vez
         )
         //Cuando se termine de validar los campos si no hay ningun error todos los valores del mapa estaran a null

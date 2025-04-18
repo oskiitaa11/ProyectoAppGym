@@ -1,19 +1,9 @@
-package com.example.proyectoappgym.ui
+package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.widget.Toast
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,14 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.Icon
@@ -56,15 +43,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
-import com.example.proyectoappgym.db_questions.QuestionsRegistration.allQuestions
+import com.example.proyectoappgym.db.db_questions.QuestionsRegistration.allQuestions
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.User
-
 
 @SuppressLint("UnrememberedMutableState", "RememberReturnType")
 @Composable
@@ -128,7 +113,8 @@ fun RegistrationQuestionsScreen(
 
         Crossfade(
             targetState = if(progress > allQuestionsScreen.size - 1) progress - 1 else progress ,
-            animationSpec = tween(durationMillis = 800)
+            animationSpec = tween(durationMillis = 800),
+            label = "Questions"
         ) { targetState ->
             actualQuestion = allQuestionsScreen[targetState]
 
@@ -173,7 +159,13 @@ fun RegistrationQuestionsScreen(
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24,
                 {
-                    showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
+
+                    if(actualQuestion == allQuestionsScreen.last()) {
+                        showError = !((allChecked[actualQuestion.question]?.filterValues { it }?.count() as Int) > 1)
+                    } else {
+                        showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
+                    }
+
                     /*Si no hay ninguna respuesta a true se asigna true a showError,
                     siempre que nose la ultima pregunta*/
                     if (actualQuestion == allQuestionsScreen.last() && !showError) {

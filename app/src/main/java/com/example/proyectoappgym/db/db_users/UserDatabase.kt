@@ -1,9 +1,11 @@
-package com.example.proyectoappgym.db_users
+package com.example.proyectoappgym.db.db_users
 
 import android.annotation.SuppressLint
 import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import android.preference.Preference
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
@@ -17,6 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.auth.FirebaseAuthCredentialsProvider
 import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 import kotlinx.coroutines.tasks.asDeferred
 import kotlinx.coroutines.tasks.await
@@ -27,6 +30,7 @@ class UserDatabase: RepositoryUserDatabase {
 
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
+    private var uidLoggedUser: String? = null
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -36,7 +40,7 @@ class UserDatabase: RepositoryUserDatabase {
     @SuppressLint("RestrictedApi")
     override suspend fun addUser(user: User): Boolean {
         //val userMap = convertUserToMap(user)
-        var userFirebase: FirebaseUser?
+        val userFirebase: FirebaseUser?
         val password = user.password
         user.password = ""; //Para que la contraseña no se vea desde el archivo de la database
 
@@ -53,7 +57,7 @@ class UserDatabase: RepositoryUserDatabase {
         return suspendCoroutine { continuation ->
             if(userFirebase != null) {
                 db.collection("Users").document(userFirebase.uid).set(user)
-                    .addOnCompleteListener { documentReference ->
+                    .addOnSuccessListener {
                         continuation.resume(true)
                     }.addOnFailureListener {
                         continuation.resume(false)
@@ -78,7 +82,8 @@ class UserDatabase: RepositoryUserDatabase {
         /* El suspendCoroutine suspende la suspend funtion hasta que la task ha
            terminado de ejecutarse, devolviendo el valor pasado en resume()*/
         return suspendCoroutine { continuation ->
-            auth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
+            auth.signInWithEmailAndPassword(email, password).addOnSuccessListener { result ->
+                uidLoggedUser = result.user?.uid
                 continuation.resume(1)
             }.addOnFailureListener { exception ->
                 val intErrorSignIn = when (exception) {
@@ -166,9 +171,21 @@ class UserDatabase: RepositoryUserDatabase {
         return isExist
     }
 
-    override suspend fun isCorrectPassword(email: String, password: String): Boolean {
-        return true
+    override suspend fun getCurrentUser(): User? {
+        val currentFirebaseUser = auth.currentUser as FirebaseUser
 
+        return suspendCoroutine { continuation ->
+            db.collection("Users")
+                .document(currentFirebaseUser.uid)
+                .get()
+                .addOnSuccessListener { result ->
+                    continuation.resume(result.toObject<User?>())
+                }
+        }
+    }
+
+    fun getUidLoggedUser(): String? {
+        return uidLoggedUser
     }
 }
 

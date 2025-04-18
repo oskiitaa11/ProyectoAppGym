@@ -1,4 +1,4 @@
-package com.example.proyectoappgym.db_questions
+package com.example.proyectoappgym.db.db_questions
 
 import com.example.proyectoappgym.entity.Question
 

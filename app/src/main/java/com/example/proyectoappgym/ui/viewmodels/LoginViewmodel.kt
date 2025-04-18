@@ -1,18 +1,11 @@
-package com.example.proyectoappgym.ui
+package com.example.proyectoappgym.ui.viewmodels
 
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoappgym.db_users.RepositoryUserDatabase
-import com.example.proyectoappgym.entity.User
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
+import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.concurrent.Flow
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 
 class LoginViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
