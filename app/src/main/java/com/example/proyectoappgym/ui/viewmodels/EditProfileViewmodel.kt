@@ -4,16 +4,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
 import com.example.proyectoappgym.entity.User
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.model.DocumentKey
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
+class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase, private val uidLoggedUser: String): ViewModel() {
     val currentUser = MutableStateFlow(User())
 
     init {
         viewModelScope.launch {
-            currentUser.update { userDatabase.getCurrentUser()!! }
+            currentUser.update { userDatabase.getCurrentUser(uidLoggedUser)!! }
+        }
+    }
+
+    fun updateName(newName: String) {
+        viewModelScope.launch {
+            userDatabase.updateNameCurrentUser(newName)
         }
     }
 }

@@ -8,11 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.proyectoappgym"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.example.proyectoappgym"
         minSdk = 27
+        //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -85,4 +86,7 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.coil.compose.v270)
+    //noinspection UseTomlInstead
+    implementation("androidx.activity:activity-compose:1.11.0-beta01")
 }

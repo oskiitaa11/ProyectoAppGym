@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -63,6 +64,7 @@ import com.example.proyectoappgym.ui.screens.ProfileRoute
 import com.example.proyectoappgym.ui.screens.RegistrationQuestionsScreen
 import com.example.proyectoappgym.ui.viewmodels.RegistrationQuestionsViewmodel
 import com.example.proyectoappgym.ui.screens.RegistrationScreen
+import com.example.proyectoappgym.ui.screens.ShowTopAppBarEditProfileScreen
 import com.example.proyectoappgym.ui.screens.ShowTopAppBarProfile
 import com.example.proyectoappgym.ui.viewmodels.RegistrationViewmodel
 import com.example.proyectoappgym.ui.screens.goToHomeScreen
@@ -144,27 +146,23 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun NavScreensWithingLoginScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    val actualRoute = currentDestination?.route?.substringAfterLast(".") ?: ""
 
     Scaffold(
-        topBar = {
-            if(actualRoute == "ProfileRoute"){
-                ShowTopAppBarProfile()
-            }
-        },
-        bottomBar = { BottomBar(currentDestination, navController) }
-    ) { innerPadding ->
+        bottomBar = {
+            BottomBar(currentDestination, navController)
+        }
+    ) {
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
         ) {
             homeDestination()
             profileGraph(navController)
@@ -247,7 +245,7 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
             val allQuestions = registrationQuestionsViewmodel.allQuestions
             var user : User
             with(registrationQuestionsRoute) {
-                user = User(username, password, email, name, birthdate, gender)
+                user = User(username, password, email, name.ifEmpty { username }, birthdate, gender)
             }
             val thereIsErrorToAddUser by registrationQuestionsViewmodel.thereIsErrorToAddUser.collectAsStateWithLifecycle()
 
@@ -288,20 +286,24 @@ fun BottomBar(
             onClick = { navController.goToProfileScreen() }
         ),
     )
-    HorizontalDivider(thickness = 2.dp)
-    NavigationBar(
-        containerColor = colorResource(R.color.lightBlack)
-    ) {
-        items.forEach { item ->
-            NavigationBarItem(
-                label = { Text(item.title) },
-                icon = { Icon(imageVector = if(item.selected) item.iconSelectedBottom else item.iconBottom, contentDescription = "Go to Screen" )  },
-                selected = item.selected,
-                onClick = item.onClick,
-                colors = NavigationBarItemColors(Color.White, Color.White, Color.Transparent, Color.White, Color.White, Color.Gray, Color.Gray),
-            )
+
+    Column {
+        HorizontalDivider(color = Color.White, thickness = 2.dp)
+        NavigationBar(
+            containerColor = colorResource(R.color.lightBlack)
+        ) {
+            items.forEach { item ->
+                NavigationBarItem(
+                    label = { Text(item.title) },
+                    icon = { Icon(imageVector = if(item.selected) item.iconSelectedBottom else item.iconBottom, contentDescription = "Go to Screen" )  },
+                    selected = item.selected,
+                    onClick = item.onClick,
+                    colors = NavigationBarItemColors(Color.White, Color.White, Color.Transparent, Color.White, Color.White, Color.Gray, Color.Gray),
+                )
+            }
         }
     }
+
 }
 
 @Composable

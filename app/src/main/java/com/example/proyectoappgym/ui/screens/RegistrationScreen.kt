@@ -52,9 +52,9 @@ import java.time.Year
 fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean?, emailExist: Boolean?, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit) {
     var name by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("Oskiitaa15") }
-    var password by remember { mutableStateOf("Swcdlcmokjoij89_") }
-    var email by remember { mutableStateOf("oskiitaa12@gmail.com") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(Gender.NONE) }
     /*Se crea un mapa por cada campo se inserta el texto de error,
     inicialmente esta vacio. Cuando este vacio el campo es porque todavia

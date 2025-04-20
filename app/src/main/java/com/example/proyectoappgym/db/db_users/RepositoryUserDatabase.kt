@@ -1,6 +1,7 @@
 package com.example.proyectoappgym.db.db_users
 
 import com.example.proyectoappgym.entity.User
+import com.google.firebase.firestore.DocumentReference
 import kotlinx.coroutines.flow.MutableStateFlow
 
 interface RepositoryUserDatabase {
@@ -8,7 +9,8 @@ interface RepositoryUserDatabase {
     suspend fun deleteUser(user: User): String
     suspend fun signIn(email: String, password: String): Int
     suspend fun signOut()
-    suspend fun getCurrentUser(): User?
+    suspend fun getCurrentUser(uidUser: String?): User?
+    suspend fun updateNameCurrentUser(newName: String)
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun authWithGoogle(idToken: String): Boolean

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -55,7 +56,8 @@ fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettin
     composable<ProfileRoute> { navBackStackEntry ->
         val profileViewmodel: ProfileViewmodel = viewModel(navBackStackEntry) {
             ProfileViewmodel(
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
+                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
+                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).uidLoggedUser as String
             )
         }
         val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
@@ -65,33 +67,35 @@ fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettin
 }
 
 @Composable
-fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit){
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.background(colorResource(R.color.lightBlack))
-    ) {
-        Spacer(modifier = Modifier.height(20.dp))
-        Image(
-            painter = painterResource(user.profileAvatar),
-            contentDescription = "Profile avatar",
-            modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
-                .height(80.dp)
-                .width(80.dp)
-        )
-        Spacer(modifier = Modifier.height(5.dp))
-        Text(user.username, color = Color.White)
-        Spacer(modifier = Modifier.height(10.dp))
-        TextButton(
-            onClick = onEditProfileScreen,
-            shape = ShapeDefaults.Medium,
-            colors = ButtonColors(Color(255f, 255f, 255f, 0.2f), Color.White, Color.DarkGray, Color.DarkGray)
+fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit) {
+    Scaffold(topBar = { ShowTopAppBarProfile() }) { innerpadding ->
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.background(colorResource(R.color.lightBlack)).padding(innerpadding).fillMaxSize()
         ) {
-            Text("Edit Profile")
+            Spacer(modifier = Modifier.height(20.dp))
+            Image(
+                painter = painterResource(user.profileAvatar),
+                contentDescription = "Profile avatar",
+                modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
+                    .height(80.dp)
+                    .width(80.dp)
+            )
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(user.username, color = Color.White)
+            Spacer(modifier = Modifier.height(10.dp))
+            TextButton(
+                onClick = onEditProfileScreen,
+                shape = ShapeDefaults.Medium,
+                colors = ButtonColors(Color(255f, 255f, 255f, 0.2f), Color.White, Color.DarkGray, Color.DarkGray)
+            ) {
+                Text("Edit Profile")
+            }
         }
     }
-}
 
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowTopAppBarProfile() {

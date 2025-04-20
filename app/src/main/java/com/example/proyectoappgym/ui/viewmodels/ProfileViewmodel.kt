@@ -8,12 +8,12 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ProfileViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
+class ProfileViewmodel(private val userDatabase: RepositoryUserDatabase, private val uidLoggedUser: String): ViewModel() {
     val currentUser = MutableStateFlow(User())
 
     init {
         viewModelScope.launch {
-            currentUser.update { userDatabase.getCurrentUser()!! }
+            currentUser.update { userDatabase.getCurrentUser(uidLoggedUser)!! }
         }
     }
 }

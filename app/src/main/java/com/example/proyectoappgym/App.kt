@@ -29,15 +29,20 @@ import kotlinx.coroutines.launch
 class App: Application() {
     val repositoryQuestions: RepositoryQuestions by lazy { QuestionsRegistration }
     val userDatabase by lazy { UserDatabase() }
-    val datastore: DataStore<Preferences> by preferencesDataStore(name = "user_token")
+    private val datastore: DataStore<Preferences> by preferencesDataStore(name = "user_token")
     val isLoggedUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    var uidLoggedUser: String? = null
 
     override fun onCreate() {
         super.onCreate()
+        val preferenceKey = stringPreferencesKey("user_token")
+
         FirebaseApp.initializeApp(this)
         userDatabase.initializerApp()
         GlobalScope.launch {
             changeUidLoggedUser()
+            uidLoggedUser = datastore.data.first()[preferenceKey]
+            userDatabase.updateUidLoggedUser(uidLoggedUser)
         }
     }
 

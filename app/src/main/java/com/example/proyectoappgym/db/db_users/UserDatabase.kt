@@ -1,28 +1,20 @@
 package com.example.proyectoappgym.db.db_users
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.preference.Preference
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
 import com.example.proyectoappgym.entity.User
-import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseAuthEmailException
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.auth.FirebaseAuthCredentialsProvider
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.asDeferred
-import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
@@ -171,17 +163,29 @@ class UserDatabase: RepositoryUserDatabase {
         return isExist
     }
 
-    override suspend fun getCurrentUser(): User? {
-        val currentFirebaseUser = auth.currentUser as FirebaseUser
+    override suspend fun updateNameCurrentUser(newName: String) {
+        suspendCoroutine<Unit> { db.collection("Users").document(uidLoggedUser as String).update("name", newName) }
+    }
 
-        return suspendCoroutine { continuation ->
-            db.collection("Users")
-                .document(currentFirebaseUser.uid)
-                .get()
-                .addOnSuccessListener { result ->
-                    continuation.resume(result.toObject<User?>())
-                }
+    override suspend fun getCurrentUser(uidUser: String?): User? {
+
+        if(uidUser != null) {
+            return suspendCoroutine { continuation ->
+                db.collection("Users")
+                    .document(uidUser)
+                    .get()
+                    .addOnSuccessListener { result ->
+                        continuation.resume(result.toObject<User?>())
+                    }
+            }
+        } else {
+            return null
         }
+
+    }
+
+    fun updateUidLoggedUser(newUid: String?) {
+        uidLoggedUser = newUid
     }
 
     fun getUidLoggedUser(): String? {
