@@ -1,5 +1,6 @@
 package com.example.proyectoappgym.ui.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
@@ -23,6 +24,12 @@ class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase): Vi
     fun updateName(newName: String) {
         viewModelScope.launch {
             userDatabase.updateNameCurrentUser(newName)
+        }
+    }
+
+    fun updateAvatarProfile(uri: Uri, currentUser: User) {
+        viewModelScope.launch {
+            userDatabase.updateProfileAvatar(uri, currentUser)
         }
     }
 }

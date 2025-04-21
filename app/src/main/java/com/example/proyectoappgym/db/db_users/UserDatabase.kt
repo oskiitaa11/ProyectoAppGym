@@ -195,15 +195,19 @@ class UserDatabase: RepositoryUserDatabase {
         return uidLoggedUser
     }
 
-    suspend fun updateUrlImageAvatar(uri: Uri, currentUser: User) {
+    override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("profile_images/$uidLoggedUser.jpg")
 
-        imageRef.putFile(uri)
-        imageRef.downloadUrl.addOnSuccessListener {
-            currentUser.profileAvatar = it.toString()
+        suspendCoroutine<Unit> {
+            imageRef.putFile(uri)
+            imageRef.downloadUrl.addOnSuccessListener {
+                currentUser.profileAvatar = it.toString()
+                val o = currentUser.profileAvatar
+            }.addOnFailureListener {
+                val o = it.message
+            }
         }
-
     }
 }
 

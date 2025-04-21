@@ -90,6 +90,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -125,7 +126,7 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         if(currentUser.username.isNotEmpty())
-        EditProfileScreen(currentUser, backProfileScreen, { newName -> editProfileViewmodel.updateName(newName) }, { uriNewAvatar ->  } )
+        EditProfileScreen(currentUser, backProfileScreen, { newName -> editProfileViewmodel.updateName(newName) }, { uriNewAvatar -> editProfileViewmodel.updateAvatarProfile(uriNewAvatar.toUri(), currentUser) } )
     }
 }
 
