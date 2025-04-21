@@ -22,11 +22,13 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -63,6 +65,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -70,6 +73,8 @@ import androidx.compose.ui.graphics.ColorProducer
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -102,6 +107,7 @@ import com.example.proyectoappgym.ui.viewmodels.EditProfileViewmodel
 import com.example.proyectoappgym.ui.viewmodels.ProfileViewmodel
 import kotlinx.serialization.Serializable
 
+
 @Serializable
 object EditProfileRoute
 
@@ -114,19 +120,18 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
         val editProfileViewmodel: EditProfileViewmodel = viewModel(navBackStackEntry) {
             EditProfileViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).uidLoggedUser as String
             )
         }
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         if(currentUser.username.isNotEmpty())
-        EditProfileScreen(currentUser, backProfileScreen) { newName -> editProfileViewmodel.updateName(newName) }
+        EditProfileScreen(currentUser, backProfileScreen, { newName -> editProfileViewmodel.updateName(newName) }, { uriNewAvatar ->  } )
     }
 }
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateName: (String) -> Unit) {
+fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (String) -> Unit) {
     var isEdited by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -140,15 +145,13 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
         )
     }
     val scale = remember { Animatable(1f) }
-    val context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         imageUri = uri
     }
-
-    val painter = if (imageUri != null) imageUri else ImageRequest.Builder(context).data(currentUser.profileAvatar).build()
+    val painter: Any = if(imageUri != null) imageUri as Uri else if(currentUser.profileAvatar.isNotEmpty()) currentUser.profileAvatar else R.drawable.predetermined_avatar
 
     ApplyAnimationForWhenOnClick(isEdited, scale)
 
@@ -168,7 +171,8 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
     Scaffold(
         topBar = {
             ShowTopAppBarEditProfileScreen {
-                updateName(textFieldValue.text)
+                if(currentUser.name != textFieldValue.text) updateName(textFieldValue.text)
+                if(imageUri != null) updateAvatarProfile(imageUri.toString())
                 backProfileScreen()
             }
         }
@@ -279,21 +283,29 @@ fun ApplyAnimationForWhenOnClick(isEdited: Boolean, scale: Animatable<Float, Ani
 }
 
 @Composable
-fun ShowUpdateProfileAvatar(painter: Any?, showLauncherGallery: () -> Unit) {
-    Box() {
-        AsyncImage(
-            model = painter,
-            contentDescription = "Profile avatar",
-            modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
-                .height(80.dp)
-                .width(80.dp)
-        )
+fun ShowUpdateProfileAvatar(painter: Any, showLauncherGallery: () -> Unit) {
+    val imageModifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
+        .size(80.dp)
+        .clip(CircleShape)
+
+    Box(modifier = Modifier.size(80.dp)) {
+        if(painter is Uri) {
+            AsyncImage(
+                model = painter,
+                contentDescription = "Profile avatar",
+                modifier = imageModifier,
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Image(painterResource(painter as Int), "Profile avatar", modifier = imageModifier)
+        }
+
 
         IconButton(
             onClick = showLauncherGallery,
-            modifier = Modifier.align(Alignment.BottomEnd)
+            modifier = Modifier.align(Alignment.BottomEnd).size(32.dp)
         ) {
-            Icon(painterResource(R.drawable.ic_add_circle_24), "Button for add")
+            Image(painterResource(R.drawable.ic_add_32), "Button for add", modifier = Modifier.fillMaxSize())
         }
     }
 }

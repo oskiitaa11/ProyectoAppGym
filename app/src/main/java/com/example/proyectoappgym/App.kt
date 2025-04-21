@@ -17,8 +17,6 @@ import com.example.proyectoappgym.entity.User
 import com.google.api.Context
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseUser
-
-
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,13 +54,22 @@ class App: Application() {
 
     private suspend fun changeUidLoggedUser(){
         val preferenceKey = stringPreferencesKey("user_token")
-        isLoggedUser.update { datastore.data.first().get(preferenceKey)?.isNotEmpty() ?: false }
+        isLoggedUser.update { datastore.data.first()[preferenceKey]?.isNotEmpty() ?: false }
     }
 
     fun addLoggedUserFromMain(idToken: String) {
         GlobalScope.launch {
             addLoggedUser(idToken)
             changeUidLoggedUser()
+            val i = 0
+        }
+    }
+
+    suspend fun logoutUser() {
+        val preferenceKey = stringPreferencesKey("user_token")
+
+        datastore.edit { preferences ->
+            preferences[preferenceKey] = ""
         }
     }
 }

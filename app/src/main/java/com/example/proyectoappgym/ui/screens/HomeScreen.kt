@@ -25,8 +25,7 @@ fun NavGraphBuilder.homeDestination() {
     composable<HomeRoute> { navBackStackEntry ->
         val homeViewmodel: HomeViewmodel = viewModel(navBackStackEntry) {
             HomeViewmodel(
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).uidLoggedUser as String
+                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
             )
         }
         val currentUser by homeViewmodel.currentUser.collectAsStateWithLifecycle()

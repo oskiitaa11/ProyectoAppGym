@@ -10,7 +10,7 @@ data class User(
     val birthdate: String,
     val gender: Gender,
     var allQuestionsAnswered: Map<String, List<String>> = mapOf(),
-    var profileAvatar: Int = R.drawable.predetermined_avatar
+    var profileAvatar: String = ""
 ) {
     constructor(): this("", "", "", "", "", Gender.NONE, mapOf())
 }

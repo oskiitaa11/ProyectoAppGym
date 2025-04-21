@@ -116,7 +116,6 @@ class MainActivity : ComponentActivity() {
             val reassignUser = {
                 if(app.userDatabase.getUidLoggedUser() != null)
                     app.addLoggedUserFromMain(app.userDatabase.getUidLoggedUser()!!)
-
             }
             /*val signInGoogle: @Composable (Context, (String) -> Unit) -> Unit = { context, authWithGoogle ->
                 val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

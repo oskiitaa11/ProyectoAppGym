@@ -1,6 +1,8 @@
 package com.example.proyectoappgym.db.db_users
 
 import android.annotation.SuppressLint
+import android.net.Uri
+import androidx.compose.ui.text.LinkAnnotation
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -13,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.tasks.asDeferred
 import kotlin.coroutines.resume
@@ -167,12 +170,12 @@ class UserDatabase: RepositoryUserDatabase {
         suspendCoroutine<Unit> { db.collection("Users").document(uidLoggedUser as String).update("name", newName) }
     }
 
-    override suspend fun getCurrentUser(uidUser: String?): User? {
+    override suspend fun getCurrentUser(): User? {
 
-        if(uidUser != null) {
+        if(uidLoggedUser != null) {
             return suspendCoroutine { continuation ->
                 db.collection("Users")
-                    .document(uidUser)
+                    .document(uidLoggedUser as String)
                     .get()
                     .addOnSuccessListener { result ->
                         continuation.resume(result.toObject<User?>())
@@ -190,6 +193,17 @@ class UserDatabase: RepositoryUserDatabase {
 
     fun getUidLoggedUser(): String? {
         return uidLoggedUser
+    }
+
+    suspend fun updateUrlImageAvatar(uri: Uri, currentUser: User) {
+        val storageRef = FirebaseStorage.getInstance().reference
+        val imageRef = storageRef.child("profile_images/$uidLoggedUser.jpg")
+
+        imageRef.putFile(uri)
+        imageRef.downloadUrl.addOnSuccessListener {
+            currentUser.profileAvatar = it.toString()
+        }
+
     }
 }
 

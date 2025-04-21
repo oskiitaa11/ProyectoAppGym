@@ -57,7 +57,6 @@ fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettin
         val profileViewmodel: ProfileViewmodel = viewModel(navBackStackEntry) {
             ProfileViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).uidLoggedUser as String
             )
         }
         val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
@@ -76,7 +75,7 @@ fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen:
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             Image(
-                painter = painterResource(user.profileAvatar),
+                painter = if(user.profileAvatar.isEmpty()) painterResource(R.drawable.predetermined_avatar) else TODO(),
                 contentDescription = "Profile avatar",
                 modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
                     .height(80.dp)

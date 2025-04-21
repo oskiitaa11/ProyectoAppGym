@@ -8,12 +8,12 @@ import com.example.proyectoappgym.entity.User
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class HomeViewmodel(private val userDatabase: RepositoryUserDatabase, uidLoggedUser: String): ViewModel() {
+class HomeViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
     val currentUser = MutableStateFlow(User())
 
     init {
         viewModelScope.launch {
-            currentUser.update { userDatabase.getCurrentUser(uidLoggedUser)!! }
+            currentUser.update { userDatabase.getCurrentUser()!! }
         }
     }
 }

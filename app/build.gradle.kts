@@ -89,4 +89,5 @@ dependencies {
     implementation(libs.coil.compose.v270)
     //noinspection UseTomlInstead
     implementation("androidx.activity:activity-compose:1.11.0-beta01")
+    implementation(libs.firebase.storage)
 }
