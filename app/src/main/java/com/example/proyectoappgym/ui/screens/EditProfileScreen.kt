@@ -26,10 +26,13 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -43,6 +46,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RippleDefaults
 import androidx.compose.material3.Scaffold
@@ -55,12 +60,15 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -106,6 +114,8 @@ import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.viewmodels.EditProfileViewmodel
 import com.example.proyectoappgym.ui.viewmodels.ProfileViewmodel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 
@@ -126,13 +136,21 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         if(currentUser.username.isNotEmpty())
-        EditProfileScreen(currentUser, backProfileScreen, { newName -> editProfileViewmodel.updateName(newName) }, { uriNewAvatar -> editProfileViewmodel.updateAvatarProfile(uriNewAvatar.toUri(), currentUser) } )
+        EditProfileScreen(
+            currentUser,
+            backProfileScreen,
+            { newName -> editProfileViewmodel.updateName(newName) },
+            { newAvatar ->
+                editProfileViewmodel.updateAvatarProfile(newAvatar)
+                currentUser.profileAvatar = newAvatar
+            }
+        )
     }
 }
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (String) -> Unit) {
+fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Int) -> Unit) {
     var isEdited by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -146,13 +164,14 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
         )
     }
     val scale = remember { Animatable(1f) }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    val galleryLauncher = rememberLauncherForActivityResult(
+    //var imageUri by remember { mutableStateOf<Uri?>(null) }
+    /*val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         imageUri = uri
-    }
-    val painter: Any = if(imageUri != null) imageUri as Uri else if(currentUser.profileAvatar.isNotEmpty()) currentUser.profileAvatar else R.drawable.predetermined_avatar
+    }*/
+    var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar) }
+    var showSheet by remember { mutableStateOf(false) }
 
     ApplyAnimationForWhenOnClick(isEdited, scale)
 
@@ -169,11 +188,13 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
         }
     }
 
+    if(showSheet) ShowBottomSheet({ showSheet = false }, currentAvatar, { newAvatar -> currentAvatar = newAvatar })
+
     Scaffold(
         topBar = {
             ShowTopAppBarEditProfileScreen {
                 if(currentUser.name != textFieldValue.text) updateName(textFieldValue.text)
-                if(imageUri != null) updateAvatarProfile(imageUri.toString())
+                if(currentAvatar != currentUser.profileAvatar) updateAvatarProfile(currentAvatar)
                 backProfileScreen()
             }
         }
@@ -193,7 +214,8 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
                 }
         ) {
             Spacer(modifier = Modifier.height(20.dp))
-            ShowUpdateProfileAvatar(painter) { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
+            ShowProfileAvatar(currentAvatar) { showSheet = true }
+            //ShowUpdateProfileAvatar(painter) { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
             Spacer(modifier = Modifier.height(5.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -283,6 +305,7 @@ fun ApplyAnimationForWhenOnClick(isEdited: Boolean, scale: Animatable<Float, Ani
     }
 }
 
+/*
 @Composable
 fun ShowUpdateProfileAvatar(painter: Any, showLauncherGallery: () -> Unit) {
     val imageModifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
@@ -307,6 +330,79 @@ fun ShowUpdateProfileAvatar(painter: Any, showLauncherGallery: () -> Unit) {
             modifier = Modifier.align(Alignment.BottomEnd).size(32.dp)
         ) {
             Image(painterResource(R.drawable.ic_add_32), "Button for add", modifier = Modifier.fillMaxSize())
+        }
+    }
+}*/
+
+@Composable
+fun ShowProfileAvatar(idPainter: Int, showLauncherBottomSheet: () -> Unit) {
+    val imageModifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
+        .size(80.dp)
+        .clip(CircleShape)
+
+    Box(modifier = Modifier.size(80.dp)) {
+        Image(painterResource(idPainter), "Profile avatar", modifier = imageModifier,)
+
+        IconButton(
+            onClick = showLauncherBottomSheet,
+            modifier = Modifier.align(Alignment.BottomEnd).size(32.dp)
+        ) {
+            Image(painterResource(R.drawable.ic_add_32), "Button for add", modifier = Modifier.fillMaxSize())
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvatarProfile: (Int) -> Unit) {
+    var sheetState = rememberModalBottomSheetState()
+    var scope = rememberCoroutineScope()
+    val avatars = listOf(
+        R.drawable.avatar1,
+        R.drawable.avatar2_1,
+        R.drawable.avatar3,
+
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            scope.launch { sheetState.hide() }.invokeOnCompletion {
+                if (!sheetState.isVisible) {
+                    changeShowSheet()
+                }
+            }
+        },
+        sheetState = sheetState
+    ) {
+        Text(
+            "Selecciona tu avatar",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(16.dp)
+        )
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            items(avatars) { avatar ->
+                Image(
+                    painter = painterResource(avatar),
+                    contentDescription = "Avatar opción",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, if (avatar == currentAvatar) Color.Blue else Color.Transparent, CircleShape)
+                        .clickable {
+                            changeAvatarProfile(avatar)
+                            scope.launch {
+                                sheetState.hide()
+                                changeShowSheet()
+                            }
+                        }
+                )
+            }
         }
     }
 }

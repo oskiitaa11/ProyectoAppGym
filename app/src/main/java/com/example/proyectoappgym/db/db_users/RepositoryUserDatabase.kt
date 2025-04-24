@@ -12,7 +12,7 @@ interface RepositoryUserDatabase {
     suspend fun signOut()
     suspend fun getCurrentUser(): User?
     suspend fun updateNameCurrentUser(newName: String)
-    suspend fun updateProfileAvatar(uri: Uri, currentUser: User)
+    suspend fun updateAvatarProfile(avatar: Int)
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun authWithGoogle(idToken: String): Boolean

@@ -1,11 +1,11 @@
 package com.example.proyectoappgym.ui.screens
 
+import android.R.attr.contentDescription
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -15,8 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
@@ -28,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -41,7 +38,6 @@ import androidx.navigation.compose.composable
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.User
-import com.example.proyectoappgym.ui.viewmodels.HomeViewmodel
 import com.example.proyectoappgym.ui.viewmodels.ProfileViewmodel
 import kotlinx.serialization.Serializable
 
@@ -75,7 +71,7 @@ fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen:
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             Image(
-                painter = if(user.profileAvatar.isEmpty()) painterResource(R.drawable.predetermined_avatar) else TODO(),
+                painter = painterResource(user.profileAvatar),
                 contentDescription = "Profile avatar",
                 modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
                     .height(80.dp)

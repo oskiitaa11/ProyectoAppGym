@@ -27,9 +27,9 @@ class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase): Vi
         }
     }
 
-    fun updateAvatarProfile(uri: Uri, currentUser: User) {
+    fun updateAvatarProfile(newAvatar: Int) {
         viewModelScope.launch {
-            userDatabase.updateProfileAvatar(uri, currentUser)
+            userDatabase.updateAvatarProfile(newAvatar)
         }
     }
 }

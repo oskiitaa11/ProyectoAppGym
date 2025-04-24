@@ -170,6 +170,12 @@ class UserDatabase: RepositoryUserDatabase {
         suspendCoroutine<Unit> { db.collection("Users").document(uidLoggedUser as String).update("name", newName) }
     }
 
+    override suspend fun updateAvatarProfile(newAvatar: Int) {
+        suspendCoroutine<Unit> {
+            db.collection("Users").document(uidLoggedUser as String).update("profileAvatar", newAvatar)
+        }
+    }
+
     override suspend fun getCurrentUser(): User? {
 
         if(uidLoggedUser != null) {
@@ -195,7 +201,7 @@ class UserDatabase: RepositoryUserDatabase {
         return uidLoggedUser
     }
 
-    override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
+   /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
         val storageRef = FirebaseStorage.getInstance().reference
         val imageRef = storageRef.child("profile_images/$uidLoggedUser.jpg")
 
@@ -208,7 +214,7 @@ class UserDatabase: RepositoryUserDatabase {
                 val o = it.message
             }
         }
-    }
+    }*/
 }
 
 
