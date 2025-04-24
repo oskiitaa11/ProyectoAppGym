@@ -126,20 +126,22 @@ fun NavController.goToEditProfileScreen() {
     navigate(EditProfileRoute)
 }
 
-fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
+fun NavGraphBuilder.editProfileDestination(currentUser: User, backProfileScreen: () -> Unit) {
     composable<EditProfileRoute> { navBackStackEntry ->
         val editProfileViewmodel: EditProfileViewmodel = viewModel(navBackStackEntry) {
             EditProfileViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
             )
         }
-        val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         if(currentUser.username.isNotEmpty())
         EditProfileScreen(
             currentUser,
             backProfileScreen,
-            { newName -> editProfileViewmodel.updateName(newName) },
+            { newName ->
+                editProfileViewmodel.updateName(newName)
+                currentUser.name = newName
+            },
             { newAvatar ->
                 editProfileViewmodel.updateAvatarProfile(newAvatar)
                 currentUser.profileAvatar = newAvatar
@@ -375,7 +377,7 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
         sheetState = sheetState
     ) {
         Text(
-            "Selecciona tu avatar",
+            "Select your avatar",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(16.dp)
         )

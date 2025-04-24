@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -48,14 +49,13 @@ fun NavController.goToProfileScreen() {
     navigate(ProfileRoute)
 }
 
-fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit) {
+fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit, currentUser: User) {
     composable<ProfileRoute> { navBackStackEntry ->
         val profileViewmodel: ProfileViewmodel = viewModel(navBackStackEntry) {
             ProfileViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
             )
         }
-        val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen)
     }
@@ -76,10 +76,11 @@ fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen:
                 modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
                     .height(80.dp)
                     .width(80.dp)
+                    .clip(CircleShape)
             )
             Spacer(modifier = Modifier.height(5.dp))
-            Text(user.username, color = Color.White)
-            Spacer(modifier = Modifier.height(10.dp))
+            Text(user.name, color = Color.White)
+            Spacer(modifier = Modifier.height(15.dp))
             TextButton(
                 onClick = onEditProfileScreen,
                 shape = ShapeDefaults.Medium,

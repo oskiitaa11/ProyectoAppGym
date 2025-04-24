@@ -13,13 +13,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
-    val currentUser = MutableStateFlow(User())
-
-    init {
-        viewModelScope.launch {
-            currentUser.update { userDatabase.getCurrentUser()!! }
-        }
-    }
 
     fun updateName(newName: String) {
         viewModelScope.launch {

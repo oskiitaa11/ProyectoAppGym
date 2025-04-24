@@ -26,7 +26,6 @@ fun NavGraphBuilder.settingsDestination(backEditProfileScreen: () -> Unit) {
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
             )
         }
-        val currentUser by settingsViewmodel.currentUser.collectAsStateWithLifecycle()
 
 
     }

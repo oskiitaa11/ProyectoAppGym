@@ -29,7 +29,7 @@ class App: Application() {
     val userDatabase by lazy { UserDatabase() }
     private val datastore: DataStore<Preferences> by preferencesDataStore(name = "user_token")
     val isLoggedUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
-    var uidLoggedUser: String? = null
+    val currentUser: MutableStateFlow<User> = MutableStateFlow(User())
 
     override fun onCreate() {
         super.onCreate()
@@ -39,8 +39,8 @@ class App: Application() {
         userDatabase.initializerApp()
         GlobalScope.launch {
             changeUidLoggedUser()
-            uidLoggedUser = datastore.data.first()[preferenceKey]
-            userDatabase.updateUidLoggedUser(uidLoggedUser)
+            userDatabase.updateUidLoggedUser(datastore.data.first()[preferenceKey])
+            if(isLoggedUser.value as Boolean) currentUser.update { userDatabase.getCurrentUser() as User }
         }
     }
 
