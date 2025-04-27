@@ -49,13 +49,14 @@ fun NavController.goToProfileScreen() {
     navigate(ProfileRoute)
 }
 
-fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit, currentUser: User) {
+fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit) {
     composable<ProfileRoute> { navBackStackEntry ->
         val profileViewmodel: ProfileViewmodel = viewModel(navBackStackEntry) {
             ProfileViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
             )
         }
+        val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen)
     }

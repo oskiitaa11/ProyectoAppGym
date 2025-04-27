@@ -117,7 +117,6 @@ class MainActivity : ComponentActivity() {
                 if(app.userDatabase.getUidLoggedUser() != null)
                     app.addLoggedUserFromMain(app.userDatabase.getUidLoggedUser()!!)
             }
-            val currentUser by app.currentUser.collectAsStateWithLifecycle()
             /*val signInGoogle: @Composable (Context, (String) -> Unit) -> Unit = { context, authWithGoogle ->
                 val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(
@@ -136,7 +135,7 @@ class MainActivity : ComponentActivity() {
             ProyectoAppGymTheme {
                 if(thereIsLoggedUser != null)
                 if(thereIsLoggedUser as Boolean) {
-                    NavScreensWithingLoginScreen(currentUser)
+                    NavScreensWithingLoginScreen()
                 } else {
                     NavScreensWithLoginScreen(reassignUser)
                 }
@@ -148,24 +147,25 @@ class MainActivity : ComponentActivity() {
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun NavScreensWithingLoginScreen(currentUser: User) {
+fun NavScreensWithingLoginScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         bottomBar = {
             BottomBar(currentDestination, navController)
         }
-    ) {
+    ) { innerpadding ->
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize().padding(bottom = innerpadding.calculateBottomPadding())
         ) {
-            homeDestination(currentUser)
-            profileGraph(navController, currentUser)
+            homeDestination()
+            profileGraph(navController)
         }
     }
 

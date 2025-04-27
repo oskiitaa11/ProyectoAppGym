@@ -13,9 +13,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 object ProfileGraphRoute
 
-fun NavGraphBuilder.profileGraph(navController: NavController, currentUser: User) {
+fun NavGraphBuilder.profileGraph(navController: NavController) {
     navigation<ProfileGraphRoute>(startDestination = ProfileRoute) {
-        profileDestination({ navController.goToEditProfileScreen() }, {  }, currentUser)
-        editProfileDestination(currentUser) { navController.popBackStack() }
+        profileDestination({ navController.goToEditProfileScreen() }, {  })
+        editProfileDestination { navController.popBackStack() }
     }
 }

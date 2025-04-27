@@ -4,13 +4,15 @@ import android.net.Uri
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.firestore.DocumentReference
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 interface RepositoryUserDatabase {
     suspend fun addUser(user: User): Boolean
     suspend fun deleteUser(user: User): String
     suspend fun signIn(email: String, password: String): Int
     suspend fun signOut()
-    suspend fun getCurrentUser(): User?
+    suspend fun updateCurrentUser()
+    suspend fun getCurrentUser(): MutableStateFlow<User?>
     suspend fun updateNameCurrentUser(newName: String)
     suspend fun updateAvatarProfile(avatar: Int)
     suspend fun emailExist(email: String): Boolean?

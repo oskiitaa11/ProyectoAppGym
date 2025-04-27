@@ -9,5 +9,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SettingsViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
+    var currentUser = MutableStateFlow(User())
 
+    init {
+        viewModelScope.launch {
+            currentUser = userDatabase.getCurrentUser() as MutableStateFlow<User>
+        }
+    }
 }

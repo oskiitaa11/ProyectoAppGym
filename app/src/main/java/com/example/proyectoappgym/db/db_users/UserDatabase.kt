@@ -3,6 +3,7 @@ package com.example.proyectoappgym.db.db_users
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.ui.text.LinkAnnotation
+import coil.util.CoilUtils.result
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -17,6 +18,7 @@ import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.asDeferred
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -26,11 +28,13 @@ class UserDatabase: RepositoryUserDatabase {
     private lateinit var db: FirebaseFirestore
     private lateinit var auth: FirebaseAuth
     private var uidLoggedUser: String? = null
+    val currentUser: MutableStateFlow<User?> = MutableStateFlow(null)
 
     fun initializerApp() {
         auth = Firebase.auth
         db = Firebase.firestore
     }
+
 
     @SuppressLint("RestrictedApi")
     override suspend fun addUser(user: User): Boolean {
@@ -119,7 +123,6 @@ class UserDatabase: RepositoryUserDatabase {
             }
 
         return emailExist
-
     }
 
 
@@ -176,21 +179,20 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
-    override suspend fun getCurrentUser(): User? {
+    override suspend fun updateCurrentUser() {
 
         if(uidLoggedUser != null) {
-            return suspendCoroutine { continuation ->
-                db.collection("Users")
-                    .document(uidLoggedUser as String)
-                    .get()
-                    .addOnSuccessListener { result ->
-                        continuation.resume(result.toObject<User?>())
-                    }
-            }
-        } else {
-            return null
+            db.collection("Users")
+                .document(uidLoggedUser as String)
+                .addSnapshotListener { snapshot, error ->
+                    if(snapshot != null && snapshot.exists()) currentUser.value = snapshot.toObject<User>()
+                }
         }
 
+    }
+
+    override suspend fun getCurrentUser(): MutableStateFlow<User?> {
+        return currentUser
     }
 
     fun updateUidLoggedUser(newUid: String?) {

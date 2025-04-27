@@ -9,6 +9,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.IndicationNodeFactory
@@ -25,6 +26,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,13 +36,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.createRippleModifierNode
 import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -66,6 +75,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -96,6 +107,7 @@ import androidx.compose.ui.text.input.ImeOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -111,12 +123,18 @@ import coil.compose.AsyncImagePainter.State.Empty.painter
 import coil.request.ImageRequest
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.entity.Question
+import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.viewmodels.EditProfileViewmodel
 import com.example.proyectoappgym.ui.viewmodels.ProfileViewmodel
+import com.google.common.math.Quantiles.scale
+import com.google.firebase.database.collection.LLRBNode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import okhttp3.Response
+import java.nio.file.WatchEvent
 
 
 @Serializable
@@ -126,33 +144,32 @@ fun NavController.goToEditProfileScreen() {
     navigate(EditProfileRoute)
 }
 
-fun NavGraphBuilder.editProfileDestination(currentUser: User, backProfileScreen: () -> Unit) {
+fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
     composable<EditProfileRoute> { navBackStackEntry ->
         val editProfileViewmodel: EditProfileViewmodel = viewModel(navBackStackEntry) {
             EditProfileViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
+                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions
             )
         }
+        val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
+        val allQuestions = editProfileViewmodel.allQuestions
 
         if(currentUser.username.isNotEmpty())
         EditProfileScreen(
             currentUser,
+            allQuestions,
             backProfileScreen,
-            { newName ->
-                editProfileViewmodel.updateName(newName)
-                currentUser.name = newName
-            },
-            { newAvatar ->
-                editProfileViewmodel.updateAvatarProfile(newAvatar)
-                currentUser.profileAvatar = newAvatar
-            }
+            { newName -> editProfileViewmodel.updateName(newName) },
+            { newAvatar -> editProfileViewmodel.updateAvatarProfile(newAvatar) }
         )
     }
 }
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Int) -> Unit) {
+fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Int) -> Unit) {
+    var scrollState = rememberScrollState()
     var isEdited by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -174,6 +191,10 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
     }*/
     var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar) }
     var showSheet by remember { mutableStateOf(false) }
+    var widthTextField by remember { mutableIntStateOf(currentUser.name.length*15) }
+    var allAnsweredQuestionsInRealTime = remember {
+        mutableStateMapOf<String, List<String>>().apply { putAll(currentUser.allQuestionsAnswered) }
+    }
 
     ApplyAnimationForWhenOnClick(isEdited, scale)
 
@@ -205,8 +226,13 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.background(colorResource(R.color.lightBlack))
-                .padding(innerpadding)
+                .padding(
+                    top = innerpadding.calculateTopPadding(),
+                    start = innerpadding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = innerpadding.calculateEndPadding(LayoutDirection.Rtl)
+                )
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .pointerInput(Unit) {//Como se toque a fuera del input se quitara el foco y el teclado desaparece
                     detectTapGestures {
                         focusManager.clearFocus()
@@ -221,11 +247,16 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
             Spacer(modifier = Modifier.height(5.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 15.dp)
             ) {
                 TextField(
                     value = textFieldValue,
-                    onValueChange = { if(it.text.length <= 14) textFieldValue = it else it.text.substring(14) },
+                    onValueChange = {
+                        if(it.text.length <= 14) textFieldValue = it else it.text.substring(14)
+                        widthTextField = if(it.text.length <= 6 ) 80 else it.text.length * 15
+                    },
+
                     enabled = isEdited,
                     textStyle = TextStyle(
                         textAlign = TextAlign.End,
@@ -241,7 +272,7 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
                             isEdited = false
                         }
                     ),
-                    modifier = Modifier.focusRequester(focusRequester).width(180.dp),
+                    modifier = Modifier.focusRequester(focusRequester).width(widthTextField.dp),
                     colors = TextFieldDefaults.colors(
                         focusedTextColor = Color.White,
                         unfocusedTextColor = Color.White,
@@ -269,7 +300,11 @@ fun EditProfileScreen(currentUser: User, backProfileScreen: () -> Unit, updateNa
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(10.dp))
+
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(thickness = 2.dp)
+            Spacer(modifier = Modifier.height(20.dp))
+            ShowQuestionsUser(currentUser.allQuestionsAnswered, allQuestions) { question, newResponses -> allAnsweredQuestionsInRealTime.set(question, newResponses ) }
         }
     }
 }
@@ -408,3 +443,116 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
         }
     }
 }
+
+@Composable
+fun ShowQuestionsUser(allAnsweredQuestions: Map<String, List<String>>, allQuestions: List<Question>, changeCorrectedResponse: (String, List<String>) -> Unit) {
+    allQuestions.forEach {
+        ShowQuestion(
+            it.question,
+            it.responses.toList(),
+            allAnsweredQuestions[it.question] as List<String>,
+            it.responsesTypes == ResponsesType.CHECKBOX,
+            changeCorrectedResponse
+        )
+    }
+}
+
+@Composable
+fun ShowQuestion(question: String, responses: List<String>, correctedResponses: List<String>, isMultipleResponse: Boolean, changeCorrectedResponse: (String, List<String>) -> Unit) {
+    var showResponses by remember { mutableStateOf(false) }
+    var answeredResponses = remember { mutableStateListOf(*correctedResponses.toTypedArray()) }
+    var updateResponses: (String, Boolean) -> Unit = if(isMultipleResponse)
+    { newResponse, isSelected -> if(isSelected) answeredResponses.add(newResponse) else answeredResponses.remove(newResponse) } else
+    { newResponse, isSelected ->
+        if(isSelected) {
+            answeredResponses.clear()
+            answeredResponses.add(newResponse)
+        } else {
+            answeredResponses.clear()
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxSize().clickable { showResponses = !showResponses }.padding(horizontal = 10.dp).padding(bottom = 15.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(question, color = Color.White)
+        Icon(
+            painter = painterResource(if(showResponses) R.drawable.ic_arrow_drop_up_24 else R.drawable.ic_arrow_drop_down_24),
+            contentDescription = "Icon for show text",
+            tint = Color.White
+        )
+    }
+
+    if(showResponses) {
+        responses.forEach { response ->
+            ShowResponse(
+                response,
+                correctedResponses.any { it == response },
+                updateResponses
+            )
+        }
+
+        if(answeredResponses.toSet() != correctedResponses.toSet()) ShowButtonsApplyAndCancel(
+            { changeCorrectedResponse(question, answeredResponses) },
+            {
+                answeredResponses.clear()
+                answeredResponses.addAll(correctedResponses)
+            }
+        )
+    }
+
+}
+
+@Composable
+fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrectedResponse: (String, Boolean) -> Unit) {
+    var isSelected by remember { mutableStateOf(isCorrectedResponse) }
+    var widthCard = if(response.length<=9) 150.dp else (response.length * 14).dp
+
+    Card(
+        {
+            isSelected = !isSelected
+            changeCorrectedResponse(response, isSelected)
+        },
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
+        colors = CardDefaults.cardColors(containerColor = colorResource(if(isSelected) R.color.lightGreen else R.color.black), contentColor = Color.White),
+        modifier = Modifier.width(widthCard).padding(10.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 15.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(response, color = Color.White, maxLines = 4, modifier = Modifier.padding(end = 10.dp))
+            if(isSelected) Icon(painter = painterResource(R.drawable.baseline_check_24), modifier = Modifier.size(24.dp), contentDescription = "Corrected response")
+        }
+    }
+}
+
+@Composable
+fun ShowButtonsApplyAndCancel(updateCorrectedResponse: () -> Unit, cancelChanges: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.End
+    ) {
+        TextButton(
+            updateCorrectedResponse,
+            shape = ShapeDefaults.Medium,
+            colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen))
+        ) {
+           Text("Apply", color = Color.White)
+        }
+
+        TextButton(
+            cancelChanges,
+            shape = ShapeDefaults.Medium,
+            border = BorderStroke(2.dp, color = Color.White),
+            colors = ButtonDefaults.textButtonColors(containerColor = Color.Transparent, contentColor = Color.White)
+        ) {
+            Text("Cancel", color = Color.White)
+        }
+    }
+}
+

@@ -20,7 +20,7 @@ fun NavController.goToHomeScreen(){
     navigate(HomeRoute)
 }
 
-fun NavGraphBuilder.homeDestination(currentUser: User) {
+fun NavGraphBuilder.homeDestination() {
 
     composable<HomeRoute> { navBackStackEntry ->
         val homeViewmodel: HomeViewmodel = viewModel(navBackStackEntry) {
@@ -28,6 +28,7 @@ fun NavGraphBuilder.homeDestination(currentUser: User) {
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
             )
         }
+        val currentUser by homeViewmodel.currentUser.collectAsStateWithLifecycle()
 
         HomeScreen(currentUser)
     }
@@ -35,5 +36,5 @@ fun NavGraphBuilder.homeDestination(currentUser: User) {
 
 @Composable
 fun HomeScreen(user: User) {
-
+    val n = user
 }
