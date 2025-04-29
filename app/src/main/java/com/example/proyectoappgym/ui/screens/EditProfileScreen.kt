@@ -2,12 +2,17 @@ package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.text.Layout
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -24,6 +29,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -34,8 +40,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -85,6 +94,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -169,7 +179,6 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
 @SuppressLint("RememberReturnType")
 @Composable
 fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Int) -> Unit) {
-    var scrollState = rememberScrollState()
     var isEdited by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -191,7 +200,7 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfi
     }*/
     var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar) }
     var showSheet by remember { mutableStateOf(false) }
-    var widthTextField by remember { mutableIntStateOf(currentUser.name.length*15) }
+    var widthTextField by remember { mutableIntStateOf(currentUser.name.length * 15) }
     var allAnsweredQuestionsInRealTime = remember {
         mutableStateMapOf<String, List<String>>().apply { putAll(currentUser.allQuestionsAnswered) }
     }
@@ -232,7 +241,6 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfi
                     end = innerpadding.calculateEndPadding(LayoutDirection.Rtl)
                 )
                 .fillMaxSize()
-                .verticalScroll(scrollState)
                 .pointerInput(Unit) {//Como se toque a fuera del input se quitara el foco y el teclado desaparece
                     detectTapGestures {
                         focusManager.clearFocus()
@@ -301,8 +309,6 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfi
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-            HorizontalDivider(thickness = 2.dp)
             Spacer(modifier = Modifier.height(20.dp))
             ShowQuestionsUser(currentUser.allQuestionsAnswered, allQuestions) { question, newResponses -> allAnsweredQuestionsInRealTime.set(question, newResponses ) }
         }
@@ -398,7 +404,6 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
         R.drawable.avatar1,
         R.drawable.avatar2_1,
         R.drawable.avatar3,
-
     )
 
     ModalBottomSheet(
@@ -446,14 +451,22 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
 
 @Composable
 fun ShowQuestionsUser(allAnsweredQuestions: Map<String, List<String>>, allQuestions: List<Question>, changeCorrectedResponse: (String, List<String>) -> Unit) {
-    allQuestions.forEach {
-        ShowQuestion(
-            it.question,
-            it.responses.toList(),
-            allAnsweredQuestions[it.question] as List<String>,
-            it.responsesTypes == ResponsesType.CHECKBOX,
-            changeCorrectedResponse
-        )
+    var state = rememberLazyListState()
+
+    LazyColumn(state = state, horizontalAlignment = Alignment.CenterHorizontally) {
+        itemsIndexed(items = allQuestions, key = { _, question -> question.id }) { id, question ->
+            HorizontalDivider(thickness = 2.dp, color = Color.White)
+            Spacer(modifier = Modifier.height(15.dp))
+            ShowQuestion(
+                question.question,
+                question.responses.toList(),
+                allAnsweredQuestions[question.question] ?: emptyList(),
+                question.responsesTypes == ResponsesType.CHECKBOX,
+                changeCorrectedResponse
+            )
+            HorizontalDivider(thickness = 2.dp, color = Color.White)
+            Spacer(modifier = Modifier.height(15.dp))
+        }
     }
 }
 
@@ -461,6 +474,7 @@ fun ShowQuestionsUser(allAnsweredQuestions: Map<String, List<String>>, allQuesti
 fun ShowQuestion(question: String, responses: List<String>, correctedResponses: List<String>, isMultipleResponse: Boolean, changeCorrectedResponse: (String, List<String>) -> Unit) {
     var showResponses by remember { mutableStateOf(false) }
     var answeredResponses = remember { mutableStateListOf(*correctedResponses.toTypedArray()) }
+    val expandIconRotation by animateFloatAsState(if (showResponses) 180f else 0f)
     var updateResponses: (String, Boolean) -> Unit = if(isMultipleResponse)
     { newResponse, isSelected -> if(isSelected) answeredResponses.add(newResponse) else answeredResponses.remove(newResponse) } else
     { newResponse, isSelected ->
@@ -472,35 +486,42 @@ fun ShowQuestion(question: String, responses: List<String>, correctedResponses: 
         }
     }
 
-    Row(
-        modifier = Modifier.fillMaxSize().clickable { showResponses = !showResponses }.padding(horizontal = 10.dp).padding(bottom = 15.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessVeryLow))
     ) {
-        Text(question, color = Color.White)
-        Icon(
-            painter = painterResource(if(showResponses) R.drawable.ic_arrow_drop_up_24 else R.drawable.ic_arrow_drop_down_24),
-            contentDescription = "Icon for show text",
-            tint = Color.White
-        )
-    }
-
-    if(showResponses) {
-        responses.forEach { response ->
-            ShowResponse(
-                response,
-                correctedResponses.any { it == response },
-                updateResponses
+        Row(
+            modifier = Modifier.fillMaxSize().clickable { showResponses = !showResponses }.padding(horizontal = 10.dp).padding(bottom = 15.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(question, color = Color.White)
+            Icon(
+                modifier = Modifier.rotate(expandIconRotation),
+                painter = painterResource(R.drawable.ic_arrow_drop_down_24),
+                contentDescription = "Icon for show text",
+                tint = Color.White
             )
         }
 
-        if(answeredResponses.toSet() != correctedResponses.toSet()) ShowButtonsApplyAndCancel(
-            { changeCorrectedResponse(question, answeredResponses) },
-            {
-                answeredResponses.clear()
-                answeredResponses.addAll(correctedResponses)
+        if(showResponses) {
+            responses.forEach { response ->
+                ShowResponse(
+                    response,
+                    correctedResponses.any { it == response },
+                    updateResponses
+                )
             }
-        )
+
+            if(answeredResponses.toSet() != correctedResponses.toSet()) ShowButtonsApplyAndCancel(
+                { changeCorrectedResponse(question, answeredResponses) },
+                {
+                    answeredResponses.clear()
+                    answeredResponses.addAll(correctedResponses)
+                }
+            )
+        }
     }
 
 }
@@ -508,7 +529,7 @@ fun ShowQuestion(question: String, responses: List<String>, correctedResponses: 
 @Composable
 fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrectedResponse: (String, Boolean) -> Unit) {
     var isSelected by remember { mutableStateOf(isCorrectedResponse) }
-    var widthCard = if(response.length<=9) 150.dp else (response.length * 14).dp
+    var widthCard = if(response.length<=9) 150.dp else if(isSelected) (response.length * 15).dp else (response.length * 14).dp
 
     Card(
         {
@@ -533,14 +554,16 @@ fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrected
 @Composable
 fun ShowButtonsApplyAndCancel(updateCorrectedResponse: () -> Unit, cancelChanges: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.End
     ) {
         TextButton(
             updateCorrectedResponse,
             shape = ShapeDefaults.Medium,
-            colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen))
+            colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen)),
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            modifier = Modifier.padding(end = 20.dp)
         ) {
            Text("Apply", color = Color.White)
         }
@@ -549,7 +572,8 @@ fun ShowButtonsApplyAndCancel(updateCorrectedResponse: () -> Unit, cancelChanges
             cancelChanges,
             shape = ShapeDefaults.Medium,
             border = BorderStroke(2.dp, color = Color.White),
-            colors = ButtonDefaults.textButtonColors(containerColor = Color.Transparent, contentColor = Color.White)
+            colors = ButtonDefaults.textButtonColors(containerColor = Color.Transparent, contentColor = Color.White),
+            contentPadding = PaddingValues(horizontal = 20.dp)
         ) {
             Text("Cancel", color = Color.White)
         }
