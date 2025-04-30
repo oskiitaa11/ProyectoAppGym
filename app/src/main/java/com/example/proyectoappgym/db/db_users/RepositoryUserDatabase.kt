@@ -15,6 +15,7 @@ interface RepositoryUserDatabase {
     suspend fun getCurrentUser(): MutableStateFlow<User?>
     suspend fun updateNameCurrentUser(newName: String)
     suspend fun updateAvatarProfile(avatar: Int)
+    suspend fun updateResponses(question: String, newResponses: List<String>)
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun authWithGoogle(idToken: String): Boolean

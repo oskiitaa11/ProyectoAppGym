@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.ui.text.LinkAnnotation
 import coil.util.CoilUtils.result
+import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -175,7 +176,17 @@ class UserDatabase: RepositoryUserDatabase {
 
     override suspend fun updateAvatarProfile(newAvatar: Int) {
         suspendCoroutine<Unit> {
-            db.collection("Users").document(uidLoggedUser as String).update("profileAvatar", newAvatar)
+            db.collection("Users")
+                .document(uidLoggedUser as String)
+                .update("profileAvatar", newAvatar)
+        }
+    }
+
+    override suspend fun updateResponse(question: String, newResponses: List<String>) {
+        suspendCoroutine<Unit> {
+            db.collection("Users")
+                .document(uidLoggedUser as String)
+                .update("allQuestionsAnswered", newResponses)
         }
     }
 

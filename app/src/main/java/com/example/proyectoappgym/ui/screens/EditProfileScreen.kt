@@ -90,7 +90,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -171,7 +173,8 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
             allQuestions,
             backProfileScreen,
             { newName -> editProfileViewmodel.updateName(newName) },
-            { newAvatar -> editProfileViewmodel.updateAvatarProfile(newAvatar) }
+            { newAvatar -> editProfileViewmodel.updateAvatarProfile(newAvatar) },
+            //{ newResponses -> editProfileViewmodel.updateResponses(newResponses) }
         )
     }
 }
@@ -201,9 +204,10 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfi
     var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar) }
     var showSheet by remember { mutableStateOf(false) }
     var widthTextField by remember { mutableIntStateOf(currentUser.name.length * 15) }
-    var allAnsweredQuestionsInRealTime = remember {
+    /*var allAnsweredQuestionsInRealTime = remember {
         mutableStateMapOf<String, List<String>>().apply { putAll(currentUser.allQuestionsAnswered) }
-    }
+    }*/
+    var responsesChanged by remember { mutableStateOf(false) }
 
     ApplyAnimationForWhenOnClick(isEdited, scale)
 
@@ -310,7 +314,7 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfi
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            ShowQuestionsUser(currentUser.allQuestionsAnswered, allQuestions) { question, newResponses -> allAnsweredQuestionsInRealTime.set(question, newResponses ) }
+            ShowQuestionsUser(currentUser.allQuestionsAnswered, allQuestions, updateResponses)
         }
     }
 }
@@ -449,21 +453,23 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @Composable
-fun ShowQuestionsUser(allAnsweredQuestions: Map<String, List<String>>, allQuestions: List<Question>, changeCorrectedResponse: (String, List<String>) -> Unit) {
-    var state = rememberLazyListState()
+fun ShowQuestionsUser(allAnsweredQuestions: Map<String, List<String>>, allQuestions: List<Question>, changeCorrectedResponse: (Map<String, List<String>>) -> Unit) {
+    //var state = rememberLazyListState()
+    var answeredResponsesInRealTime = remember { mapOf(*allAnsweredQuestions.map { (question, responses) -> Pair(question, mutableStateListOf(*responses.toTypedArray())) }.toTypedArray()) }
 
-    LazyColumn(state = state, horizontalAlignment = Alignment.CenterHorizontally) {
+    LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
         itemsIndexed(items = allQuestions, key = { _, question -> question.id }) { id, question ->
             HorizontalDivider(thickness = 2.dp, color = Color.White)
             Spacer(modifier = Modifier.height(15.dp))
             ShowQuestion(
                 question.question,
                 question.responses.toList(),
+                answeredResponsesInRealTime[question.question] ?: mutableStateListOf(),
                 allAnsweredQuestions[question.question] ?: emptyList(),
-                question.responsesTypes == ResponsesType.CHECKBOX,
-                changeCorrectedResponse
-            )
+                question.responsesTypes == ResponsesType.CHECKBOX
+            ) { changeCorrectedResponse(answeredResponsesInRealTime) }
             HorizontalDivider(thickness = 2.dp, color = Color.White)
             Spacer(modifier = Modifier.height(15.dp))
         }
@@ -471,10 +477,11 @@ fun ShowQuestionsUser(allAnsweredQuestions: Map<String, List<String>>, allQuesti
 }
 
 @Composable
-fun ShowQuestion(question: String, responses: List<String>, correctedResponses: List<String>, isMultipleResponse: Boolean, changeCorrectedResponse: (String, List<String>) -> Unit) {
-    var showResponses by remember { mutableStateOf(false) }
-    var answeredResponses = remember { mutableStateListOf(*correctedResponses.toTypedArray()) }
+fun ShowQuestion(question: String, responses: List<String>, answeredResponses: SnapshotStateList<String>, answeredResponsesDb: List<String>, isMultipleResponse: Boolean, changeCorrectedResponse: () -> Unit) {
+    var showResponses by rememberSaveable { mutableStateOf(false) }
+    //var answeredResponses = rememberSaveable { mutableStateListOf(*correctedResponses.toTypedArray()) }
     val expandIconRotation by animateFloatAsState(if (showResponses) 180f else 0f)
+    var hasChangedAnsweredQuestions by rememberSaveable { mutableStateOf(false) }
     var updateResponses: (String, Boolean) -> Unit = if(isMultipleResponse)
     { newResponse, isSelected -> if(isSelected) answeredResponses.add(newResponse) else answeredResponses.remove(newResponse) } else
     { newResponse, isSelected ->
@@ -509,16 +516,18 @@ fun ShowQuestion(question: String, responses: List<String>, correctedResponses: 
             responses.forEach { response ->
                 ShowResponse(
                     response,
-                    correctedResponses.any { it == response },
+                    answeredResponsesDb.any { it == response },
                     updateResponses
                 )
             }
 
-            if(answeredResponses.toSet() != correctedResponses.toSet()) ShowButtonsApplyAndCancel(
-                { changeCorrectedResponse(question, answeredResponses) },
+            hasChangedAnsweredQuestions = answeredResponses.toSet() != answeredResponsesDb.toSet()
+            if(hasChangedAnsweredQuestions)
+                ShowButtonsApplyAndCancel(
+                changeCorrectedResponse,
                 {
                     answeredResponses.clear()
-                    answeredResponses.addAll(correctedResponses)
+                    answeredResponses.addAll(answeredResponsesDb)
                 }
             )
         }
@@ -528,7 +537,7 @@ fun ShowQuestion(question: String, responses: List<String>, correctedResponses: 
 
 @Composable
 fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrectedResponse: (String, Boolean) -> Unit) {
-    var isSelected by remember { mutableStateOf(isCorrectedResponse) }
+    var isSelected by rememberSaveable { mutableStateOf(isCorrectedResponse) }
     var widthCard = if(response.length<=9) 150.dp else if(isSelected) (response.length * 15).dp else (response.length * 14).dp
 
     Card(
