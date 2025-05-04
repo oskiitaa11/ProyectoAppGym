@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
@@ -84,6 +85,7 @@ class UserDatabase: RepositoryUserDatabase {
         return suspendCoroutine { continuation ->
             auth.signInWithEmailAndPassword(email, password).addOnSuccessListener { result ->
                 uidLoggedUser = result.user?.uid
+
                 continuation.resume(1)
             }.addOnFailureListener { exception ->
                 val intErrorSignIn = when (exception) {
@@ -99,16 +101,6 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     override suspend fun emailExist(email: String): Boolean? {
-        /*return suspendCoroutine { continuation ->
-            db.collection("Users")
-                .whereEqualTo("email", email)
-                .get()
-                .addOnSuccessListener {
-                    continuation.resume(!it.isEmpty)
-                }.addOnFailureListener {
-                    continuation.resume(false)
-                }
-        }*/
         var emailExist: Boolean? = null
 
         emailExist = suspendCoroutine { continuation ->
@@ -182,11 +174,11 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
-    override suspend fun updateResponse(question: String, newResponses: List<String>) {
+    override suspend fun updateResponses(question: String, newResponses: List<String>) {
         suspendCoroutine<Unit> {
             db.collection("Users")
                 .document(uidLoggedUser as String)
-                .update("allQuestionsAnswered", newResponses)
+                .update(FieldPath.of("allQuestionsAnswered", question), newResponses)
         }
     }
 
@@ -200,6 +192,16 @@ class UserDatabase: RepositoryUserDatabase {
                 }
         }
 
+    }
+
+    suspend fun updateCurrentUserAfterLogin() {
+        if (uidLoggedUser != null)
+            db.collection("Users")
+                .document(uidLoggedUser as String)
+                .get()
+                .addOnSuccessListener { result ->
+                    currentUser.update { result.toObject<User>() }
+                }
     }
 
     override suspend fun getCurrentUser(): MutableStateFlow<User?> {

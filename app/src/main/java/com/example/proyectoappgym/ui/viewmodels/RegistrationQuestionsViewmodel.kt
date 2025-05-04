@@ -11,14 +11,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class RegistrationQuestionsViewmodel(private val repositoryQuestions: RepositoryQuestions, private val userDatabase: RepositoryUserDatabase): ViewModel() {
-    var allQuestions: List<Question> = listOf()
+    var allQuestions: List<Question> = repositoryQuestions.allQuestions()
     var thereIsErrorToAddUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
-
-    init {
-        viewModelScope.launch {
-            allQuestions = repositoryQuestions.allQuestions()
-        }
-    }
 
     fun addUser(user: User) {
         viewModelScope.launch {

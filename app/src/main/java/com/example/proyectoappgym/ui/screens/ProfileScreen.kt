@@ -1,6 +1,9 @@
 package com.example.proyectoappgym.ui.screens
 
 import android.R.attr.contentDescription
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -50,7 +53,10 @@ fun NavController.goToProfileScreen() {
 }
 
 fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit) {
-    composable<ProfileRoute> { navBackStackEntry ->
+    composable<ProfileRoute>(
+        enterTransition = { fadeIn(animationSpec = tween(800)) },
+        exitTransition = { fadeOut(animationSpec = tween(800)) }
+    ) { navBackStackEntry ->
         val profileViewmodel: ProfileViewmodel = viewModel(navBackStackEntry) {
             ProfileViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
@@ -58,7 +64,8 @@ fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettin
         }
         val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
 
-        ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen)
+        if(currentUser.username.isNotEmpty())
+            ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen)
     }
 }
 

@@ -13,7 +13,7 @@ class ProfileViewmodel(private val userDatabase: RepositoryUserDatabase): ViewMo
 
     init {
         viewModelScope.launch {
-            currentUser = userDatabase.getCurrentUser() as MutableStateFlow<User>
+            userDatabase.getCurrentUser().collect { user -> currentUser.value = user ?: User() }
         }
     }
 }

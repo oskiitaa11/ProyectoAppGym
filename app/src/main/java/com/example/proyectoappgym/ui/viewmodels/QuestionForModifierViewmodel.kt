@@ -11,12 +11,11 @@ import kotlinx.coroutines.launch
 
 class QuestionForModifierViewmodel(private val userDatabase: RepositoryUserDatabase, val repositoryQuestions: RepositoryQuestions): ViewModel() {
     var currentUser = MutableStateFlow(User())
-    var allQuestions = listOf<Question>()
+    var allQuestions = repositoryQuestions.allQuestions()
 
     init {
         viewModelScope.launch {
             currentUser = userDatabase.getCurrentUser() as MutableStateFlow<User>
-            allQuestions = repositoryQuestions.allQuestions()
         }
     }
 

@@ -12,7 +12,7 @@ object QuestionsRegistration: RepositoryQuestions {
         ),
         Question(
             question = "¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?",
-            responsesTypes = ResponsesType.RADIOBUTTON,
+            responsesTypes = ResponsesType.CHECKBOX,
             responses = listOf("Ejercicios con máquinas", "Ejercicios de levantamiento de pesas").toTypedArray()
 
         ),
@@ -29,7 +29,7 @@ object QuestionsRegistration: RepositoryQuestions {
         ),
         Question(
             question = "¿Estás haciendo alguna dieta?",
-            responsesTypes = ResponsesType.CHECKBOX,
+            responsesTypes = ResponsesType.RADIOBUTTON,
             responses = listOf("Sí, para ganar más masa muscular", "Sí, para perder grasa corporal", "Sí, para mantenerme", "No").toTypedArray()
         ),
         Question(
@@ -44,7 +44,7 @@ object QuestionsRegistration: RepositoryQuestions {
         )
     )
 
-    override suspend fun allQuestions(): List<Question> {
+    override fun allQuestions(): List<Question> {
         return allQuestions
     }
 }

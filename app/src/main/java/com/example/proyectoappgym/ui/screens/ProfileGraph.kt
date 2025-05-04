@@ -15,7 +15,11 @@ object ProfileGraphRoute
 
 fun NavGraphBuilder.profileGraph(navController: NavController) {
     navigation<ProfileGraphRoute>(startDestination = ProfileRoute) {
-        profileDestination({ navController.goToEditProfileScreen() }, {  })
-        editProfileDestination { navController.popBackStack() }
+        profileDestination(
+            { navController.goToEditProfileScreen() },
+            {  }
+        )
+        editProfileDestination({ navController.popBackStack() }, { questionForModifier, selectedResponses, responseType -> navController.goToQuestionForModifier(questionForModifier, selectedResponses, responseType) })
+        questionForModifierDestination { navController.popBackStack() }
     }
 }

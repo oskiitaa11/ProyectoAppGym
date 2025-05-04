@@ -1,5 +1,9 @@
 package com.example.proyectoappgym.ui.screens
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.ViewModelProvider
@@ -22,7 +26,10 @@ fun NavController.goToHomeScreen(){
 
 fun NavGraphBuilder.homeDestination() {
 
-    composable<HomeRoute> { navBackStackEntry ->
+    composable<HomeRoute>(
+        enterTransition = { fadeIn(animationSpec = tween(800)) },
+        exitTransition = { fadeOut(animationSpec = tween(800)) }
+    ) { navBackStackEntry ->
         val homeViewmodel: HomeViewmodel = viewModel(navBackStackEntry) {
             HomeViewmodel(
                 (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
@@ -30,7 +37,8 @@ fun NavGraphBuilder.homeDestination() {
         }
         val currentUser by homeViewmodel.currentUser.collectAsStateWithLifecycle()
 
-        HomeScreen(currentUser)
+        if(currentUser.username.isNotEmpty())
+            HomeScreen(currentUser)
     }
 }
 

@@ -167,7 +167,7 @@ fun RegistrationQuestionsScreen(
                     }
 
                     /*Si no hay ninguna respuesta a true se asigna true a showError,
-                    siempre que nose la ultima pregunta*/
+                    siempre que sea la ultima pregunta*/
                     if (actualQuestion == allQuestionsScreen.last() && !showError) {
                         user.allQuestionsAnswered = getAllQuestionAnswered(allChecked)
                         addUser(user)

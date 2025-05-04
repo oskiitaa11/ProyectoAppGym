@@ -60,7 +60,7 @@ class App: Application() {
         GlobalScope.launch {
             addLoggedUser(idToken)
             changeUidLoggedUser()
-            val i = 0
+            userDatabase.updateCurrentUserAfterLogin()
         }
     }
 

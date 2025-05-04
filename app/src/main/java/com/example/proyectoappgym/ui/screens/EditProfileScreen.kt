@@ -53,6 +53,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.createRippleModifierNode
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -64,6 +65,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -114,11 +117,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.ImeOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -156,7 +161,7 @@ fun NavController.goToEditProfileScreen() {
     navigate(EditProfileRoute)
 }
 
-fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
+fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit) {
     composable<EditProfileRoute> { navBackStackEntry ->
         val editProfileViewmodel: EditProfileViewmodel = viewModel(navBackStackEntry) {
             EditProfileViewmodel(
@@ -166,22 +171,29 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit) {
         }
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
         val allQuestions = editProfileViewmodel.allQuestions
+        val showDialog by editProfileViewmodel.showDialog.collectAsStateWithLifecycle()
+        val allStringQuestionUser = currentUser.allQuestionsAnswered.keys.toList()
+        val allQuestionsFiltered = if(currentUser.allQuestionsAnswered.isNotEmpty())
+            allQuestions.filter { question -> question.question in allStringQuestionUser }
+        else emptyList()
 
         if(currentUser.username.isNotEmpty())
         EditProfileScreen(
             currentUser,
-            allQuestions,
+            allQuestionsFiltered,
+            showDialog,
             backProfileScreen,
             { newName -> editProfileViewmodel.updateName(newName) },
             { newAvatar -> editProfileViewmodel.updateAvatarProfile(newAvatar) },
-            //{ newResponses -> editProfileViewmodel.updateResponses(newResponses) }
+            goToQuestionForModifierScreen,
+            { editProfileViewmodel.updateShowDialog() }
         )
     }
 }
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Int) -> Unit) {
+fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialog: Boolean, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Int) -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
     var isEdited by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -204,10 +216,6 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfi
     var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar) }
     var showSheet by remember { mutableStateOf(false) }
     var widthTextField by remember { mutableIntStateOf(currentUser.name.length * 15) }
-    /*var allAnsweredQuestionsInRealTime = remember {
-        mutableStateMapOf<String, List<String>>().apply { putAll(currentUser.allQuestionsAnswered) }
-    }*/
-    var responsesChanged by remember { mutableStateOf(false) }
 
     ApplyAnimationForWhenOnClick(isEdited, scale)
 
@@ -314,7 +322,23 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, backProfi
             }
 
             Spacer(modifier = Modifier.height(20.dp))
-            ShowQuestionsUser(currentUser.allQuestionsAnswered, allQuestions, updateResponses)
+            Text(
+                "User data",
+                fontSize = 20.sp,
+                color = Color.White,
+                modifier = Modifier.fillMaxWidth().padding(start = 15.dp),
+                fontStyle = FontStyle.Italic
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            ShowQuestionsUser(
+                allQuestions,
+                { question ->
+                    currentUser.allQuestionsAnswered[question] ?: emptyList()
+                },
+                showDialog,
+                goToQuestionForModifierScreen,
+                changeShowDialog
+            )
         }
     }
 }
@@ -455,137 +479,68 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
-fun ShowQuestionsUser(allAnsweredQuestions: Map<String, List<String>>, allQuestions: List<Question>, changeCorrectedResponse: (Map<String, List<String>>) -> Unit) {
-    //var state = rememberLazyListState()
-    var answeredResponsesInRealTime = remember { mapOf(*allAnsweredQuestions.map { (question, responses) -> Pair(question, mutableStateListOf(*responses.toTypedArray())) }.toTypedArray()) }
-
+fun ShowQuestionsUser(allQuestions: List<Question>, getSelectedResponsesOfQuestion: (String) -> List<String>, showDialog: Boolean, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
     LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
         itemsIndexed(items = allQuestions, key = { _, question -> question.id }) { id, question ->
-            HorizontalDivider(thickness = 2.dp, color = Color.White)
-            Spacer(modifier = Modifier.height(15.dp))
-            ShowQuestion(
-                question.question,
-                question.responses.toList(),
-                answeredResponsesInRealTime[question.question] ?: mutableStateListOf(),
-                allAnsweredQuestions[question.question] ?: emptyList(),
-                question.responsesTypes == ResponsesType.CHECKBOX
-            ) { changeCorrectedResponse(answeredResponsesInRealTime) }
-            HorizontalDivider(thickness = 2.dp, color = Color.White)
-            Spacer(modifier = Modifier.height(15.dp))
+            HorizontalDivider(thickness = 2.dp, color = Color.White.copy(alpha = 0.5f))
+            ShowQuestionInEditProfile(
+                question,
+                getSelectedResponsesOfQuestion(question.question),
+                showDialog,
+                goToQuestionForModifierScreen,
+                changeShowDialog
+            )
         }
     }
 }
 
 @Composable
-fun ShowQuestion(question: String, responses: List<String>, answeredResponses: SnapshotStateList<String>, answeredResponsesDb: List<String>, isMultipleResponse: Boolean, changeCorrectedResponse: () -> Unit) {
-    var showResponses by rememberSaveable { mutableStateOf(false) }
-    //var answeredResponses = rememberSaveable { mutableStateListOf(*correctedResponses.toTypedArray()) }
-    val expandIconRotation by animateFloatAsState(if (showResponses) 180f else 0f)
-    var hasChangedAnsweredQuestions by rememberSaveable { mutableStateOf(false) }
-    var updateResponses: (String, Boolean) -> Unit = if(isMultipleResponse)
-    { newResponse, isSelected -> if(isSelected) answeredResponses.add(newResponse) else answeredResponses.remove(newResponse) } else
-    { newResponse, isSelected ->
-        if(isSelected) {
-            answeredResponses.clear()
-            answeredResponses.add(newResponse)
-        } else {
-            answeredResponses.clear()
-        }
-    }
+fun ShowQuestionInEditProfile(question: Question, selectedResponsesQuestion: List<String>, showDialog: Boolean, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
+    var itemIsClicked by remember { mutableStateOf(false) }
 
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.animateContentSize(animationSpec = spring(stiffness = Spring.StiffnessVeryLow))
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize().clickable { showResponses = !showResponses }.padding(horizontal = 10.dp).padding(bottom = 15.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(question, color = Color.White)
+    ListItem(
+        headlineContent = { Text(question.question, color = Color.White) },
+        trailingContent = {
             Icon(
-                modifier = Modifier.rotate(expandIconRotation),
-                painter = painterResource(R.drawable.ic_arrow_drop_down_24),
+                painter = painterResource(R.drawable.ic_arrow_forward_ios_24),
                 contentDescription = "Icon for show text",
                 tint = Color.White
             )
-        }
-
-        if(showResponses) {
-            responses.forEach { response ->
-                ShowResponse(
-                    response,
-                    answeredResponsesDb.any { it == response },
-                    updateResponses
-                )
-            }
-
-            hasChangedAnsweredQuestions = answeredResponses.toSet() != answeredResponsesDb.toSet()
-            if(hasChangedAnsweredQuestions)
-                ShowButtonsApplyAndCancel(
-                changeCorrectedResponse,
-                {
-                    answeredResponses.clear()
-                    answeredResponses.addAll(answeredResponsesDb)
-                }
-            )
-        }
-    }
-
-}
-
-@Composable
-fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrectedResponse: (String, Boolean) -> Unit) {
-    var isSelected by rememberSaveable { mutableStateOf(isCorrectedResponse) }
-    var widthCard = if(response.length<=9) 150.dp else if(isSelected) (response.length * 15).dp else (response.length * 14).dp
-
-    Card(
-        {
-            isSelected = !isSelected
-            changeCorrectedResponse(response, isSelected)
         },
-        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
-        colors = CardDefaults.cardColors(containerColor = colorResource(if(isSelected) R.color.lightGreen else R.color.black), contentColor = Color.White),
-        modifier = Modifier.width(widthCard).padding(10.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 15.dp).fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(response, color = Color.White, maxLines = 4, modifier = Modifier.padding(end = 10.dp))
-            if(isSelected) Icon(painter = painterResource(R.drawable.baseline_check_24), modifier = Modifier.size(24.dp), contentDescription = "Corrected response")
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = Color.White, trailingIconColor = Color.White),
+        modifier = Modifier.clickable {
+            if(showDialog)
+                itemIsClicked = true else
+                goToQuestionForModifierScreen(question.question, selectedResponsesQuestion, question.responsesTypes)
         }
-    }
+    )
+
+    if(itemIsClicked) ShowWarningDialog(
+        {
+            changeShowDialog()
+            goToQuestionForModifierScreen(question.question, selectedResponsesQuestion, question.responsesTypes)
+        },
+        { itemIsClicked = false },
+        { itemIsClicked = false }
+    )
 }
 
 @Composable
-fun ShowButtonsApplyAndCancel(updateCorrectedResponse: () -> Unit, cancelChanges: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxSize().padding(vertical = 15.dp),
-        verticalAlignment = Alignment.Bottom,
-        horizontalArrangement = Arrangement.End
-    ) {
-        TextButton(
-            updateCorrectedResponse,
-            shape = ShapeDefaults.Medium,
-            colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen)),
-            contentPadding = PaddingValues(horizontal = 20.dp),
-            modifier = Modifier.padding(end = 20.dp)
-        ) {
-           Text("Apply", color = Color.White)
-        }
-
-        TextButton(
-            cancelChanges,
-            shape = ShapeDefaults.Medium,
-            border = BorderStroke(2.dp, color = Color.White),
-            colors = ButtonDefaults.textButtonColors(containerColor = Color.Transparent, contentColor = Color.White),
-            contentPadding = PaddingValues(horizontal = 20.dp)
-        ) {
-            Text("Cancel", color = Color.White)
-        }
-    }
+fun ShowWarningDialog(confirmAction: () -> Unit, cancelAction: () -> Unit, onDismissRequest: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton =  {
+            TextButton(confirmAction) {
+                Text("Accept")
+            }
+        },
+        dismissButton =  {
+            TextButton(cancelAction) {
+                Text("Cancel")
+            }
+        },
+        title = { Text("Try change the user data") },
+        text = { Text("If you change your user data, your training routines will also change") }
+    )
 }
 

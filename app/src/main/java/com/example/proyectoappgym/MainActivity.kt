@@ -12,6 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -151,16 +153,22 @@ fun NavScreensWithingLoginScreen() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val showBottomBar = currentDestination?.hierarchy?.any { it.hasRoute<ProfileRoute>() || it.hasRoute<HomeRoute>() }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            BottomBar(currentDestination, navController)
+            if(showBottomBar ?: false)
+                BottomBar(currentDestination, navController)
         }
     ) { innerpadding ->
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
+            popExitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
+            popEnterTransition = { slideInHorizontally(animationSpec = tween(800)) },
+            enterTransition = { slideInHorizontally(animationSpec = tween(800)) },
+            exitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
             modifier = Modifier
                 .fillMaxSize().padding(bottom = innerpadding.calculateBottomPadding())
         ) {
@@ -289,6 +297,7 @@ fun BottomBar(
 
     Column {
         HorizontalDivider(color = Color.White, thickness = 2.dp)
+
         NavigationBar(
             containerColor = colorResource(R.color.lightBlack)
         ) {
