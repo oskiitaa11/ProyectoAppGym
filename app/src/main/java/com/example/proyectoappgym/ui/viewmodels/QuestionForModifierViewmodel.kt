@@ -24,4 +24,10 @@ class QuestionForModifierViewmodel(private val userDatabase: RepositoryUserDatab
             userDatabase.updateResponses(question, newResponses)
         }
     }
+
+    fun removeResponsesOfQuestion(question: String) {
+        viewModelScope.launch {
+            userDatabase.removeResponsesOfQuestion(question)
+        }
+    }
 }

@@ -14,6 +14,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
@@ -179,6 +180,14 @@ class UserDatabase: RepositoryUserDatabase {
             db.collection("Users")
                 .document(uidLoggedUser as String)
                 .update(FieldPath.of("allQuestionsAnswered", question), newResponses)
+        }
+    }
+
+    override suspend fun removeResponsesOfQuestion(question: String) {
+        suspendCoroutine<Unit> {
+            db.collection("Users")
+                .document(uidLoggedUser as String)
+                .update(FieldPath.of("allQuestionsAnswered", question), FieldValue.delete())
         }
     }
 

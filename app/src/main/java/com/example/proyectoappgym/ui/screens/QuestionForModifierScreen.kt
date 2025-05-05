@@ -3,6 +3,7 @@ package com.example.proyectoappgym.ui.screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -67,6 +69,7 @@ import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.ui.screens.ShowNextQuestionForFirstQuestion
 import com.example.proyectoappgym.ui.viewmodels.EditProfileViewmodel
 import com.example.proyectoappgym.ui.viewmodels.QuestionForModifierViewmodel
+import com.google.android.play.integrity.internal.a
 import com.google.common.math.LinearTransformation.horizontal
 import com.google.firebase.database.collection.LLRBNode
 import kotlinx.serialization.Serializable
@@ -109,9 +112,12 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
             responsesType,
             backToEditProfile,
             gymQuestion,
-            calisthenicQuestion
-        ) { question, newResponses ->
-            questionForModifierViewmodel.updateResponsesOfQuestion(question, newResponses)
+            calisthenicQuestion,
+            { question, newResponses ->
+                questionForModifierViewmodel.updateResponsesOfQuestion(question, newResponses)
+            }
+        ) {
+            question -> questionForModifierViewmodel.removeResponsesOfQuestion(question)
         }
     }
 }
@@ -126,7 +132,8 @@ fun QuestionForModifierScreen(
     backToEditProfile: () -> Unit,
     gymQuestion: Question?,
     calisthenicQuestion: Question?,
-    changeCorrectedResponse: (String, List<String>) -> Unit
+    changeCorrectedResponse: (String, List<String>) -> Unit,
+    removeResponsesOfQuestion: (String) -> Unit
 ) {
     //var selectedResponse = remember { mutableStateListOf(*selectedResponsesDb.toTypedArray()) }
     var allResponses = remember { mutableStateMapOf(*getInitialPairsForResponses(selectedResponsesDb, allResponsesDb).toTypedArray()) }
@@ -209,12 +216,15 @@ fun QuestionForModifierScreen(
                 ShowNextQuestionForFirstQuestion(
                     selectedResponse,
                     if(selectedResponse == "Gym") gymQuestion else null,
-                    if(selectedResponse == "Calisthenic") calisthenicQuestion else null,
+                    if(selectedResponse == "Calistenia") calisthenicQuestion else null,
                     { question, selectedResponses ->
                         if(selectedResponses.isEmpty()) undoChanges()
                             else
+                                if(question.contains("gym", true)) removeResponsesOfQuestion(question)
+                                else if(question.contains("calistenia", true)) removeResponsesOfQuestion(question)
                                 changeCorrectedResponse(question, selectedResponses)
                                 changeCorrectedResponse(questionForModifier, allStringResponses)
+                                backToEditProfile()
                     },
                     undoChanges
                 )
@@ -239,29 +249,19 @@ fun ShowTopAppBarUpdateQuestion(backToEditProfile: () -> Unit) {
 
 @Composable
 fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrectedResponse: (String, Boolean) -> Unit) {
-    var widthCard = if(response.length<=9) 150.dp else if(isCorrectedResponse) (response.length * 15).dp else (response.length * 14).dp
+    var widthCard = if(response.length<=9) 150.dp else if(isCorrectedResponse) (response.length * 14).dp else (response.length * 14).dp
 
         Card(
-            {
-
-                changeCorrectedResponse(response, !isCorrectedResponse)
-            },
+            onClick = { changeCorrectedResponse(response, !isCorrectedResponse) },
             elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
             colors = CardDefaults.cardColors(containerColor = colorResource(if(isCorrectedResponse) R.color.lightGreen else R.color.black), contentColor = Color.White),
             modifier = Modifier
                 .padding(10.dp)
-                .fillMaxWidth()
-                .wrapContentWidth(Alignment.CenterHorizontally)
-                .widthIn(max = widthCard)
+                .width(widthCard)
+                .wrapContentWidth(align = Alignment.CenterHorizontally)
+                .sizeIn(minWidth = widthCard)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 15.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(response, color = Color.White, maxLines = 4, modifier = Modifier.padding(end = 10.dp))
-                if(isCorrectedResponse) Icon(painter = painterResource(R.drawable.baseline_check_24), modifier = Modifier.size(24.dp), contentDescription = "Corrected response")
-            }
+            Text(response, color = Color.White, maxLines = 4, modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 15.dp))
         }
 }
 
@@ -297,7 +297,7 @@ fun getInitialPairsForResponses(selectedResponsesDb: List<String>, allResponses:
 fun ShowNextQuestionForFirstQuestion(selectedResponse: String, gymQuestion: Question?, calisthenicQuestion: Question?, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
     when(selectedResponse) {
         "Gym" -> ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
-        "Calisthenic" -> ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
+        "Calistenia" -> ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
         else -> {
             if(gymQuestion == null) ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges) else ShowDialogQuestion(gymQuestion, updateQuestions, undoChanges)
         }
@@ -307,18 +307,22 @@ fun ShowNextQuestionForFirstQuestion(selectedResponse: String, gymQuestion: Ques
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowDialogQuestion(question: Question, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
-    var selectedResponses = remember { mutableStateListOf(*question.responses) }
+    var selectedResponses = remember { mutableStateListOf<String>() }
 
     AlertDialog(
         onDismissRequest = undoChanges,
         confirmButton = {
-            TextButton(
-                {
-                    updateQuestions(question.question, selectedResponses)
-                },
-                colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen), contentColor = Color.White)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
             ) {
-                Text("Update")
+                TextButton(
+                    { updateQuestions(question.question, selectedResponses) },
+                    colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen), contentColor = Color.White),
+                    modifier = Modifier.width(200.dp)
+                ) {
+                    Text("Update")
+                }
             }
         },
         title = { Text(question.question) },
@@ -338,7 +342,6 @@ fun ShowDialogQuestion(question: Question, updateQuestions: (String, List<String
 @Composable
 fun ShowResponsesDialog(question: Question, isSelectedResponse: (String) -> Boolean, addResponse: (String) -> Unit, removeResponse: (String) -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
