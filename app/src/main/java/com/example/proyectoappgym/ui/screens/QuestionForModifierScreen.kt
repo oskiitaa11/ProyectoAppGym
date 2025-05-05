@@ -220,8 +220,7 @@ fun QuestionForModifierScreen(
                     { question, selectedResponses ->
                         if(selectedResponses.isEmpty()) undoChanges()
                             else
-                                if(question.contains("gym", true)) removeResponsesOfQuestion(question)
-                                else if(question.contains("calistenia", true)) removeResponsesOfQuestion(question)
+                                if(selectedResponse != "De los dos") removeResponsesOfQuestion(question)
                                 changeCorrectedResponse(question, selectedResponses)
                                 changeCorrectedResponse(questionForModifier, allStringResponses)
                                 backToEditProfile()

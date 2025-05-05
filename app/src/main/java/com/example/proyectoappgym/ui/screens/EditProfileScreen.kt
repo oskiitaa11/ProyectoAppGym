@@ -172,7 +172,7 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQu
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
         val allQuestions = editProfileViewmodel.allQuestions
         val showDialog by editProfileViewmodel.showDialog.collectAsStateWithLifecycle()
-        val allStringQuestionUser = currentUser.allQuestionsAnswered.filter { (question, responses) -> responses.isNotEmpty() }.keys.toList()
+        val allStringQuestionUser = currentUser.allQuestionsAnswered.filter { (question, responses) -> responses[0].isNotEmpty() }.keys.toList()
         val allQuestionsFiltered = if(currentUser.allQuestionsAnswered.isNotEmpty())
             allQuestions.filter { question -> question.question in allStringQuestionUser }
         else emptyList()

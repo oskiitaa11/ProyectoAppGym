@@ -187,7 +187,7 @@ class UserDatabase: RepositoryUserDatabase {
         suspendCoroutine<Unit> {
             db.collection("Users")
                 .document(uidLoggedUser as String)
-                .update(FieldPath.of("allQuestionsAnswered", question), FieldValue.delete())
+                .update(FieldPath.of("allQuestionsAnswered", question), listOf(""))
         }
     }
 
