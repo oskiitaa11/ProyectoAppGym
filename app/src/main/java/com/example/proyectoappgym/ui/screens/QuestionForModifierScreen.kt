@@ -104,11 +104,13 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
         val calisthenicQuestion = if (isEqualFirstQuestion)
             questionForModifierViewmodel.allQuestions.find { "¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?" == it.question }
         else null
+        val selectedInitialResponse = if(isEqualFirstQuestion) questionForModifierRoute.selectedResponses[0] else null
 
         QuestionForModifierScreen(
             questionForModifier,
             allResponsesDb,
             selectedResponses,
+            selectedInitialResponse,
             responsesType,
             backToEditProfile,
             gymQuestion,
@@ -122,12 +124,13 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
     }
 }
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
+@SuppressLint("UnusedBoxWithConstraintsScope", "SuspiciousIndentation")
 @Composable
 fun QuestionForModifierScreen(
     questionForModifier: String,
     allResponsesDb: List<String>,
     selectedResponsesDb: List<String>,
+    selectedInitialResponse: String?,
     responsesType: ResponsesType,
     backToEditProfile: () -> Unit,
     gymQuestion: Question?,
@@ -205,25 +208,30 @@ fun QuestionForModifierScreen(
                 if (gymQuestion == null && calisthenicQuestion == null) updateResponses()
                 else {
                     allStringResponses = allResponses.filterValues { it }.keys.toList()
-                    if (allStringResponses.toSet() != allResponsesDb.toSet())
+                    if (allStringResponses.toSet() != selectedResponsesDb.toSet())
                         if(allStringResponses.isNotEmpty()) showDialogForQuestion = true
                 }
 
             }
 
             if(showDialogForQuestion) {
-                selectedResponse = allResponses.filter { (response, isSelected) -> isSelected }.keys.toList()[0]
+                selectedResponse = allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()[0]
                 ShowNextQuestionForFirstQuestion(
                     selectedResponse,
-                    if(selectedResponse == "Gym") gymQuestion else null,
-                    if(selectedResponse == "Calistenia") calisthenicQuestion else null,
+                    selectedInitialResponse ?: "",
+                    gymQuestion,
+                    calisthenicQuestion,
                     { question, selectedResponses ->
                         if(selectedResponses.isEmpty()) undoChanges()
-                            else
-                                if(selectedResponse != "De los dos") removeResponsesOfQuestion(question)
-                                changeCorrectedResponse(question, selectedResponses)
-                                changeCorrectedResponse(questionForModifier, allStringResponses)
-                                backToEditProfile()
+                        else  {
+                            if(selectedResponse == "Gym") removeResponsesOfQuestion(calisthenicQuestion?.question ?: "")
+                            else if(selectedResponse == "Calistenia") removeResponsesOfQuestion(gymQuestion?.question ?: "")
+
+                            if(selectedInitialResponse != "De los dos") changeCorrectedResponse(question, selectedResponses)
+                            changeCorrectedResponse(questionForModifier, allStringResponses)
+                            backToEditProfile()
+                        }
+
                     },
                     undoChanges
                 )
@@ -293,12 +301,15 @@ fun getInitialPairsForResponses(selectedResponsesDb: List<String>, allResponses:
 }
 
 @Composable
-fun ShowNextQuestionForFirstQuestion(selectedResponse: String, gymQuestion: Question?, calisthenicQuestion: Question?, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
+fun ShowNextQuestionForFirstQuestion(selectedResponse: String, selectedInitialResponse: String, gymQuestion: Question?, calisthenicQuestion: Question?, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
+    var isSelectedInitialResponse = selectedInitialResponse == "De los dos"
+
     when(selectedResponse) {
-        "Gym" -> ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
-        "Calistenia" -> ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
+        "Gym" -> if(isSelectedInitialResponse) updateQuestions("", listOf("n")) else ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
+        "Calistenia" -> if(isSelectedInitialResponse) updateQuestions("", listOf("n")) else ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
         else -> {
-            if(gymQuestion == null) ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges) else ShowDialogQuestion(gymQuestion, updateQuestions, undoChanges)
+            if(selectedInitialResponse == "Gym") ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
+            else ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
         }
     }
 }

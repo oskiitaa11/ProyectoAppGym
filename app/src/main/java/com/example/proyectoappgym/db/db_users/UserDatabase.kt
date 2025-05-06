@@ -180,6 +180,11 @@ class UserDatabase: RepositoryUserDatabase {
             db.collection("Users")
                 .document(uidLoggedUser as String)
                 .update(FieldPath.of("allQuestionsAnswered", question), newResponses)
+                .addOnSuccessListener {
+                    var c = 1
+                }.addOnFailureListener {
+                    var c = it.message
+                }
         }
     }
 
@@ -187,7 +192,7 @@ class UserDatabase: RepositoryUserDatabase {
         suspendCoroutine<Unit> {
             db.collection("Users")
                 .document(uidLoggedUser as String)
-                .update(FieldPath.of("allQuestionsAnswered", question), listOf(""))
+                .update(FieldPath.of("allQuestionsAnswered", question), emptyList<String>())
         }
     }
 
