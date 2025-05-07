@@ -90,4 +90,6 @@ dependencies {
     //noinspection UseTomlInstead
     implementation("androidx.activity:activity-compose:1.11.0-rc01")
     implementation(libs.firebase.storage)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }

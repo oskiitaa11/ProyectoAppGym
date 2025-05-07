@@ -138,28 +138,28 @@ fun QuestionForModifierScreen(
     changeCorrectedResponse: (String, List<String>) -> Unit,
     removeResponsesOfQuestion: (String) -> Unit
 ) {
-    //var selectedResponse = remember { mutableStateListOf(*selectedResponsesDb.toTypedArray()) }
-    var allResponses = remember { mutableStateMapOf(*getInitialPairsForResponses(selectedResponsesDb, allResponsesDb).toTypedArray()) }
+    var allResponses = remember { mutableStateMapOf(*getInitialPairsForResponses(selectedResponsesDb, allResponsesDb).toTypedArray()) } //Variable donde se guardan las respuesta y si estan seleccionadas
     var isMultipleResponse = responsesType == ResponsesType.CHECKBOX
-    var showDialogForQuestion by remember { mutableStateOf(false) }
-    var allStringResponses = emptyList<String>()
-    val updateResponses: () -> Unit = {
+    var showDialogForQuestion by remember { mutableStateOf(false) } //Variable para mostrar dialogo
+    var allStringResponses = emptyList<String>() //Variable para guardar las respuestas en cadena
+    val updateResponses: () -> Unit = {//Funcion para actualizar las respuestas en la base de datos
         allStringResponses = allResponses.filterValues { it }.keys.toList()
 
         if (allStringResponses.toSet() != allResponsesDb.toSet()) {
             if(allStringResponses.isNotEmpty())
                 changeCorrectedResponse(questionForModifier, allStringResponses)
         }
-
         backToEditProfile()
     }
-    val undoChanges: () -> Unit = {
+    val undoChanges: () -> Unit = { //Dialogo para cuando se toque fuera del dialogo
         var selectedResponse = selectedResponsesDb[0]
 
         allResponses.forEach { response, isSelected ->
             allResponses[response] = false
         }
         allResponses[selectedResponse] = true
+
+        showDialogForQuestion = false
     }
     var selectedResponse = ""
 
@@ -228,8 +228,10 @@ fun QuestionForModifierScreen(
                             else if(selectedResponse == "Calistenia") removeResponsesOfQuestion(gymQuestion?.question ?: "")
 
                             if(selectedInitialResponse != "De los dos") changeCorrectedResponse(question, selectedResponses)
-                            changeCorrectedResponse(questionForModifier, allStringResponses)
-                            backToEditProfile()
+                            if(allStringResponses.isNotEmpty()) {
+                                changeCorrectedResponse(questionForModifier, allStringResponses)
+                                backToEditProfile()
+                            }
                         }
 
                     },
@@ -254,6 +256,7 @@ fun ShowTopAppBarUpdateQuestion(backToEditProfile: () -> Unit) {
     )
 }
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrectedResponse: (String, Boolean) -> Unit) {
     var widthCard = if(response.length<=9) 150.dp else if(isCorrectedResponse) (response.length * 14).dp else (response.length * 14).dp
@@ -304,9 +307,14 @@ fun getInitialPairsForResponses(selectedResponsesDb: List<String>, allResponses:
 fun ShowNextQuestionForFirstQuestion(selectedResponse: String, selectedInitialResponse: String, gymQuestion: Question?, calisthenicQuestion: Question?, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
     var isSelectedInitialResponse = selectedInitialResponse == "De los dos"
 
+    if(isSelectedInitialResponse) {
+        updateQuestions("", listOf(""))
+        return
+    }
+
     when(selectedResponse) {
-        "Gym" -> if(isSelectedInitialResponse) updateQuestions("", listOf("n")) else ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
-        "Calistenia" -> if(isSelectedInitialResponse) updateQuestions("", listOf("n")) else ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
+        "Gym" -> ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
+        "Calistenia" -> ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
         else -> {
             if(selectedInitialResponse == "Gym") ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
             else ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
