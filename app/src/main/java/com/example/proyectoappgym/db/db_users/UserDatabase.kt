@@ -1,9 +1,13 @@
 package com.example.proyectoappgym.db.db_users
 
+import android.R.attr.apiKey
 import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.compose.ui.text.LinkAnnotation
 import coil.util.CoilUtils.result
+import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
+import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
+import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.auth.FirebaseAuth
@@ -23,8 +27,13 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.asDeferred
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import kotlin.collections.component1
+import kotlin.collections.component2
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.jvm.java
 
 class UserDatabase: RepositoryUserDatabase {
 
@@ -32,6 +41,12 @@ class UserDatabase: RepositoryUserDatabase {
     private lateinit var auth: FirebaseAuth
     private var uidLoggedUser: String? = null
     val currentUser: MutableStateFlow<User?> = MutableStateFlow(null)
+    private val retrofit: Retrofit = Retrofit.Builder()
+        .baseUrl("https://api.deepseek.com")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+    private val api: OpenAiApi = retrofit.create(OpenAiApi::class.java)
+    private val apiKey = "sk-e248a62fd6904da8960d0059a6386b73"
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -228,6 +243,30 @@ class UserDatabase: RepositoryUserDatabase {
 
     fun getUidLoggedUser(): String? {
         return uidLoggedUser
+    }
+
+    override suspend fun requestToGpt(questions: Map<String, List<String>>): String {
+        var message = buildFromAnsweredQuestions(questions)
+        val request = ChatRequest(
+            message = listOf(
+                ChatMessage(role = "user", content = message)
+            )
+        )
+        val response = api.getChatResponse("Bearer $apiKey", request)
+        return response.choices[0].message.content
+    }
+
+    fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>): String {
+        var stringQuestions = ""
+        var stringResponses = ""
+
+        answeredQuestions.forEach { (question, responses) ->
+            stringResponses = responses.joinToString("\n")
+
+            stringQuestions = "$question\n$stringResponses"
+        }
+
+        return "En base a estas preguntas respondidas, creame una rutina de entrenamientos $stringQuestions"
     }
 
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
