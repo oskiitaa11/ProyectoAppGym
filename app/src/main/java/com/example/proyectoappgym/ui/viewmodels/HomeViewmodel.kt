@@ -7,6 +7,7 @@ import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
 import com.example.proyectoappgym.entity.Question
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.example.proyectoappgym.entity.User
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,9 +22,8 @@ class HomeViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel
     }
 
     fun getRoutines(answeredQuestions: Map<String, List<String>>) {
-
-        viewModelScope.launch {
-            stringRoutines.update { userDatabase.requestToGpt(answeredQuestions) }
+        viewModelScope.launch(Dispatchers.IO) {
+            stringRoutines.update { userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions) }
         }
     }
 }

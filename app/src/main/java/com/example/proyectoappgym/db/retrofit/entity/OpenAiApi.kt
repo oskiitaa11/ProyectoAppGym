@@ -1,5 +1,6 @@
 package com.example.proyectoappgym.db.retrofit.entity
 
+import kotlinx.coroutines.Deferred
 import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST

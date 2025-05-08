@@ -27,8 +27,10 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.asDeferred
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.coroutines.resume
@@ -41,12 +43,18 @@ class UserDatabase: RepositoryUserDatabase {
     private lateinit var auth: FirebaseAuth
     private var uidLoggedUser: String? = null
     val currentUser: MutableStateFlow<User?> = MutableStateFlow(null)
+    private val okHttpClient = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(60, TimeUnit.SECONDS)
+        .writeTimeout(60, TimeUnit.SECONDS)
+        .build()
     private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("https://api.deepseek.com")
+        .baseUrl("https://api.openai.com/")
         .addConverterFactory(GsonConverterFactory.create())
+        .client(okHttpClient)
         .build()
     private val api: OpenAiApi = retrofit.create(OpenAiApi::class.java)
-    private val apiKey = "sk-e248a62fd6904da8960d0059a6386b73"
+    private val apiKey = "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"
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -245,25 +253,27 @@ class UserDatabase: RepositoryUserDatabase {
         return uidLoggedUser
     }
 
-    override suspend fun requestToGpt(questions: Map<String, List<String>>): String {
+    override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>): String {
         var message = buildFromAnsweredQuestions(questions)
         val request = ChatRequest(
-            message = listOf(
+            messages = listOf(
                 ChatMessage(role = "user", content = message)
             )
         )
         val response = api.getChatResponse("Bearer $apiKey", request)
-        return response.choices[0].message.content
+        val receivedMessage = response.choices[0].message.content
+
+
     }
 
     fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>): String {
         var stringQuestions = ""
         var stringResponses = ""
 
-        answeredQuestions.forEach { (question, responses) ->
+        answeredQuestions.filterValues { it.isNotEmpty() }.forEach { (question, responses) ->
             stringResponses = responses.joinToString("\n")
 
-            stringQuestions = "$question\n$stringResponses"
+            stringQuestions += "$question\n$stringResponses\n"
         }
 
         return "En base a estas preguntas respondidas, creame una rutina de entrenamientos $stringQuestions"

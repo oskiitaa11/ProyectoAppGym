@@ -19,7 +19,7 @@ interface RepositoryUserDatabase {
     suspend fun updateAvatarProfile(avatar: Int)
     suspend fun updateResponses(question: String, newResponses: List<String>)
     suspend fun removeResponsesOfQuestion(question: String)
-    suspend fun requestToGpt(answeredQuestions: Map<String, List<String>>): String
+    suspend fun saveUserTrainingRoutinesGpt(answeredQuestions: Map<String, List<String>>): String
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun authWithGoogle(idToken: String): Boolean
