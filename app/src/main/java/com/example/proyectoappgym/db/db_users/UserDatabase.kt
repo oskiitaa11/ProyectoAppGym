@@ -8,7 +8,9 @@ import coil.util.CoilUtils.result
 import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
 import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
 import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
+import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.Question
+import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -24,6 +26,8 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.asDeferred
@@ -253,7 +257,7 @@ class UserDatabase: RepositoryUserDatabase {
         return uidLoggedUser
     }
 
-    override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>): String {
+    override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String) {
         var message = buildFromAnsweredQuestions(questions)
         val request = ChatRequest(
             messages = listOf(
@@ -261,9 +265,127 @@ class UserDatabase: RepositoryUserDatabase {
             )
         )
         val response = api.getChatResponse("Bearer $apiKey", request)
+        val response2 = "A continuación te propongo un formato JSON para rutinas de entrenamiento en gimnasio, enfocadas en ejercicio con máquinas para perder grasa corporal y mejorar la resistencia. Estas rutinas están planificadas para Martes, Miércoles y Jueves, adecuado para alguien que lleva unos meses entrenando.\n" +
+                "\n" +
+                "```json\n" +
+                "{\n" +
+                "  \"routines\": [\n" +
+                "    {\n" +
+                "      \"dayOfWeek\": \"TUESDAY\",\n" +
+                "      \"name\": \"Rutina de Resistencia para Máquinas - Martes\",\n" +
+                "      \"exercises\": [\n" +
+                "        {\n" +
+                "          \"name\": \"Cinta de correr\",\n" +
+                "          \"description\": \"Calentamiento en cinta de correr a ritmo moderado.\",\n" +
+                "          \"type\": \"CARDIO\",\n" +
+                "          \"trainedMuscles\": [\"Piernas\", \"Cardiovascular\"],\n" +
+                "          \"series\": 1,\n" +
+                "          \"repetitions\": 20,\n" +
+                "          \"restBetweenSeries\": 0\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"name\": \"Press de pecho\",\n" +
+                "          \"description\": \"Ejercicio en máquina para trabajar el pecho.\",\n" +
+                "          \"type\": \"MACHINES\",\n" +
+                "          \"trainedMuscles\": [\"Pecho\", \"Tríceps\"],\n" +
+                "          \"series\": 3,\n" +
+                "          \"repetitions\": 12,\n" +
+                "          \"restBetweenSeries\": 60\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"name\": \"Remo en máquina\",\n" +
+                "          \"description\": \"Ejercicio para fortalecer la espalda en máquina de remo.\",\n" +
+                "          \"type\": \"MACHINES\",\n" +
+                "          \"trainedMuscles\": [\"Espalda\", \"Bíceps\"],\n" +
+                "          \"series\": 3,\n" +
+                "          \"repetitions\": 12,\n" +
+                "          \"restBetweenSeries\": 60\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"dayOfWeek\": \"WEDNESDAY\",\n" +
+                "      \"name\": \"Rutina de Resistencia para Máquinas - Miércoles\",\n" +
+                "      \"exercises\": [\n" +
+                "        {\n" +
+                "          \"name\": \"Elíptica\",\n" +
+                "          \"description\": \"Calentamiento en máquina elíptica.\",\n" +
+                "          \"type\": \"CARDIO\",\n" +
+                "          \"trainedMuscles\": [\"Piernas\", \"Cardiovascular\"],\n" +
+                "          \"series\": 1,\n" +
+                "          \"repetitions\": 15,\n" +
+                "          \"restBetweenSeries\": 0\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"name\": \"Prensa de piernas\",\n" +
+                "          \"description\": \"Ejercicio para fortalecer las piernas.\",\n" +
+                "          \"type\": \"MACHINES\",\n" +
+                "          \"trainedMuscles\": [\"Piernas\"],\n" +
+                "          \"series\": 3,\n" +
+                "          \"repetitions\": 12,\n" +
+                "          \"restBetweenSeries\": 60\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"name\": \"Extensión de piernas\",\n" +
+                "          \"description\": \"Trabaja cuádriceps en máquina de extensión.\",\n" +
+                "          \"type\": \"MACHINES\",\n" +
+                "          \"trainedMuscles\": [\"Cuádriceps\"],\n" +
+                "          \"series\": 3,\n" +
+                "          \"repetitions\": 12,\n" +
+                "          \"restBetweenSeries\": 60\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"dayOfWeek\": \"THURSDAY\",\n" +
+                "      \"name\": \"Rutina de Resistencia para Máquinas - Jueves\",\n" +
+                "      \"exercises\": [\n" +
+                "        {\n" +
+                "          \"name\": \"Bicicleta estática\",\n" +
+                "          \"description\": \"Calentamiento en bicicleta estática.\",\n" +
+                "          \"type\": \"CARDIO\",\n" +
+                "          \"trainedMuscles\": [\"Piernas\", \"Cardiovascular\"],\n" +
+                "          \"series\": 1,\n" +
+                "          \"repetitions\": 20,\n" +
+                "          \"restBetweenSeries\": 0\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"name\": \"Pulldown\",\n" +
+                "          \"description\": \"Ejercicio para la parte superior de la espalda en máquina.\",\n" +
+                "          \"type\": \"MACHINES\",\n" +
+                "          \"trainedMuscles\": [\"Espalda\"],\n" +
+                "          \"series\": 3,\n" +
+                "          \"repetitions\": 12,\n" +
+                "          \"restBetweenSeries\": 60\n" +
+                "        },\n" +
+                "        {\n" +
+                "          \"name\": \"Elevación de hombros en máquina\",\n" +
+                "          \"description\": \"Ejercicio de elevaciones para hombros.\",\n" +
+                "          \"type\": \"MACHINES\",\n" +
+                "          \"trainedMuscles\": [\"Hombros\"],\n" +
+                "          \"series\": 3,\n" +
+                "          \"repetitions\": 12,\n" +
+                "          \"restBetweenSeries\": 60\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}\n" +
+                "```\n" +
+                "\n" +
+                "Este JSON estructura tres días de entrenamiento con una combinación de cardio para calentar y ejercicios en máquinas focalizados en diferentes grupos musculares cada día. Cada sesión comienza con un calentamiento cardiovascular para preparar el cuerpo para el entrenamiento de resistencia."
         val receivedMessage = response.choices[0].message.content
+        val json = receivedMessage.substringAfter("```json").substringBefore("```")
+        //val json = response.substringAfter("```json").substringBefore("```")
+        val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutine
 
-
+        suspendCoroutine<Unit> {
+            db.collection("Users").whereEqualTo("email", emailUser).get().addOnSuccessListener { result ->
+                result.documents[0].reference.update("trainingRoutines", trainingRoutines)
+            }.addOnFailureListener {
+                val c = it.message
+            }
+        }//.update("trainingRoutines", trainingRoutines)
     }
 
     fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>): String {
@@ -276,7 +398,21 @@ class UserDatabase: RepositoryUserDatabase {
             stringQuestions += "$question\n$stringResponses\n"
         }
 
-        return "En base a estas preguntas respondidas, creame una rutina de entrenamientos $stringQuestions"
+        return "Hazme un json de rutinas de entrenamiento por dia en base a estas preguntas respondidas.\n $answeredQuestions. La lista de rutinas deber ser serializable para esta clase data class RoutinesResponse(\n" +
+                "    val routines: List<TrainingRoutine>\n" +
+                ") Cada rutina de cada dia debe ser serializable para esta clase data class TrainingRoutine(\n" +
+                "    val dayOfWeek: DayOfWeek,\n" +
+                "    val name: String,\n" +
+                "    val exercises: List<Exercise>\n" +
+                ") y donde cada ejercicio data class Exercise(\n" +
+                "    val name: String,\n" +
+                "    val description: String,\n" +
+                "    val type: TypeExercise,\n" +
+                "    val trainedMuscles: List<String>,\n" +
+                "    val series: Int,\n" +
+                "    val repetitions: Int,\n" +
+                "    val restBetweenSeries: Int\n" +
+                "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO"
     }
 
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {

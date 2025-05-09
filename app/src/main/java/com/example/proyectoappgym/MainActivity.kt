@@ -263,7 +263,8 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
                 thereIsErrorToAddUser,
                 { userForAdd -> registrationQuestionsViewmodel.addUser(userForAdd) },
                 { registrationQuestionsViewmodel.setThereIsErrorToNull() },
-                { navController.navigate(LoginRoute) }
+                { navController.navigate(LoginRoute) },
+                { answeredQuestions, emailUser -> registrationQuestionsViewmodel.saveUserTrainingRoutines(answeredQuestions, emailUser) }
             )
         }
     }

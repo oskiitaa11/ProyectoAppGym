@@ -130,8 +130,8 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
                 {
                     validateFields()
                     if(allErrorsFields.values.all { it.isEmpty() }) {
-                        askUserExist(username)
-                        askEmailExist(email)
+                        askUserExist(username.trim())
+                        askEmailExist(email.trim())
                     }
                 }
             )

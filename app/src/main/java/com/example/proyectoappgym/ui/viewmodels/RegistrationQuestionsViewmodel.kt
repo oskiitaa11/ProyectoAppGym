@@ -25,9 +25,9 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         thereIsErrorToAddUser.update { null }
     }
 
-    fun saveUserTrainingRoutines(answeredQuestions: Map<String, List<String>>) {
+    fun saveUserTrainingRoutines(answeredQuestions: Map<String, List<String>>, emailUser: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions)
+            userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions, emailUser)
         }
     }
 

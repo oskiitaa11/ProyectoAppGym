@@ -23,7 +23,7 @@ class HomeViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel
 
     fun getRoutines(answeredQuestions: Map<String, List<String>>) {
         viewModelScope.launch(Dispatchers.IO) {
-            stringRoutines.update { userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions) }
+            //val c = userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions)
         }
     }
 }

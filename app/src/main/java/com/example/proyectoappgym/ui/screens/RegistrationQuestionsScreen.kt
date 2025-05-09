@@ -49,6 +49,7 @@ import com.example.proyectoappgym.R
 import com.example.proyectoappgym.db.db_questions.QuestionsRegistration.allQuestions
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
+import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.User
 
 @SuppressLint("UnrememberedMutableState", "RememberReturnType")
@@ -59,7 +60,8 @@ fun RegistrationQuestionsScreen(
     thereIsErrorToAddUser: Boolean?,
     addUser: (User) -> Unit,
     setErrorAddUserToNull: () -> Unit,
-    onLoginScreen: () -> Unit
+    onLoginScreen: () -> Unit,
+    addTrainingRoutines: (Map<String, List<String>>, String) -> Unit
 ) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
     var progress by remember { mutableIntStateOf(0) }
@@ -77,7 +79,7 @@ fun RegistrationQuestionsScreen(
     var showError by remember { mutableStateOf(false) }
 
     if(thereIsErrorToAddUser != null) {
-        validateAddedUser(thereIsErrorToAddUser, onLoginScreen, LocalContext.current, setErrorAddUserToNull)
+        validateAddedUser(thereIsErrorToAddUser, { addTrainingRoutines(user.allQuestionsAnswered, user.email) }, onLoginScreen, LocalContext.current, setErrorAddUserToNull)
     }
 
     Column(
@@ -371,11 +373,12 @@ fun getAllQuestionAnswered(allChecked: Map<String, MutableMap<String, Boolean>>)
     return allQuestionsAnswered
 }
 
-fun validateAddedUser(thereIsError: Boolean, onLoginScreen: () -> Unit, context: Context, setThereIsErrorToNull: () -> Unit) {
+fun validateAddedUser(thereIsError: Boolean, addTrainingRoutines: () -> Unit, onLoginScreen: () -> Unit, context: Context, setThereIsErrorToNull: () -> Unit) {
     if(thereIsError) {
         showToast("Failure to add a user", context)
         setThereIsErrorToNull()
     } else {
+        addTrainingRoutines()
         onLoginScreen()
     }
 }
