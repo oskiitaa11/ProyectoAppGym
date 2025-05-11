@@ -50,8 +50,10 @@ fun NavGraphBuilder.homeDestination() {
 
 @Composable
 fun HomeScreen(user: User, routines: String, getRoutines: (Map<String, List<String>>) -> Unit) {
-    Button({ getRoutines(user.allQuestionsAnswered) }) {
-        Text("Hola")
+    var c = "hola"
+
+    Button({ c = "holita" }) {
+        Text(c)
     }
 
     routines

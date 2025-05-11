@@ -3,14 +3,22 @@ package com.example.proyectoappgym.db.db_users
 import android.R.attr.apiKey
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.text.LinkAnnotation
+import androidx.core.text.util.LocalePreferences
 import coil.util.CoilUtils.result
 import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
 import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
 import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
 import com.example.proyectoappgym.db.retrofit.entity.Routines
+import com.example.proyectoappgym.entity.DayOfWeek
+import com.example.proyectoappgym.entity.Exercise2
 import com.example.proyectoappgym.entity.Question
+import com.example.proyectoappgym.entity.TensExercise
 import com.example.proyectoappgym.entity.TrainingRoutine
+import com.example.proyectoappgym.entity.TypeExercise
+import com.example.proyectoappgym.entity.TypeTensExercise
 import com.example.proyectoappgym.entity.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -28,6 +36,10 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.tasks.asDeferred
@@ -37,6 +49,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import kotlin.collections.component1
 import kotlin.collections.component2
+import kotlin.collections.map
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.jvm.java
@@ -65,7 +78,6 @@ class UserDatabase: RepositoryUserDatabase {
         db = Firebase.firestore
     }
 
-
     @SuppressLint("RestrictedApi")
     override suspend fun addUser(user: User): Boolean {
         //val userMap = convertUserToMap(user)
@@ -87,9 +99,9 @@ class UserDatabase: RepositoryUserDatabase {
             if(userFirebase != null) {
                 db.collection("Users").document(userFirebase.uid).set(user)
                     .addOnSuccessListener {
-                        continuation.resume(true)
+                        continuation.resume(true) //2 es true
                     }.addOnFailureListener {
-                        continuation.resume(false)
+                        continuation.resume(false) //1 es false
                     }
             } else {
                 continuation.resume(false)
@@ -258,137 +270,198 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String) {
-        var message = buildFromAnsweredQuestions(questions)
+        val anyTensionExercises = coroutineScope {
+            questions.values.map {
+                async { it.any { response -> response == "Ejericios de tensión" } }
+            }.awaitAll().any { it }
+        }
+        /*val dayOfWeekForTraining = questions["¿Qué días de la semana puedes/quieres entrenar?"]?.map { dayOfWeek -> DayOfWeek.fromString(dayOfWeek) } ?: emptyList()
+        val daysForTensTraining = getNumberOfDays(questions["¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?"] ?: emptyList(), questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] ?: emptyList(), )*/
+
+        val trainingRoutinesTens = coroutineScope { async { if(anyTensionExercises) implementCalisthenicRoutine(questions)
+        else emptyList() } }
+        val questionsForRequest = coroutineScope { async { if(anyTensionExercises) makeQuestionsForRequest(questions)
+        else questions } }
+
+        var message = buildFromAnsweredQuestions(questionsForRequest.await())
         val request = ChatRequest(
             messages = listOf(
                 ChatMessage(role = "user", content = message)
             )
         )
         val response = api.getChatResponse("Bearer $apiKey", request)
-        val response2 = "A continuación te propongo un formato JSON para rutinas de entrenamiento en gimnasio, enfocadas en ejercicio con máquinas para perder grasa corporal y mejorar la resistencia. Estas rutinas están planificadas para Martes, Miércoles y Jueves, adecuado para alguien que lleva unos meses entrenando.\n" +
-                "\n" +
-                "```json\n" +
-                "{\n" +
-                "  \"routines\": [\n" +
-                "    {\n" +
-                "      \"dayOfWeek\": \"TUESDAY\",\n" +
-                "      \"name\": \"Rutina de Resistencia para Máquinas - Martes\",\n" +
-                "      \"exercises\": [\n" +
-                "        {\n" +
-                "          \"name\": \"Cinta de correr\",\n" +
-                "          \"description\": \"Calentamiento en cinta de correr a ritmo moderado.\",\n" +
-                "          \"type\": \"CARDIO\",\n" +
-                "          \"trainedMuscles\": [\"Piernas\", \"Cardiovascular\"],\n" +
-                "          \"series\": 1,\n" +
-                "          \"repetitions\": 20,\n" +
-                "          \"restBetweenSeries\": 0\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"Press de pecho\",\n" +
-                "          \"description\": \"Ejercicio en máquina para trabajar el pecho.\",\n" +
-                "          \"type\": \"MACHINES\",\n" +
-                "          \"trainedMuscles\": [\"Pecho\", \"Tríceps\"],\n" +
-                "          \"series\": 3,\n" +
-                "          \"repetitions\": 12,\n" +
-                "          \"restBetweenSeries\": 60\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"Remo en máquina\",\n" +
-                "          \"description\": \"Ejercicio para fortalecer la espalda en máquina de remo.\",\n" +
-                "          \"type\": \"MACHINES\",\n" +
-                "          \"trainedMuscles\": [\"Espalda\", \"Bíceps\"],\n" +
-                "          \"series\": 3,\n" +
-                "          \"repetitions\": 12,\n" +
-                "          \"restBetweenSeries\": 60\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"dayOfWeek\": \"WEDNESDAY\",\n" +
-                "      \"name\": \"Rutina de Resistencia para Máquinas - Miércoles\",\n" +
-                "      \"exercises\": [\n" +
-                "        {\n" +
-                "          \"name\": \"Elíptica\",\n" +
-                "          \"description\": \"Calentamiento en máquina elíptica.\",\n" +
-                "          \"type\": \"CARDIO\",\n" +
-                "          \"trainedMuscles\": [\"Piernas\", \"Cardiovascular\"],\n" +
-                "          \"series\": 1,\n" +
-                "          \"repetitions\": 15,\n" +
-                "          \"restBetweenSeries\": 0\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"Prensa de piernas\",\n" +
-                "          \"description\": \"Ejercicio para fortalecer las piernas.\",\n" +
-                "          \"type\": \"MACHINES\",\n" +
-                "          \"trainedMuscles\": [\"Piernas\"],\n" +
-                "          \"series\": 3,\n" +
-                "          \"repetitions\": 12,\n" +
-                "          \"restBetweenSeries\": 60\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"Extensión de piernas\",\n" +
-                "          \"description\": \"Trabaja cuádriceps en máquina de extensión.\",\n" +
-                "          \"type\": \"MACHINES\",\n" +
-                "          \"trainedMuscles\": [\"Cuádriceps\"],\n" +
-                "          \"series\": 3,\n" +
-                "          \"repetitions\": 12,\n" +
-                "          \"restBetweenSeries\": 60\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    },\n" +
-                "    {\n" +
-                "      \"dayOfWeek\": \"THURSDAY\",\n" +
-                "      \"name\": \"Rutina de Resistencia para Máquinas - Jueves\",\n" +
-                "      \"exercises\": [\n" +
-                "        {\n" +
-                "          \"name\": \"Bicicleta estática\",\n" +
-                "          \"description\": \"Calentamiento en bicicleta estática.\",\n" +
-                "          \"type\": \"CARDIO\",\n" +
-                "          \"trainedMuscles\": [\"Piernas\", \"Cardiovascular\"],\n" +
-                "          \"series\": 1,\n" +
-                "          \"repetitions\": 20,\n" +
-                "          \"restBetweenSeries\": 0\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"Pulldown\",\n" +
-                "          \"description\": \"Ejercicio para la parte superior de la espalda en máquina.\",\n" +
-                "          \"type\": \"MACHINES\",\n" +
-                "          \"trainedMuscles\": [\"Espalda\"],\n" +
-                "          \"series\": 3,\n" +
-                "          \"repetitions\": 12,\n" +
-                "          \"restBetweenSeries\": 60\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"name\": \"Elevación de hombros en máquina\",\n" +
-                "          \"description\": \"Ejercicio de elevaciones para hombros.\",\n" +
-                "          \"type\": \"MACHINES\",\n" +
-                "          \"trainedMuscles\": [\"Hombros\"],\n" +
-                "          \"series\": 3,\n" +
-                "          \"repetitions\": 12,\n" +
-                "          \"restBetweenSeries\": 60\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}\n" +
-                "```\n" +
-                "\n" +
-                "Este JSON estructura tres días de entrenamiento con una combinación de cardio para calentar y ejercicios en máquinas focalizados en diferentes grupos musculares cada día. Cada sesión comienza con un calentamiento cardiovascular para preparar el cuerpo para el entrenamiento de resistencia."
         val receivedMessage = response.choices[0].message.content
         val json = receivedMessage.substringAfter("```json").substringBefore("```")
-        //val json = response.substringAfter("```json").substringBefore("```")
         val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutine
+        val newTrainingRoutines = trainingRoutines.toMutableList().addAll(trainingRoutinesTens.await())
 
         suspendCoroutine<Unit> {
             db.collection("Users").whereEqualTo("email", emailUser).get().addOnSuccessListener { result ->
-                result.documents[0].reference.update("trainingRoutines", trainingRoutines)
-            }.addOnFailureListener {
-                val c = it.message
+                result.documents[0].reference.update("trainingRoutines", newTrainingRoutines)
             }
-        }//.update("trainingRoutines", trainingRoutines)
+        }
     }
 
-    fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>): String {
+    private suspend fun implementCalisthenicRoutine(questions: Map<String, List<String>>): List<TrainingRoutine> {
+        val dayOfWeekForTraining =
+            questions["¿Qué días de la semana puedes/quieres entrenar?"]?.map { dayOfWeek ->
+                DayOfWeek.fromString(dayOfWeek)
+            } ?: emptyList()
+        val daysForTensTraining = getNumberOfDays(
+            questions["¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?"]
+                ?: emptyList(),
+            questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"]
+                ?: emptyList(),
+            dayOfWeekForTraining.size
+        )
+
+        when (daysForTensTraining) {
+            0 -> return emptyList<TrainingRoutine>()
+            1 -> return listOf(
+                TrainingRoutine(
+                    dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
+                        Exercise2(
+                            "Combinations of tension exercises",
+                            "Tens exercise combos without getting off the parallel bar",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.ALL
+                        ),
+                        Exercise2(
+                            "Press plank",
+                            "Press plank: go up to handstand and return to plank position. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.PLANK
+                        ),
+                        Exercise2(
+                            "Push-up plank",
+                            "Push-up plank: lower as much as possible and return to plank. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.PLANK
+                        ),
+                        Exercise2(
+                            "Front lever press",
+                            "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.FRONT_LEVEL
+                        ),
+                        Exercise2(
+                            "Front lever pull-up",
+                            "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.FRONT_LEVEL
+                        ),
+                    )
+                )
+            )
+
+            else -> return listOf(
+                TrainingRoutine(
+                    dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
+                        Exercise2(
+                            "Combinations of tension exercises",
+                            "Tens exercise combos without getting off the parallel bar",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.ALL
+                        ),
+                        Exercise2(
+                            "Press plank",
+                            "Press plank: go up to handstand and return to plank position. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.PLANK
+                        ),
+                        Exercise2(
+                            "Push-up plank",
+                            "Push-up plank: lower as much as possible and return to plank. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.PLANK
+                        ),
+                    )
+                ),
+                TrainingRoutine(
+                    dayOfWeekForTraining[1], "Exercises calisthenic tens", listOf(
+                        Exercise2(
+                            "Combinations of tension exercises",
+                            "Tens exercise combos without getting off the parallel bar",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.ALL
+                        ),
+                        Exercise2(
+                            "Front lever press",
+                            "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.FRONT_LEVEL
+                        ),
+                        Exercise2(
+                            "Front lever pull-up",
+                            "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
+                            TypeExercise.TENS,
+                            emptyList(),
+                            3,
+                            5,
+                            2,
+                            TypeTensExercise.FRONT_LEVEL
+                        ),
+                    )
+                )
+            )
+        }
+    }
+
+    private suspend fun makeQuestionsForRequest(questions: Map<String, List<String>>): Map<String, List<String>> {
+        val calisthenicQuestionsResponses = questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] ?: emptyList()
+        val responsesDaysOfWeek = questions["¿Qué días de la semana puedes/quieres entrenar?"] ?: emptyList()
+        val numberOfDaysForTraining = responsesDaysOfWeek.size
+
+        questions.toMutableMap()["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] = calisthenicQuestionsResponses.filter { it != "Ejercicios de tensión" }
+        questions.toMutableMap()["¿Qué días de la semana puedes/quieres entrenar?"] = if(numberOfDaysForTraining < 4) responsesDaysOfWeek.toMutableList().apply { removeAt(0) } else responsesDaysOfWeek.toMutableList().apply {
+            removeAt(0)
+            removeAt(1)
+        }
+
+        return questions
+    }
+
+    private fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>): String {
         var stringQuestions = ""
         var stringResponses = ""
 
@@ -413,6 +486,19 @@ class UserDatabase: RepositoryUserDatabase {
                 "    val repetitions: Int,\n" +
                 "    val restBetweenSeries: Int\n" +
                 "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO"
+    }
+
+    suspend fun getNumberOfDays(responsesCalisthenic: List<String>, responsesGym: List<String>, daysForTraining: Int): Int = coroutineScope {
+        var daysForTrainingNotTens = 0
+        val thereAreBasicsExercises = responsesCalisthenic.map { response -> async { if(response == "Ejercicios básicos") daysForTrainingNotTens++ } }
+        val thereAreMachinesExercises = responsesGym.map { response -> async { if(response == "Ejercicios de máquinas" ) daysForTrainingNotTens++ } }
+        val thereAreWeightliftingExercises = responsesGym.map { response -> async { if(response == "Ejercicios de levantamiento de pesas" ) daysForTrainingNotTens++ } }
+
+        thereAreBasicsExercises.awaitAll()
+        thereAreWeightliftingExercises.awaitAll()
+        thereAreMachinesExercises.awaitAll()
+
+        return@coroutineScope daysForTraining - daysForTrainingNotTens
     }
 
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {

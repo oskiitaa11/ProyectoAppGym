@@ -7,7 +7,7 @@ import com.example.proyectoappgym.entity.TypeExercise
 import com.example.proyectoappgym.entity.TypeTensExercise
 
 object Routines {
-    val weightliftingRoutines = mapOf(
+    /*val weightliftingRoutines = mapOf(
         DayOfWeek.MONDAY to listOf(
             Exercise("Flat Barbell Bench Press", "Compound exercise for chest", TypeExercise.WEIGHTLIFTING, listOf("Chest", "Triceps", "Front deltoids"), DayOfWeek.MONDAY),
             Exercise("Incline Dumbbell Press", "Inclined variation for upper chest", TypeExercise.WEIGHTLIFTING, listOf("Upper chest", "Triceps"), DayOfWeek.MONDAY),
@@ -124,7 +124,11 @@ object Routines {
             TensExercise("Press plank: go up to handstand and return to plank position. Use a resistance band", TypeTensExercise.PLANK),
             TensExercise("Push-up plank: lower as much as possible and return to plank. Use a resistance band", TypeTensExercise.PLANK),
             TensExercise("Maltese plank push-up: lower as much as possible and return to maltese plank position", TypeTensExercise.PLANK),
-            TensExercise("Handstand push-up: lower until your head touches the floor, then return to handstand position", TypeTensExercise.PLANK)
+            TensExercise("Handstand push-up: lower until your head touches the floor, then return to handstand position", TypeTensExercise.PLANK),
+            TensExercise("Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band", TypeTensExercise.FRONT_LEVEL),
+            TensExercise("Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band", TypeTensExercise.FRONT_LEVEL),
+            TensExercise("Maltese front lever press: lift legs to touch the bar, then return to front lever", TypeTensExercise.FRONT_LEVEL),
+            TensExercise("Pull-up hold: pull until your chin is above the bar, hold for 3 seconds, then lower. Do it without a band if possible", TypeTensExercise.FRONT_LEVEL)
         ),
 
         DayOfWeek.TUESDAY to listOf(
@@ -148,9 +152,20 @@ object Routines {
             TensExercise("Push-up plank: lower and return to plank. Use a resistance band", TypeTensExercise.FRONT_LEVEL),
             TensExercise("One-arm push-up with support: lower while holding with the extended arm, then return to plank position", TypeTensExercise.FRONT_LEVEL)
         )
-    )
+    )*/
 
-    val basicsRoutine = mapOf(
+    val tensRoutine = listOf(
+        TensExercise("Tens exercise combos without getting off the parallel bar", TypeTensExercise.ALL),
+        TensExercise("Press plank: go up to handstand and return to plank position. Use a resistance band", TypeTensExercise.PLANK),
+        TensExercise("Push-up plank: lower as much as possible and return to plank. Use a resistance band", TypeTensExercise.PLANK),
+        TensExercise("Maltese plank push-up: lower as much as possible and return to maltese plank position", TypeTensExercise.PLANK),
+        TensExercise("Handstand push-up: lower until your head touches the floor, then return to handstand position", TypeTensExercise.PLANK),
+        TensExercise("Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band", TypeTensExercise.FRONT_LEVEL),
+        TensExercise("Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band", TypeTensExercise.FRONT_LEVEL),
+        TensExercise("Maltese front lever press: lift legs to touch the bar, then return to front lever", TypeTensExercise.FRONT_LEVEL),
+        TensExercise("Pull-up hold: pull until your chin is above the bar, hold for 3 seconds, then lower. Do it without a band if possible", TypeTensExercise.FRONT_LEVEL))
+
+    /*val basicsRoutine = mapOf(
         DayOfWeek.MONDAY to listOf(
             Exercise("Push-ups", "Basic push-ups", TypeExercise.BASIC, listOf("Chest", "Triceps", "Shoulders"), DayOfWeek.MONDAY),
             Exercise("Diamond push-ups", "Hands together under the chest", TypeExercise.BASIC, listOf("Triceps", "Inner chest"), DayOfWeek.MONDAY),
@@ -190,5 +205,5 @@ object Routines {
             Exercise("Jump squats", "Explosive version of squat", TypeExercise.BASIC, listOf("Legs", "Glutes"), DayOfWeek.FRIDAY),
             Exercise("Push-ups", "Standard push-ups in the circuit", TypeExercise.BASIC, listOf("Chest", "Triceps"), DayOfWeek.FRIDAY)
         )
-    )
+    )*/
 }

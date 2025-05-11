@@ -27,6 +27,7 @@ import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -77,9 +78,12 @@ fun RegistrationQuestionsScreen(
     }
     lateinit var actualQuestion: Question
     var showError by remember { mutableStateOf(false) }
+    var context = LocalContext.current
 
     if(thereIsErrorToAddUser != null) {
-        validateAddedUser(thereIsErrorToAddUser, { addTrainingRoutines(user.allQuestionsAnswered, user.email) }, onLoginScreen, LocalContext.current, setErrorAddUserToNull)
+        LaunchedEffect(thereIsErrorToAddUser) {
+            validateAddedUser(thereIsErrorToAddUser, { addTrainingRoutines(user.allQuestionsAnswered, user.email) }, onLoginScreen, context, setErrorAddUserToNull)
+        }
     }
 
     Column(
@@ -378,6 +382,7 @@ fun validateAddedUser(thereIsError: Boolean, addTrainingRoutines: () -> Unit, on
         showToast("Failure to add a user", context)
         setThereIsErrorToNull()
     } else {
+        setThereIsErrorToNull()
         addTrainingRoutines()
         onLoginScreen()
     }

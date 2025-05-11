@@ -79,6 +79,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
@@ -255,7 +256,7 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
             with(registrationQuestionsRoute) {
                 user = User(username, password, email, name.ifEmpty { username }, birthdate, gender)
             }
-            val thereIsErrorToAddUser by registrationQuestionsViewmodel.thereIsErrorToAddUser.collectAsStateWithLifecycle()
+            val thereIsErrorToAddUser by registrationQuestionsViewmodel.thereIsErrorToAddUser.distinctUntilChanged { old, new -> new == null }.collectAsStateWithLifecycle(null)
 
             RegistrationQuestionsScreen(
                 user,
@@ -268,10 +269,7 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
             )
         }
     }
-
-
 }
-
 
 @Composable
 fun BottomBar(

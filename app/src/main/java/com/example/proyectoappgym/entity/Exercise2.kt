@@ -25,5 +25,6 @@ data class Exercise2(
     val repetitions: Int,
     @SerializedName("restBetweenSeries")
     @Expose
-    val restBetweenSeries: Int
+    val restBetweenSeries: Int,
+    val typeTensExercise: TypeTensExercise? = null,
 )
