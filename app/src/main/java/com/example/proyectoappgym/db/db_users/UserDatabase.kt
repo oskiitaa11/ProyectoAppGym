@@ -91,6 +91,7 @@ class UserDatabase: RepositoryUserDatabase {
                .addOnSuccessListener {  result ->
                    continuation.resume(result.user)
                }.addOnFailureListener {
+                   var c = it.message
                    continuation.resume(null)
                }
         }
@@ -101,6 +102,7 @@ class UserDatabase: RepositoryUserDatabase {
                     .addOnSuccessListener {
                         continuation.resume(true) //2 es true
                     }.addOnFailureListener {
+                        var c = it.message
                         continuation.resume(false) //1 es false
                     }
             } else {
@@ -270,7 +272,7 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String) {
-        val anyTensionExercises = questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"]?.any { it == "Ejercicios de tensión" } ?: false
+        val anyTensionExercises = questions["What types of calisthenics exercises do you focus on or want to focus on?"]?.any { it == "Tension exercises" } ?: false
         /*val dayOfWeekForTraining = questions["¿Qué días de la semana puedes/quieres entrenar?"]?.map { dayOfWeek -> DayOfWeek.fromString(dayOfWeek) } ?: emptyList()
         val daysForTensTraining = getNumberOfDays(questions["¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?"] ?: emptyList(), questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] ?: emptyList(), )*/
 
@@ -280,10 +282,10 @@ class UserDatabase: RepositoryUserDatabase {
         else questions } }*/
         val trainingRoutinesTens = if(anyTensionExercises) implementCalisthenicRoutine(questions)
         else emptyList()
-        val questionsForRequest = if(anyTensionExercises) makeQuestionsForRequest(questions)
-        else questions
+        /*val questionsForRequest = if(anyTensionExercises) makeQuestionsForRequest(questions)
+        else questions*/
 
-        var message = buildFromAnsweredQuestions(questionsForRequest)
+        var message = buildFromAnsweredQuestions(questions, trainingRoutinesTens)
         val request = ChatRequest(
             messages = listOf(
                 ChatMessage(role = "user", content = message)
@@ -293,24 +295,24 @@ class UserDatabase: RepositoryUserDatabase {
         val receivedMessage = response.choices[0].message.content
         val json = receivedMessage.substringAfter("```json").substringBefore("```")
         val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutine
-        val newTrainingRoutines = trainingRoutines.toMutableList().addAll(trainingRoutinesTens)
+        //val newTrainingRoutines = trainingRoutines.toMutableList().addAll(trainingRoutinesTens)
 
         suspendCoroutine<Unit> {
             db.collection("Users").whereEqualTo("email", emailUser).get().addOnSuccessListener { result ->
-                result.documents[0].reference.update("trainingRoutines", newTrainingRoutines)
+                result.documents[0].reference.update("trainingRoutines", trainingRoutines)
             }
         }
     }
 
     private suspend fun implementCalisthenicRoutine(questions: Map<String, List<String>>): List<TrainingRoutine> {
         val dayOfWeekForTraining =
-            questions["¿Qué días de la semana puedes/quieres entrenar?"]?.map { dayOfWeek ->
+            questions["Which days of the week can/do you want to train?"]?.map { dayOfWeek ->
                 DayOfWeek.fromString(dayOfWeek)
             } ?: emptyList()
         val daysForTensTraining = getNumberOfDays(
-            questions["¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?"]
+            questions["What types of calisthenics exercises do you focus on or want to focus on?"]
                 ?: emptyList(),
-            questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"]
+            questions["What types of gym exercises do you focus on or want to focus on?"]
                 ?: emptyList(),
             dayOfWeekForTraining.size
         )
@@ -448,20 +450,21 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     private suspend fun makeQuestionsForRequest(questions: Map<String, List<String>>): Map<String, List<String>> {
-        val calisthenicQuestionsResponses = questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] ?: emptyList()
-        val responsesDaysOfWeek = questions["¿Qué días de la semana puedes/quieres entrenar?"] ?: emptyList()
+        val newQuestions = questions.toMutableMap()
+        val calisthenicQuestionsResponses = questions["What types of calisthenics exercises do you focus on or want to focus on?"] ?: emptyList()
+        val responsesDaysOfWeek = questions["Which days of the week can/do you want to train?"] ?: emptyList()
         val numberOfDaysForTraining = responsesDaysOfWeek.size
 
-        questions.toMutableMap()["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] = calisthenicQuestionsResponses.filter { it != "Ejercicios de tensión" }
-        questions.toMutableMap()["¿Qué días de la semana puedes/quieres entrenar?"] = if(numberOfDaysForTraining < 4) responsesDaysOfWeek.toMutableList().apply { removeAt(0) } else responsesDaysOfWeek.toMutableList().apply {
-            removeAt(0)
+        newQuestions["What types of calisthenics exercises do you focus on or want to focus on?"] = calisthenicQuestionsResponses.filter { it != "Tension exercises" }
+        newQuestions["Which days of the week can/do you want to train?"] = if(numberOfDaysForTraining < 4) responsesDaysOfWeek.toMutableList().apply { removeAt(0) } else responsesDaysOfWeek.toMutableList().apply {
             removeAt(1)
+            removeAt(0)
         }
 
-        return questions
+        return newQuestions
     }
 
-    private fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>): String {
+    private fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>, trainingRoutineTens: List<TrainingRoutine>?): String {
         var stringQuestions = ""
         var stringResponses = ""
 
@@ -497,9 +500,9 @@ class UserDatabase: RepositoryUserDatabase {
         thereAreBasicsExercises.awaitAll()
         thereAreWeightliftingExercises.awaitAll()
         thereAreMachinesExercises.awaitAll()*/
-        responsesCalisthenic.forEach { if(it == "Ejercicios básicos") daysForTrainingNotTens++ }
-        responsesGym.forEach { if(it == "Ejercicios de máquinas") daysForTrainingNotTens++ }
-        responsesGym.forEach { if(it == "Ejercicios de levantamiento de pesas" ) daysForTrainingNotTens++ }
+        responsesCalisthenic.forEach { if(it == "Basic exercises") daysForTrainingNotTens++ }
+        responsesGym.forEach { if(it == "Machine exercises") daysForTrainingNotTens++ }
+        responsesGym.forEach { if(it == "Weightlifting exercises") daysForTrainingNotTens++ }
 
         return@coroutineScope daysForTraining - daysForTrainingNotTens
     }

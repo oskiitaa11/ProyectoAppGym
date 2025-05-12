@@ -191,7 +191,7 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
 
     NavHost(
         navController = navController,
-        startDestination = RegistrationQuestionsRoute("Oskiitaa11", "Oskiitaa11", "James_10_eel", "oskiitaa11@gmail.com", "12/5/2024", Gender.NONE),
+        startDestination = RegistrationQuestionsRoute("Oskiitaa11", "Oskiitaa11", "James_10_eel", "oskiitaa12@gmail.com", "12/5/2024", Gender.NONE),
         modifier = Modifier.fillMaxSize(),
         popEnterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000)) },
         popExitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000)) },

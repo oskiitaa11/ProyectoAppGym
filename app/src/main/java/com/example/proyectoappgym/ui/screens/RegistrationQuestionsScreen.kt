@@ -80,6 +80,7 @@ fun RegistrationQuestionsScreen(
     lateinit var actualQuestion: Question
     var showError by remember { mutableStateOf(false) }
     var context = LocalContext.current
+    var necessariesDaysForTraining = remember { 0 }
 
     if(thereIsErrorToAddUser != null) {
         LaunchedEffect(thereIsErrorToAddUser) {
@@ -140,7 +141,7 @@ fun RegistrationQuestionsScreen(
                 }
 
                 if(showError && actualQuestion == allQuestionsScreen.last()) {
-                    ShowErrorText("You choose two answer to the questions", 0.dp)
+                    ShowErrorText("You choose $necessariesDaysForTraining answers to the questions", 0.dp)
                 } else if (showError) ShowErrorText("You choose a answer to the questions", 0.dp)
             }
 
@@ -166,9 +167,8 @@ fun RegistrationQuestionsScreen(
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24,
                 {
-
                     if(actualQuestion == allQuestionsScreen.last()) {
-                        showError = !((allChecked[actualQuestion.question]?.filterValues { it }?.count() as Int) > 1)
+                        showError = (allChecked[actualQuestion.question]?.filterValues { it }?.count() as Int) < getNecessaryNumberForTrainingDays(allChecked.filterKeys { question -> allQuestionsScreen.any { question == it.question } }) { necessariesDaysForTraining = it }
                     } else {
                         showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                     }
@@ -376,6 +376,14 @@ fun getAllQuestionAnswered(allChecked: Map<String, MutableMap<String, Boolean>>)
     allQuestionsAnswered.putAll(pairs)
 
     return allQuestionsAnswered
+}
+
+fun getNecessaryNumberForTrainingDays(allChecked: Map<String, MutableMap<String, Boolean>>, setNecessariesDaysForTraining: (Int) -> Unit): Int {
+    val necessariesDaysForTraining = (allChecked["What types of gym exercises do you focus on or want to focus on?"]?.filterValues { it }?.count() ?: 0) +
+            (allChecked["What types of calisthenics exercises do you focus on or want to focus on?"]?.filterValues { it }?.count() ?: 0)
+
+    setNecessariesDaysForTraining(necessariesDaysForTraining)
+    return necessariesDaysForTraining
 }
 
 fun validateAddedUser(thereIsError: Boolean, addTrainingRoutines: () -> Unit, onLoginScreen: () -> Unit, context: Context, setThereIsErrorToNull: () -> Unit) {

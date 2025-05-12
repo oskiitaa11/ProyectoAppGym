@@ -97,12 +97,12 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
         val responsesType = questionForModifierRoute.responsesType
         val allResponsesDb =
             questionForModifierViewmodel.allQuestions.find { it.question == questionForModifier }?.responses?.toList() ?: emptyList()
-        val isEqualFirstQuestion = questionForModifier == "¿Eres más de ejercicios de calistenia o gym?"
+        val isEqualFirstQuestion = questionForModifier == "Are you more into calisthenics or gym workouts?"
         val gymQuestion = if(isEqualFirstQuestion)
-            questionForModifierViewmodel.allQuestions.find { "¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?" == it.question }
+            questionForModifierViewmodel.allQuestions.find { "What types of gym exercises do you focus on or want to focus on?" == it.question }
         else null
         val calisthenicQuestion = if (isEqualFirstQuestion)
-            questionForModifierViewmodel.allQuestions.find { "¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?" == it.question }
+            questionForModifierViewmodel.allQuestions.find { "What types of calisthenics exercises do you focus on or want to focus on?" == it.question }
         else null
         val selectedInitialResponse = if(isEqualFirstQuestion) questionForModifierRoute.selectedResponses[0] else null
 
@@ -225,9 +225,9 @@ fun QuestionForModifierScreen(
                         if(selectedResponses.isEmpty()) undoChanges()
                         else  {
                             if(selectedResponse == "Gym") removeResponsesOfQuestion(calisthenicQuestion?.question ?: "")
-                            else if(selectedResponse == "Calistenia") removeResponsesOfQuestion(gymQuestion?.question ?: "")
+                            else if(selectedResponse == "Calisthenics") removeResponsesOfQuestion(gymQuestion?.question ?: "")
 
-                            if(selectedInitialResponse != "De los dos") changeCorrectedResponse(question, selectedResponses)
+                            if(selectedInitialResponse != "Both") changeCorrectedResponse(question, selectedResponses)
                             if(allStringResponses.isNotEmpty()) {
                                 changeCorrectedResponse(questionForModifier, allStringResponses)
                                 backToEditProfile()
@@ -314,7 +314,7 @@ fun ShowNextQuestionForFirstQuestion(selectedResponse: String, selectedInitialRe
 
     when(selectedResponse) {
         "Gym" -> ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
-        "Calistenia" -> ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
+        "Calisthenics" -> ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
         else -> {
             if(selectedInitialResponse == "Gym") ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
             else ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)

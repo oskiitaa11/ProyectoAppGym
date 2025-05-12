@@ -6,41 +6,50 @@ import com.example.proyectoappgym.entity.ResponsesType
 object QuestionsRegistration: RepositoryQuestions {
     val allQuestions = listOf(
         Question(
-            question = "¿Eres más de ejercicios de calistenia o gym?",
+            question = "Are you more into calisthenics or gym workouts?",
             responsesTypes = ResponsesType.RADIOBUTTON,
-            responses = listOf("Calistenia", "Gym", "De los dos").toTypedArray()
+            responses = listOf("Calisthenics", "Gym", "Both").toTypedArray()
         ),
         Question(
-            question = "¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?",
+            question = "What types of gym exercises do you focus on or want to focus on?",
             responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Ejercicios con máquinas", "Ejercicios de levantamiento de pesas").toTypedArray()
-
+            responses = listOf("Machine exercises", "Weightlifting exercises").toTypedArray()
         ),
         Question(
-            question = "¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?",
+            question = "What types of calisthenics exercises do you focus on or want to focus on?",
             responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Ejercicios de tensión", "Ejercicios básicos").toTypedArray()
-
+            responses = listOf("Tension exercises", "Basic exercises").toTypedArray()
         ),
         Question(
-            question = "¿Cuáles son tus objetivos?",
+            question = "What are your goals?",
             responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Conseguir más fuerza", "Conseguir más resistencia", "Ganar más músculo").toTypedArray()
+            responses = listOf("Gain more strength", "Increase endurance", "Build more muscle").toTypedArray()
         ),
         Question(
-            question = "¿Estás haciendo alguna dieta?",
+            question = "Are you following any diet?",
             responsesTypes = ResponsesType.RADIOBUTTON,
-            responses = listOf("Sí, para ganar más masa muscular", "Sí, para perder grasa corporal", "Sí, para mantenerme", "No").toTypedArray()
+            responses = listOf(
+                "Yes, to gain muscle mass",
+                "Yes, to lose body fat",
+                "Yes, to maintain",
+                "No"
+            ).toTypedArray()
         ),
         Question(
-            question = "¿Cuánto tiempo llevas entrenando?",
+            question = "How long have you been training?",
             responsesTypes = ResponsesType.RADIOBUTTON,
-            responses = listOf("Acabo de empezar con MyFitnessApp", "Llevo unos meses", "Llevo 1 año o más").toTypedArray()
+            responses = listOf(
+                "I just started with MyFitnessApp",
+                "I've been training for a few months",
+                "I've been training for a year or more"
+            ).toTypedArray()
         ),
         Question(
-            question = "¿Qué días de la semana puedes/quieres entrenar?",
+            question = "Which days of the week can/do you want to train?",
             responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo").toTypedArray()
+            responses = listOf(
+                "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+            ).toTypedArray()
         )
     )
 
