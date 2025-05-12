@@ -270,20 +270,20 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String) {
-        val anyTensionExercises = coroutineScope {
-            questions.values.map {
-                async { it.any { response -> response == "Ejericios de tensión" } }
-            }.awaitAll().any { it }
-        }
+        val anyTensionExercises = questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"]?.any { it == "Ejercicios de tensión" } ?: false
         /*val dayOfWeekForTraining = questions["¿Qué días de la semana puedes/quieres entrenar?"]?.map { dayOfWeek -> DayOfWeek.fromString(dayOfWeek) } ?: emptyList()
         val daysForTensTraining = getNumberOfDays(questions["¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?"] ?: emptyList(), questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] ?: emptyList(), )*/
 
-        val trainingRoutinesTens = coroutineScope { async { if(anyTensionExercises) implementCalisthenicRoutine(questions)
+        /*val trainingRoutinesTens = coroutineScope { async { if(anyTensionExercises) implementCalisthenicRoutine(questions)
         else emptyList() } }
         val questionsForRequest = coroutineScope { async { if(anyTensionExercises) makeQuestionsForRequest(questions)
-        else questions } }
+        else questions } }*/
+        val trainingRoutinesTens = if(anyTensionExercises) implementCalisthenicRoutine(questions)
+        else emptyList()
+        val questionsForRequest = if(anyTensionExercises) makeQuestionsForRequest(questions)
+        else questions
 
-        var message = buildFromAnsweredQuestions(questionsForRequest.await())
+        var message = buildFromAnsweredQuestions(questionsForRequest)
         val request = ChatRequest(
             messages = listOf(
                 ChatMessage(role = "user", content = message)
@@ -293,7 +293,7 @@ class UserDatabase: RepositoryUserDatabase {
         val receivedMessage = response.choices[0].message.content
         val json = receivedMessage.substringAfter("```json").substringBefore("```")
         val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutine
-        val newTrainingRoutines = trainingRoutines.toMutableList().addAll(trainingRoutinesTens.await())
+        val newTrainingRoutines = trainingRoutines.toMutableList().addAll(trainingRoutinesTens)
 
         suspendCoroutine<Unit> {
             db.collection("Users").whereEqualTo("email", emailUser).get().addOnSuccessListener { result ->
@@ -490,13 +490,16 @@ class UserDatabase: RepositoryUserDatabase {
 
     suspend fun getNumberOfDays(responsesCalisthenic: List<String>, responsesGym: List<String>, daysForTraining: Int): Int = coroutineScope {
         var daysForTrainingNotTens = 0
-        val thereAreBasicsExercises = responsesCalisthenic.map { response -> async { if(response == "Ejercicios básicos") daysForTrainingNotTens++ } }
+        /*val thereAreBasicsExercises = responsesCalisthenic.map { response -> async { if(response == "Ejercicios básicos") daysForTrainingNotTens++ } }
         val thereAreMachinesExercises = responsesGym.map { response -> async { if(response == "Ejercicios de máquinas" ) daysForTrainingNotTens++ } }
         val thereAreWeightliftingExercises = responsesGym.map { response -> async { if(response == "Ejercicios de levantamiento de pesas" ) daysForTrainingNotTens++ } }
 
         thereAreBasicsExercises.awaitAll()
         thereAreWeightliftingExercises.awaitAll()
-        thereAreMachinesExercises.awaitAll()
+        thereAreMachinesExercises.awaitAll()*/
+        responsesCalisthenic.forEach { if(it == "Ejercicios básicos") daysForTrainingNotTens++ }
+        responsesGym.forEach { if(it == "Ejercicios de máquinas") daysForTrainingNotTens++ }
+        responsesGym.forEach { if(it == "Ejercicios de levantamiento de pesas" ) daysForTrainingNotTens++ }
 
         return@coroutineScope daysForTraining - daysForTrainingNotTens
     }

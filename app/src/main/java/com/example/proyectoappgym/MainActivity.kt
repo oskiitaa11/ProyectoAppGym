@@ -55,6 +55,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.proyectoappgym.RegistrationRoute
 import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.entity.BottomBarItem
@@ -190,7 +191,7 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
 
     NavHost(
         navController = navController,
-        startDestination = LoginRoute,
+        startDestination = RegistrationQuestionsRoute("Oskiitaa11", "Oskiitaa11", "James_10_eel", "oskiitaa11@gmail.com", "12/5/2024", Gender.NONE),
         modifier = Modifier.fillMaxSize(),
         popEnterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000)) },
         popExitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000)) },
