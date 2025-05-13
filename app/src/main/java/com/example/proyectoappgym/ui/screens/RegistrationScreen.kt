@@ -2,10 +2,12 @@ package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog
+import android.icu.text.SimpleDateFormat
 import android.icu.util.Calendar
 import android.widget.DatePicker
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,7 +17,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.runtime.Composable
@@ -40,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -47,14 +56,16 @@ import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Gender
 import java.time.Year
+import java.util.Locale
 
 @Composable
 fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean?, emailExist: Boolean?, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit) {
+    var stateScroll = rememberScrollState()
     var name by remember { mutableStateOf("") }
-    var birthdate by remember { mutableStateOf("12/5/2024") }
-    var username by remember { mutableStateOf("Oskiitaa11") }
-    var password by remember { mutableStateOf("James_10_eel") }
-    var email by remember { mutableStateOf("oskiitaa12@gmail.com") }
+    var birthdate by remember { mutableStateOf("") }
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(Gender.NONE) }
     /*Se crea un mapa por cada campo se inserta el texto de error,
     inicialmente esta vacio. Cuando este vacio el campo es porque todavia
@@ -75,6 +86,7 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
         validateEmail(email, { errorText -> allErrorsFields["email"] = errorText })
 
     }
+    var showWaitingDialog by remember { mutableStateOf(false) }
 
     // Si se ha preguntado si existe algun usuario o email, estas variables seran nulas y no entrará en el bloque
     if(userExist != null || emailExist != null){
@@ -84,12 +96,15 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             { errorText -> allErrorsFields["email"] = errorText },
             { errorText -> allErrorsFields["username"] = errorText },
             setUserExistToNull,
-            setEmailExistToNull
+            setEmailExistToNull,
             //Despues se asigna las dos variables a null otra vez
+            { showWaitingDialog = false }
         )
         //Cuando se termine de validar los campos si no hay ningun error todos los valores del mapa estaran a null
-        if(allErrorsFields.values.all { it.isEmpty() }) onRegistrationQuestion(name.trim(), username.trim(), password, email.trim(), birthdate, gender)
+        if(allErrorsFields.values.all { it.isEmpty() }) onRegistrationQuestion(name.trim(), username.trim(), password, email.lowercase().trim(), birthdate, gender)
     }
+
+    if(showWaitingDialog) ShowWaitingDialog("Heading you to a questions screen")
 
     Scaffold(topBar = { TopAppBarRegistration(onBack) }) { innerPadding ->
         Column(
@@ -98,6 +113,7 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             modifier = Modifier.padding(innerPadding).fillMaxSize()
             .fillMaxSize()
             .background(color = colorResource(R.color.lightBlack))
+            .verticalScroll(stateScroll)
         ) {
             ShowInputNormal(name, "Name(Optional)", R.drawable.ic_man_24, false, { newText -> name = newText })
             Spacer(modifier = Modifier.height(15.dp))
@@ -110,32 +126,26 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             ShowInputPassword(passwordValue = password, label = "You create the new password", allErrorsFields["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
             ShowErrorText(allErrorsFields["password"] as String, 5.dp)
             Spacer(modifier = Modifier.height(15.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.padding(horizontal = 30.dp)
-            ) {
-                Column {
-                    ShowInputBirthdate(birthdate, allErrorsFields["birthdate"]?.isNotEmpty() as Boolean, { newText -> birthdate = newText })
-                }
-
-                ShowGender(gender, { newGender ->  gender = newGender})
-            }
+            ShowInputBirthdate(birthdate, allErrorsFields["birthdate"]?.isNotEmpty() as Boolean) { newText -> birthdate = newText }
             ShowErrorText(allErrorsFields["birthdate"] as String, 0.dp, 15.dp)
+            Spacer(Modifier.height(15.dp))
+            ShowGender(gender) { newGender -> gender = newGender }
             Spacer(modifier = Modifier.height(15.dp))
             /*Se comprobará si todos los valores del mapa estan vacios, si es asin, no ha habido ningun error
             y se pasara a la pantalla de preguntas*/
             ShowButtonForLoginOrRegister(
                 "Register",
                 {
+                    showWaitingDialog = true
                     validateFields()
                     if(allErrorsFields.values.all { it.isEmpty() }) {
                         askUserExist(username.trim())
                         askEmailExist(email.trim())
-                    }
+                    } else showWaitingDialog = false
                 }
             )
 
+            Spacer(modifier = Modifier.height(15.dp))
         }
     }
 }
@@ -187,9 +197,9 @@ fun ShowErrorText(errorText: String, startPadding: Dp, endPadding: Dp = 0.dp) {
 fun ShowGender(gender: Gender, changeGender: (Gender) -> Unit) {
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.Start,
         //Si le asigno 1fr me deja mucho espacio a los lados y el contenido del padre no se ve visualmente centrado
-        modifier = Modifier.fillMaxWidth(1f).padding(start = 20.dp)
+        modifier = Modifier.fillMaxWidth(0.75f).padding(bottom = 15.dp)
     ) {
         Text(
             "Sex(Optional)",
@@ -198,7 +208,7 @@ fun ShowGender(gender: Gender, changeGender: (Gender) -> Unit) {
             color = Color.White,
         )
 
-        Row(horizontalArrangement = Arrangement.Center) {
+        Row(horizontalArrangement = Arrangement.Start) {
             ShowGenderButton(colorResource(R.color.blue), Gender.M, gender == Gender.M, R.drawable.ic_man_24, changeGender)
             ShowGenderButton(colorResource(R.color.pink), Gender.F, gender == Gender.F, R.drawable.ic_woman_24, changeGender)
             ShowGenderButton(Color.White, Gender.IND, gender == Gender.IND, R.drawable.ic_transgender_24, changeGender)
@@ -222,9 +232,10 @@ fun ShowInputNormal(fieldValue: String, label: String, idIcon: Int, isError: Boo
             value = fieldValue,
             onValueChange = addNewFieldValue,
             shape = ShapeDefaults.ExtraSmall,
-            leadingIcon = { Icon(painter = painterResource(idIcon), contentDescription = "Icon for name") },
-            modifier = Modifier.height(50.dp)
-                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
+            leadingIcon = { Icon(painter = painterResource(idIcon), contentDescription = "Icon for name", tint = colorResource(R.color.lightBlack)) },
+            colors = TextFieldDefaults.colors(focusedContainerColor = Color.White, unfocusedContainerColor = Color.White, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),
+            modifier = Modifier.height(70.dp).padding(vertical = 8.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.LightGray, ShapeDefaults.ExtraSmall)
         )
     }
 }
@@ -244,9 +255,10 @@ fun ShowInputEmail(valueEmail: String, isError: Boolean, addNewValueEmail: (Stri
             value = valueEmail,
             onValueChange = addNewValueEmail,
             shape = ShapeDefaults.ExtraSmall,
-            leadingIcon = { Icon(painter = painterResource(R.drawable.ic_email_24), contentDescription = "Email icon") },
-            modifier = Modifier.height(50.dp)
-                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall),
+            leadingIcon = { Icon(painter = painterResource(R.drawable.ic_email_24), contentDescription = "Email icon", tint = colorResource(R.color.lightBlack)) },
+            colors = TextFieldDefaults.colors(focusedContainerColor = Color.White, unfocusedContainerColor = Color.White, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),
+            modifier = Modifier.height(70.dp).padding(vertical = 8.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.LightGray, ShapeDefaults.ExtraSmall),
         )
     }
 }
@@ -268,17 +280,18 @@ fun ShowInputBirthdate(birthdateValue: String, isError: Boolean, addNewFieldValu
 
         TextField(
             value = birthdateValue,
-            onValueChange = addNewFieldValue,
+            onValueChange =  { newBirthdate -> newBirthdate },
             readOnly = true,
             shape = ShapeDefaults.ExtraSmall,
             trailingIcon = {
                 IconButton(onClick = { showCalendarDialog = true }) {
-                    Icon(painter = painterResource(R.drawable.ic_calendar_month_24), contentDescription = "Calendar icon")
+                    Icon(painter = painterResource(R.drawable.ic_calendar_month_24), contentDescription = "Calendar icon", tint = colorResource(R.color.lightBlack))
                 }
             },
-            modifier = Modifier.width(150.dp)
-                .height(50.dp)
-                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
+
+            colors = TextFieldDefaults.colors(focusedContainerColor = Color.White, unfocusedContainerColor = Color.White, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),
+            modifier = Modifier.height(70.dp).padding(vertical = 8.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.LightGray, ShapeDefaults.ExtraSmall)
         )
     }
 
@@ -287,7 +300,16 @@ fun ShowInputBirthdate(birthdateValue: String, isError: Boolean, addNewFieldValu
             LocalContext.current,
             {
                     _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-                addNewFieldValue("$dayOfMonth/${month+1}/$year")
+                val selectedCalendar = Calendar.getInstance().apply {
+                    set(Calendar.YEAR, year)
+                    set(Calendar.MONTH, month)
+                    set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                }
+
+                // Formatear la fecha como dd/MM/yyyy
+                val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val formattedDate = formatter.format(selectedCalendar.time)
+                addNewFieldValue(formattedDate)
             },
             calendar.get(Calendar.YEAR),
             calendar.get(Calendar.MONTH),
@@ -390,12 +412,15 @@ fun validateEmail(valueEmail: String, changeValueField: (String) -> Unit) {
 }
 
 
-fun validateFieldsIfExist(emailExist: Boolean, userExist: Boolean, changeErrorTextEmail: (String) -> Unit, changeErrorTextUser: (String) -> Unit, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit) {
-    valueExist(emailExist, changeErrorTextEmail, setEmailExistToNull, "Email already registered")
-    valueExist(userExist, changeErrorTextUser, setUserExistToNull, "Username already registered")
+fun validateFieldsIfExist(emailExist: Boolean, userExist: Boolean, changeErrorTextEmail: (String) -> Unit, changeErrorTextUser: (String) -> Unit, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit, hideWaitingDialog: () -> Unit) {
+    valueExist(emailExist, changeErrorTextEmail, setEmailExistToNull, "Email already registered", hideWaitingDialog)
+    valueExist(userExist, changeErrorTextUser, setUserExistToNull, "Username already registered", hideWaitingDialog)
 }
 
-fun valueExist(fieldExist: Boolean, changeErrorTextField: (String) -> Unit, setFieldExistToNull: () -> Unit, errorText: String){
-    if(fieldExist) changeErrorTextField(errorText)
+fun valueExist(fieldExist: Boolean, changeErrorTextField: (String) -> Unit, setFieldExistToNull: () -> Unit, errorText: String, hideWaitingDialog: () -> Unit){
+    if(fieldExist) {
+        changeErrorTextField(errorText)
+        hideWaitingDialog()
+    }
     setFieldExistToNull()
 }

@@ -191,10 +191,12 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
 
     NavHost(
         navController = navController,
-        startDestination = RegistrationQuestionsRoute("Oskiitaa11", "Oskiitaa11", "James_10_eel", "oskiitaa12@gmail.com", "12/5/2024", Gender.NONE),
+        startDestination = LoginRoute,
         modifier = Modifier.fillMaxSize(),
-        popEnterTransition = { fadeIn(initialAlpha = 1f, animationSpec = tween(2000)) },
-        popExitTransition = { fadeOut(targetAlpha = 0f, animationSpec = tween(2000)) },
+        popExitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
+        popEnterTransition = { slideInHorizontally(animationSpec = tween(800)) },
+        enterTransition = { slideInHorizontally(animationSpec = tween(800)) },
+        exitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
     ) {
 
         composable<LoginRoute> { navBackStackEntry ->
@@ -258,14 +260,17 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
                 user = User(username, password, email, name.ifEmpty { username }, birthdate, gender)
             }
             val thereIsErrorToAddUser by registrationQuestionsViewmodel.thereIsErrorToAddUser.distinctUntilChanged { old, new -> new == null }.collectAsStateWithLifecycle(null)
+            val isSuccessMakeRoutines by registrationQuestionsViewmodel.isSuccessMakeRoutines.collectAsStateWithLifecycle()
 
             RegistrationQuestionsScreen(
                 user,
                 allQuestions,
                 thereIsErrorToAddUser,
+                isSuccessMakeRoutines,
                 { userForAdd -> registrationQuestionsViewmodel.addUser(userForAdd) },
                 { registrationQuestionsViewmodel.setThereIsErrorToNull() },
                 { navController.navigate(LoginRoute) },
+                { navController.popBackStack() },
                 { answeredQuestions, emailUser -> registrationQuestionsViewmodel.saveUserTrainingRoutines(answeredQuestions, emailUser) }
             )
         }

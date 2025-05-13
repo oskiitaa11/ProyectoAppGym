@@ -17,13 +17,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,6 +66,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
         validateEmailLogin(email, { errorText -> allErrorsText["email"] = errorText })
         validatePasswordLogin(password, { errorText -> allErrorsText["password"] = errorText })
     }
+    var stateScroll = rememberScrollState()
 
     if(intCompletedSignIn>0) ValidateSignIn(
         intCompletedSignIn,
@@ -75,9 +80,9 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
     )
 
     Column(
-        modifier = Modifier.fillMaxSize().background(color = colorResource(R.color.lightBlack)),
+        modifier = Modifier.fillMaxSize().background(color = colorResource(R.color.lightBlack)).verticalScroll(stateScroll),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Box(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
             Image(
@@ -118,7 +123,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
             ShowInputPassword(passwordValue = password, label = "Password", isError = allErrorsText["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
             ShowErrorText(allErrorsText["password"] as String, 5.dp)
             Spacer(modifier = Modifier.height(30.dp))
-            ShowButtonForLoginOrRegister("Login", {
+            ShowButtonForLoginOrRegister("Sign in", {
                 validateFieldsLogin()
                 //Si los textos de error estan vacios, el usuario hará login
                 if(allErrorsText.values.all { it.isEmpty() }) {
@@ -126,16 +131,17 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
                 }
             })
             Spacer(modifier = Modifier.height(15.dp))
-            Text("¿Don't you have account? You registrate", color = GetLightGreen(), modifier = Modifier.clickable {
+            Text("¿Don't you have account? Create an account", color = GetLightGreen(), modifier = Modifier.clickable {
                 onRegistrationScreen()
                 isClickedRegisterText = true
             }, textDecoration = if (isClickedRegisterText) TextDecoration.Underline else TextDecoration.None)
             Spacer(modifier = Modifier.height(30.dp))
-            Text("- - - - - - - - - - -  OR  - - - - - - - - - - -", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center)
+            Text(" - - - - - -  OR SIGN IN WITH  - - - - - - ", color = Color.White, fontSize = 20.sp, textAlign = TextAlign.Center)
             Spacer(modifier = Modifier.height(30.dp))
             ShowButtonForGoogleLogout {
                 //launcher()
             }
+            Spacer(modifier = Modifier.height(20.dp))
         }
 
     }
@@ -163,15 +169,16 @@ fun ShowInputPassword(passwordValue: String, label: String, isError: Boolean, ad
                     onClick = { canShowPassword = !canShowPassword }
                 ) {
                     //Segun este la contraseña oculta o no se va cambiando el icono de visibilidad
-                    Icon(painter = painterResource(if(canShowPassword) R.drawable.ic_visibility_off_24 else R.drawable.ic_visibility_24), contentDescription = "Icono para mostrar/ocultar la contraseña")
+                    Icon(painter = painterResource(if(canShowPassword) R.drawable.ic_visibility_off_24 else R.drawable.ic_visibility_24), contentDescription = "Icono para mostrar/ocultar la contraseña", tint = colorResource(R.color.lightBlack))
                 }
             },
-            leadingIcon = { Icon(painter = painterResource(R.drawable.ic_lock_24), contentDescription = "Icon password") },
+            leadingIcon = { Icon(painter = painterResource(R.drawable.ic_lock_24), contentDescription = "Icon password", tint = colorResource(R.color.lightBlack)) },
             shape = ShapeDefaults.ExtraSmall,
             //Con el visualTransformation le digo que se transforme el texto a asterisco o no
             visualTransformation = if(canShowPassword) VisualTransformation.None else PasswordVisualTransformation(),
-            modifier = Modifier.height(50.dp)
-                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.Black, ShapeDefaults.ExtraSmall)
+            colors = TextFieldDefaults.colors(focusedContainerColor = Color.White, unfocusedContainerColor = Color.White, focusedTextColor = Color.Black, unfocusedTextColor = Color.Black),
+            modifier = Modifier.height(70.dp).padding(vertical = 8.dp)
+                .border(2.dp, if(isError) colorResource(R.color.red_error) else Color.LightGray, ShapeDefaults.ExtraSmall)
         )
     }
 }
@@ -181,7 +188,7 @@ fun ShowButtonForLoginOrRegister(text: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         colors = ButtonColors(colorResource(R.color.lightGreen), Color.White, Color.LightGray, Color.LightGray),
-        shape = ShapeDefaults.ExtraSmall
+        shape = ShapeDefaults.Small
     ) {
         Text(
             text,
@@ -193,16 +200,12 @@ fun ShowButtonForLoginOrRegister(text: String, onClick: () -> Unit) {
 
 @Composable
 fun ShowButtonForGoogleLogout(onClick: () -> Unit) {
-    TextButton(onClick = onClick, colors = ButtonColors(Color.White, colorResource(R.color.lightBlack), Color.LightGray, Color.LightGray)) {
-        Text(
-            "Login for Google  ",
-            fontSize = 20.sp,
-            modifier = Modifier.padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
-        )
-        Image(
+    Box(modifier = Modifier.background(Color.White, shape = ShapeDefaults.Small)) {
+
+    Image(
             painter = painterResource(R.drawable.ic_google),
             contentDescription = "Google Icon",
-            modifier = Modifier.padding(end = 10.dp)
+            modifier = Modifier.padding(10.dp)
         )
 
     }

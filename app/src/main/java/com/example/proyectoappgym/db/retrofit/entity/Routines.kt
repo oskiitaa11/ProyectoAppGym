@@ -7,5 +7,5 @@ import com.google.gson.annotations.SerializedName
 data class Routines(
     @SerializedName("routines")
     @Expose
-    val trainingRoutine: List<TrainingRoutine>
+    val trainingRoutines: List<TrainingRoutine>
 )

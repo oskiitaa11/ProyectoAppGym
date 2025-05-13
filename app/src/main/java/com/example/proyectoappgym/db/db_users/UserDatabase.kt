@@ -271,20 +271,11 @@ class UserDatabase: RepositoryUserDatabase {
         return uidLoggedUser
     }
 
-    override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String) {
+    override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String): Boolean {
+        var isSuccess = false
         val anyTensionExercises = questions["What types of calisthenics exercises do you focus on or want to focus on?"]?.any { it == "Tension exercises" } ?: false
-        /*val dayOfWeekForTraining = questions["¿Qué días de la semana puedes/quieres entrenar?"]?.map { dayOfWeek -> DayOfWeek.fromString(dayOfWeek) } ?: emptyList()
-        val daysForTensTraining = getNumberOfDays(questions["¿En qué tipos de ejercicios de Gym te enfocas más o te quieres enfocar?"] ?: emptyList(), questions["¿En qué tipos de ejercicios de Calistenia te enfocas más o te quieres enfocar?"] ?: emptyList(), )*/
-
-        /*val trainingRoutinesTens = coroutineScope { async { if(anyTensionExercises) implementCalisthenicRoutine(questions)
-        else emptyList() } }
-        val questionsForRequest = coroutineScope { async { if(anyTensionExercises) makeQuestionsForRequest(questions)
-        else questions } }*/
         val trainingRoutinesTens = if(anyTensionExercises) implementCalisthenicRoutine(questions)
-        else emptyList()
-        /*val questionsForRequest = if(anyTensionExercises) makeQuestionsForRequest(questions)
-        else questions*/
-
+        else null
         var message = buildFromAnsweredQuestions(questions, trainingRoutinesTens)
         val request = ChatRequest(
             messages = listOf(
@@ -294,14 +285,16 @@ class UserDatabase: RepositoryUserDatabase {
         val response = api.getChatResponse("Bearer $apiKey", request)
         val receivedMessage = response.choices[0].message.content
         val json = receivedMessage.substringAfter("```json").substringBefore("```")
-        val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutine
-        //val newTrainingRoutines = trainingRoutines.toMutableList().addAll(trainingRoutinesTens)
+        val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutines
 
-        suspendCoroutine<Unit> {
+        isSuccess = suspendCoroutine<Boolean> { continuation ->
             db.collection("Users").whereEqualTo("email", emailUser).get().addOnSuccessListener { result ->
                 result.documents[0].reference.update("trainingRoutines", trainingRoutines)
+                continuation.resume(true)
             }
         }
+
+        return isSuccess
     }
 
     private suspend fun implementCalisthenicRoutine(questions: Map<String, List<String>>): List<TrainingRoutine> {
@@ -449,7 +442,7 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
-    private suspend fun makeQuestionsForRequest(questions: Map<String, List<String>>): Map<String, List<String>> {
+    /*private suspend fun makeQuestionsForRequest(questions: Map<String, List<String>>): Map<String, List<String>> {
         val newQuestions = questions.toMutableMap()
         val calisthenicQuestionsResponses = questions["What types of calisthenics exercises do you focus on or want to focus on?"] ?: emptyList()
         val responsesDaysOfWeek = questions["Which days of the week can/do you want to train?"] ?: emptyList()
@@ -463,10 +456,11 @@ class UserDatabase: RepositoryUserDatabase {
 
         return newQuestions
     }
-
-    private fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>, trainingRoutineTens: List<TrainingRoutine>?): String {
+*/
+    private suspend fun buildFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>, trainingRoutineTens: List<TrainingRoutine>?): String {
         var stringQuestions = ""
         var stringResponses = ""
+        var trainingRoutineTensString = trainingRoutineTens?.toString() ?: ""
 
         answeredQuestions.filterValues { it.isNotEmpty() }.forEach { (question, responses) ->
             stringResponses = responses.joinToString("\n")
@@ -474,32 +468,44 @@ class UserDatabase: RepositoryUserDatabase {
             stringQuestions += "$question\n$stringResponses\n"
         }
 
-        return "Hazme un json de rutinas de entrenamiento por dia en base a estas preguntas respondidas.\n $answeredQuestions. La lista de rutinas deber ser serializable para esta clase data class RoutinesResponse(\n" +
-                "    val routines: List<TrainingRoutine>\n" +
-                ") Cada rutina de cada dia debe ser serializable para esta clase data class TrainingRoutine(\n" +
-                "    val dayOfWeek: DayOfWeek,\n" +
-                "    val name: String,\n" +
-                "    val exercises: List<Exercise>\n" +
-                ") y donde cada ejercicio data class Exercise(\n" +
-                "    val name: String,\n" +
-                "    val description: String,\n" +
-                "    val type: TypeExercise,\n" +
-                "    val trainedMuscles: List<String>,\n" +
-                "    val series: Int,\n" +
-                "    val repetitions: Int,\n" +
-                "    val restBetweenSeries: Int\n" +
-                "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO"
+        if(trainingRoutineTens != null) {
+            return "Hazme un json de rutinas de entrenamiento por dia en base a estas preguntas respondidas.\n $answeredQuestions. La lista de rutinas deber ser serializable para esta clase data class RoutinesResponse(\n" +
+                    "    val routines: List<TrainingRoutine>\n" +
+                    ") Cada rutina de cada dia debe ser serializable para esta clase data class TrainingRoutine(\n" +
+                    "    val dayOfWeek: DayOfWeek,\n" +
+                    "    val name: String,\n" +
+                    "    val exercises: List<Exercise>\n" +
+                    ") y donde cada ejercicio data class Exercise(\n" +
+                    "    val name: String,\n" +
+                    "    val description: String,\n" +
+                    "    val type: TypeExercise,\n" +
+                    "    val trainedMuscles: List<String>,\n" +
+                    "    val series: Int,\n" +
+                    "    val repetitions: Int,\n" +
+                    "    val restBetweenSeries: Int\n" +
+                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO. E implementa la rutina creada a esta rutina ya hecha para despues juntar las dos, sin cambiar la que te he pasado $trainingRoutineTensString"
+        } else {
+            return "Hazme un json de rutinas de entrenamiento por dia en base a estas preguntas respondidas.\n $answeredQuestions. La lista de rutinas deber ser serializable para esta clase data class RoutinesResponse(\n" +
+                    "    val routines: List<TrainingRoutine>\n" +
+                    ") Cada rutina de cada dia debe ser serializable para esta clase data class TrainingRoutine(\n" +
+                    "    val dayOfWeek: DayOfWeek,\n" +
+                    "    val name: String,\n" +
+                    "    val exercises: List<Exercise>\n" +
+                    ") y donde cada ejercicio data class Exercise(\n" +
+                    "    val name: String,\n" +
+                    "    val description: String,\n" +
+                    "    val type: TypeExercise,\n" +
+                    "    val trainedMuscles: List<String>,\n" +
+                    "    val series: Int,\n" +
+                    "    val repetitions: Int,\n" +
+                    "    val restBetweenSeries: Int\n" +
+                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO"
+        }
     }
 
     suspend fun getNumberOfDays(responsesCalisthenic: List<String>, responsesGym: List<String>, daysForTraining: Int): Int = coroutineScope {
         var daysForTrainingNotTens = 0
-        /*val thereAreBasicsExercises = responsesCalisthenic.map { response -> async { if(response == "Ejercicios básicos") daysForTrainingNotTens++ } }
-        val thereAreMachinesExercises = responsesGym.map { response -> async { if(response == "Ejercicios de máquinas" ) daysForTrainingNotTens++ } }
-        val thereAreWeightliftingExercises = responsesGym.map { response -> async { if(response == "Ejercicios de levantamiento de pesas" ) daysForTrainingNotTens++ } }
 
-        thereAreBasicsExercises.awaitAll()
-        thereAreWeightliftingExercises.awaitAll()
-        thereAreMachinesExercises.awaitAll()*/
         responsesCalisthenic.forEach { if(it == "Basic exercises") daysForTrainingNotTens++ }
         responsesGym.forEach { if(it == "Machine exercises") daysForTrainingNotTens++ }
         responsesGym.forEach { if(it == "Weightlifting exercises") daysForTrainingNotTens++ }

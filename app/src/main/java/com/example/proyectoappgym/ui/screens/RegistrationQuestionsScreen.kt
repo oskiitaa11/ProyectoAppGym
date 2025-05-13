@@ -1,6 +1,7 @@
 package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -15,12 +16,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.ShapeDefaults
@@ -40,6 +47,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -60,9 +68,11 @@ fun RegistrationQuestionsScreen(
     user: User,
     allQuestions: List<Question>,
     thereIsErrorToAddUser: Boolean?,
+    isSuccessMakeRoutines: Boolean?,
     addUser: (User) -> Unit,
     setErrorAddUserToNull: () -> Unit,
     onLoginScreen: () -> Unit,
+    onRegistrationScreen: () -> Unit,
     addTrainingRoutines: (Map<String, List<String>>, String) -> Unit
 ) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
@@ -81,10 +91,31 @@ fun RegistrationQuestionsScreen(
     var showError by remember { mutableStateOf(false) }
     var context = LocalContext.current
     var necessariesDaysForTraining = remember { 0 }
+    var showWaitingDialog by remember { mutableStateOf(false) }
+    var textForShowInDialog by remember { mutableStateOf("") }
 
     if(thereIsErrorToAddUser != null) {
         LaunchedEffect(thereIsErrorToAddUser) {
-            validateAddedUser(thereIsErrorToAddUser, { addTrainingRoutines(getAllQuestionAnswered(allChecked), user.email) }, onLoginScreen, context, setErrorAddUserToNull)
+            showWaitingDialog = false
+            validateAddedUser(
+                thereIsErrorToAddUser,
+                { addTrainingRoutines(getAllQuestionAnswered(allChecked), user.email) },
+                {
+                    showWaitingDialog = true
+                    textForShowInDialog = "Add training routines"
+                },
+                context,
+                setErrorAddUserToNull,
+                onRegistrationScreen
+            )
+        }
+    } else if(showWaitingDialog) {
+        ShowWaitingDialog(textForShowInDialog)
+    }
+
+    if(isSuccessMakeRoutines != null) {
+        LaunchedEffect(isSuccessMakeRoutines) {
+            if(isSuccessMakeRoutines) onLoginScreen() else onRegistrationScreen()
         }
     }
 
@@ -178,6 +209,8 @@ fun RegistrationQuestionsScreen(
                     if (actualQuestion == allQuestionsScreen.last() && !showError) {
                         user.allQuestionsAnswered = getAllQuestionAnswered(allChecked)
                         addUser(user)
+                        showWaitingDialog = true
+                        textForShowInDialog = "Adding user"
                     } else if (actualQuestion == allQuestionsScreen.first()) { //Si la respuesta respondida es la primera
                         chooseQuestionAccordingToAnswerByFirstQuestion(
                             allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[0]) as Boolean,
@@ -348,6 +381,28 @@ fun ShowButtonForNextOrPreviousQuestion(label: String, idIcon: Int, onClick: () 
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowWaitingDialog(text: String) {
+    BasicAlertDialog(
+        onDismissRequest = {  },
+        modifier = Modifier.fillMaxWidth().background(Color.White, ShapeDefaults.Medium),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text, color = colorResource(R.color.lightBlack), fontSize = 15.sp)
+            CircularProgressIndicator(
+                trackColor = Color.White,
+                color = colorResource(R.color.lightBlack),
+                modifier = Modifier.size(50.dp).padding(start = 15.dp)
+            )
+        }
+    }
+}
+
 fun chooseQuestionAccordingToAnswerByFirstQuestion(isFirstResponse: Boolean, isSecondResponse: Boolean, allQuestionsScreen: MutableList<Question>) {
     if(isFirstResponse) {//Si la es la primera respuesta, se inicia el siguiente bloque
         choseResponseOfQuestion(2, allQuestionsScreen, 1)
@@ -386,13 +441,14 @@ fun getNecessaryNumberForTrainingDays(allChecked: Map<String, MutableMap<String,
     return necessariesDaysForTraining
 }
 
-fun validateAddedUser(thereIsError: Boolean, addTrainingRoutines: () -> Unit, onLoginScreen: () -> Unit, context: Context, setThereIsErrorToNull: () -> Unit) {
+fun validateAddedUser(thereIsError: Boolean, addTrainingRoutines: () -> Unit, showWaitingDialog: () -> Unit, context: Context, setThereIsErrorToNull: () -> Unit, onRegistrationScreen: () -> Unit) {
     if(thereIsError) {
         showToast("Failure to add a user", context)
         setThereIsErrorToNull()
+        onRegistrationScreen()
     } else {
         setThereIsErrorToNull()
         addTrainingRoutines()
-        onLoginScreen()
+        showWaitingDialog()
     }
 }

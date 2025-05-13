@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 class RegistrationQuestionsViewmodel(private val repositoryQuestions: RepositoryQuestions, private val userDatabase: RepositoryUserDatabase): ViewModel() {
     var allQuestions: List<Question> = repositoryQuestions.allQuestions()
     var thereIsErrorToAddUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    var isSuccessMakeRoutines: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     fun addUser(user: User) {
         viewModelScope.launch {
@@ -31,7 +32,7 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
 
     fun saveUserTrainingRoutines(answeredQuestions: Map<String, List<String>>, emailUser: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions, emailUser)
+            isSuccessMakeRoutines.update { userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions, emailUser) }
         }
     }
 
