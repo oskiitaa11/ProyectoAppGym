@@ -10,16 +10,14 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -29,33 +27,35 @@ import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.proyectoappgym.RegistrationRoute
 import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.entity.BottomBarItem
@@ -67,24 +67,20 @@ import com.example.proyectoappgym.ui.screens.ProfileRoute
 import com.example.proyectoappgym.ui.screens.RegistrationQuestionsScreen
 import com.example.proyectoappgym.ui.viewmodels.RegistrationQuestionsViewmodel
 import com.example.proyectoappgym.ui.screens.RegistrationScreen
-import com.example.proyectoappgym.ui.screens.ShowTopAppBarEditProfileScreen
-import com.example.proyectoappgym.ui.screens.ShowTopAppBarProfile
 import com.example.proyectoappgym.ui.viewmodels.RegistrationViewmodel
 import com.example.proyectoappgym.ui.screens.goToHomeScreen
 import com.example.proyectoappgym.ui.screens.goToProfileScreen
 import com.example.proyectoappgym.ui.screens.homeDestination
-import com.example.proyectoappgym.ui.screens.profileDestination
 import com.example.proyectoappgym.ui.screens.profileGraph
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 
+@Serializable
+object SplashScreen
 @Serializable
 object LoginRoute
 @Serializable
@@ -98,6 +94,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var launcher: ((String) -> Unit) -> ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
         launcher = { authWithGoogle ->
@@ -174,6 +171,7 @@ fun NavScreensWithingLoginScreen() {
             modifier = Modifier
                 .fillMaxSize().padding(bottom = innerpadding.calculateBottomPadding())
         ) {
+
             homeDestination()
             profileGraph(navController)
         }
@@ -198,6 +196,8 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
         enterTransition = { slideInHorizontally(animationSpec = tween(800)) },
         exitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
     ) {
+
+
 
         composable<LoginRoute> { navBackStackEntry ->
             val loginViewmodel: LoginViewmodel = viewModel(navBackStackEntry) {
@@ -318,6 +318,37 @@ fun BottomBar(
         }
     }
 
+}
+
+@SuppressLint("ComposableDestinationInComposeScope")
+@Composable
+fun NavGraphBuilder.SplashScreenDestination(navController: NavHostController, homeRoute: HomeRoute) {
+    composable<SplashScreen> {
+        SplashScreen(navController, homeRoute)
+    }
+}
+
+@Composable
+fun SplashScreen(navController: NavHostController, route: Any) {
+    LaunchedEffect(Unit) {
+        delay(2000) // Espera 2 segundos (puedes cargar datos aquí)
+        navController.navigate(route) {
+            popUpTo(SplashScreen) { inclusive = true }
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize().background(colorResource(R.color.lightBlack)),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "My Fitness App",
+            color = colorResource(R.color.lightGreen),
+            fontSize = 30.sp,
+            textAlign = TextAlign.Center,
+            fontFamily = FontFamily(Font(R.font.lobster_two_bold_italic))
+        )
+    }
 }
 
 @Composable

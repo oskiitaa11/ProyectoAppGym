@@ -11,7 +11,7 @@ data class User(
     val gender: Gender,
     var allQuestionsAnswered: Map<String, List<String>> = mapOf(),
     var profileAvatar: Int = R.drawable.avatar1,
-    var trainingRoutine: List<TrainingRoutine> = emptyList<TrainingRoutine>()
+    var trainingRoutines: List<TrainingRoutine> = emptyList<TrainingRoutine>()
 ) {
     constructor(): this("", "", "", "", "", Gender.NONE)
 }

@@ -89,6 +89,9 @@ dependencies {
     implementation(libs.coil.compose.v270)
     //noinspection UseTomlInstead
     implementation("androidx.activity:activity-compose:1.11.0-rc01")
+    implementation(libs.material3)
+    implementation(libs.material)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.firebase.storage)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)

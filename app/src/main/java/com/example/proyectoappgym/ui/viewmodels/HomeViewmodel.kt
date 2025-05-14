@@ -21,9 +21,5 @@ class HomeViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel
         }
     }
 
-    fun getRoutines(answeredQuestions: Map<String, List<String>>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            //val c = userDatabase.saveUserTrainingRoutinesGpt(answeredQuestions)
-        }
-    }
+
 }
