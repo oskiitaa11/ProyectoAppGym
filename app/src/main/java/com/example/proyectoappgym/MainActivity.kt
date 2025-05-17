@@ -61,7 +61,7 @@ import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.entity.BottomBarItem
 import com.example.proyectoappgym.ui.screens.HomeRoute
 import com.example.proyectoappgym.ui.screens.LoginScreen
-import com.example.proyectoappgym.ui.screens.ProfileGraphRoute
+import com.example.proyectoappgym.ui.graphs.ProfileGraphRoute
 import com.example.proyectoappgym.ui.viewmodels.LoginViewmodel
 import com.example.proyectoappgym.ui.screens.ProfileRoute
 import com.example.proyectoappgym.ui.screens.RegistrationQuestionsScreen
@@ -71,13 +71,14 @@ import com.example.proyectoappgym.ui.viewmodels.RegistrationViewmodel
 import com.example.proyectoappgym.ui.screens.goToHomeScreen
 import com.example.proyectoappgym.ui.screens.goToProfileScreen
 import com.example.proyectoappgym.ui.screens.homeDestination
-import com.example.proyectoappgym.ui.screens.profileGraph
+import com.example.proyectoappgym.ui.graphs.profileGraph
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.serialization.Serializable
+import kotlin.jvm.java
 
 @Serializable
 object SplashScreen
@@ -172,7 +173,7 @@ fun NavScreensWithingLoginScreen() {
                 .fillMaxSize().padding(bottom = innerpadding.calculateBottomPadding())
         ) {
 
-            homeDestination()
+            homeDestination(navController)
             profileGraph(navController)
         }
     }

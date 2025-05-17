@@ -30,6 +30,7 @@ media3Exoplayer = "1.6.0"
 navigationCompose = "2.9.0-alpha08"
 playServicesAuth = "21.3.0"
 retrofit = "2.11.0"
+versionedparcelable = "1.2.1"
 
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
@@ -43,6 +44,7 @@ androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", versi
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 #noinspection SimilarGradleDependency,SimilarGradleDependency
+androidx-versionedparcelable = { module = "androidx.versionedparcelable:versionedparcelable", version.ref = "versionedparcelable" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 coil-compose-v270 = { module = "io.coil-kt:coil-compose", version.ref = "coilComposeVersion" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }

@@ -393,7 +393,7 @@ fun ShowWaitingDialog(text: String) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(text, color = colorResource(R.color.lightBlack), fontSize = 15.sp)
+            Text(text, color = colorResource(R.color.lightBlack), fontSize = 15.sp, modifier = Modifier.padding(horizontal = 10.dp))
             CircularProgressIndicator(
                 trackColor = Color.White,
                 color = colorResource(R.color.lightBlack),

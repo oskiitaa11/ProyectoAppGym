@@ -21,15 +21,6 @@ class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase, val
     init {
         viewModelScope.launch {
             userDatabase.getCurrentUser().collect { user -> currentUser.value = user ?: User() }
-            /*val allQuestionsUserFiltered = currentUser.value.allQuestionsAnswered
-                .filter { it.value.isNotEmpty() }
-                .keys
-
-            allQuestions.update {
-                repositoryQuestions.allQuestions()
-                    .filter { it.question in allQuestionsUserFiltered }
-            }*/
-
         }
     }
 

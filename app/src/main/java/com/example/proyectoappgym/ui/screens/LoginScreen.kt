@@ -66,6 +66,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
         validateEmailLogin(email, { errorText -> allErrorsText["email"] = errorText })
         validatePasswordLogin(password, { errorText -> allErrorsText["password"] = errorText })
     }
+    var showWaitingDialog by remember { mutableStateOf(false) }
     var stateScroll = rememberScrollState()
 
     if(intCompletedSignIn>0) ValidateSignIn(
@@ -76,8 +77,11 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
             allErrorsText["password"] = errorText
         },
         setNumberToZero,
-        reassignLoggedUser
+        reassignLoggedUser,
+        { showWaitingDialog = false }
     )
+
+    if(showWaitingDialog) ShowWaitingDialog("Accessing to Home")
 
     Column(
         modifier = Modifier.fillMaxSize().background(color = colorResource(R.color.lightBlack)).verticalScroll(stateScroll),
@@ -123,13 +127,17 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
             ShowInputPassword(passwordValue = password, label = "Password", isError = allErrorsText["password"]?.isNotEmpty() as Boolean, addNewPasswordValue = { newText -> password = newText })
             ShowErrorText(allErrorsText["password"] as String, 5.dp)
             Spacer(modifier = Modifier.height(30.dp))
-            ShowButtonForLoginOrRegister("Sign in", {
+            ShowButtonForLoginOrRegister("Sign in") {
+                showWaitingDialog = true
                 validateFieldsLogin()
                 //Si los textos de error estan vacios, el usuario hará login
-                if(allErrorsText.values.all { it.isEmpty() }) {
+                if (allErrorsText.values.all { it.isEmpty() }) {
                     signIn(email.trim(), password)
+                } else {
+                    showWaitingDialog = false
                 }
-            })
+
+            }
             Spacer(modifier = Modifier.height(15.dp))
             Text("¿Don't you have account? Create an account", color = GetLightGreen(), modifier = Modifier.clickable {
                 onRegistrationScreen()
@@ -188,11 +196,12 @@ fun ShowButtonForLoginOrRegister(text: String, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         colors = ButtonColors(colorResource(R.color.lightGreen), Color.White, Color.LightGray, Color.LightGray),
-        shape = ShapeDefaults.Small
+        shape = ShapeDefaults.Large,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
     ) {
         Text(
             text,
-            modifier = Modifier.padding(vertical = 5.dp).width(150.dp),
+            modifier = Modifier.padding(vertical = 5.dp),
             textAlign = TextAlign.Center
         )
     }
@@ -226,20 +235,20 @@ fun validatePasswordLogin(passwordValue: String, changeErrorText: (String) -> Un
 }
 
 @Composable
-fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit, setNumberToZero: () -> Unit, reassignLoggedUser: () -> Unit ) {
+fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit, setNumberToZero: () -> Unit, reassignLoggedUser: () -> Unit, hideWaitingDialog: () -> Unit) {
     val context = LocalContext.current
 
     LaunchedEffect(intCompletedSignIn) {
        when(intCompletedSignIn) {
            1 -> {
-               showToast("Session started", context)
+               showToast("Started Session", context)
                reassignLoggedUser()//Cuando se termine la parte del perfil, terminar de desarrollar este metodo
            }
            2 -> changeErrorTextEmail("Email not registered")
            3 -> changeErrorTextInFields("User not found")
            4 -> showToast("Error to the sign in", context)
        }
-
+        hideWaitingDialog()
         setNumberToZero()
     }
 }

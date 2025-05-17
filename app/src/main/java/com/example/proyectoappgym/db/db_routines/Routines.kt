@@ -1,7 +1,6 @@
 package com.example.proyectoappgym.db.db_routines
 
 import com.example.proyectoappgym.entity.DayOfWeek
-import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.TensExercise
 import com.example.proyectoappgym.entity.TypeExercise
 import com.example.proyectoappgym.entity.TypeTensExercise

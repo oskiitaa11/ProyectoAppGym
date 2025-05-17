@@ -1,13 +1,14 @@
-package com.example.proyectoappgym.ui.screens
+package com.example.proyectoappgym.ui.graphs
 
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
-import com.example.proyectoappgym.App
-import com.example.proyectoappgym.entity.User
-import com.example.proyectoappgym.ui.viewmodels.ProfileViewmodel
+import com.example.proyectoappgym.ui.screens.ProfileRoute
+import com.example.proyectoappgym.ui.screens.editProfileDestination
+import com.example.proyectoappgym.ui.screens.goToEditProfileScreen
+import com.example.proyectoappgym.ui.screens.goToQuestionForModifier
+import com.example.proyectoappgym.ui.screens.profileDestination
+import com.example.proyectoappgym.ui.screens.questionForModifierDestination
 import kotlinx.serialization.Serializable
 
 @Serializable

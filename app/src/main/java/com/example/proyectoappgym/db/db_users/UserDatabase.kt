@@ -1,21 +1,13 @@
 package com.example.proyectoappgym.db.db_users
 
-import android.R.attr.apiKey
 import android.annotation.SuppressLint
-import android.net.Uri
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.core.text.util.LocalePreferences
-import coil.util.CoilUtils.result
 import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
 import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
 import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
 import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.DayOfWeek
-import com.example.proyectoappgym.entity.Exercise2
-import com.example.proyectoappgym.entity.Question
-import com.example.proyectoappgym.entity.TensExercise
+import com.example.proyectoappgym.entity.Exercise
+import com.example.proyectoappgym.entity.ExerciseLevel
 import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.TypeExercise
 import com.example.proyectoappgym.entity.TypeTensExercise
@@ -26,19 +18,13 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FieldPath
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
-import com.google.firebase.storage.FirebaseStorage
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -221,11 +207,6 @@ class UserDatabase: RepositoryUserDatabase {
             db.collection("Users")
                 .document(uidLoggedUser as String)
                 .update(FieldPath.of("allQuestionsAnswered", question), newResponses)
-                .addOnSuccessListener {
-                    var c = 1
-                }.addOnFailureListener {
-                    var c = it.message
-                }
         }
     }
 
@@ -315,9 +296,10 @@ class UserDatabase: RepositoryUserDatabase {
             1 -> return listOf(
                 TrainingRoutine(
                     dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
-                        Exercise2(
+                        Exercise(
                             "Combinations of tension exercises",
                             "Tens exercise combos without getting off the parallel bar",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -325,9 +307,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.ALL
                         ),
-                        Exercise2(
+                        Exercise(
                             "Press plank",
                             "Press plank: go up to handstand and return to plank position. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -335,9 +318,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.PLANK
                         ),
-                        Exercise2(
+                        Exercise(
                             "Push-up plank",
                             "Push-up plank: lower as much as possible and return to plank. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -345,9 +329,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.PLANK
                         ),
-                        Exercise2(
+                        Exercise(
                             "Front lever press",
                             "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -355,9 +340,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.FRONT_LEVEL
                         ),
-                        Exercise2(
+                        Exercise(
                             "Front lever pull-up",
                             "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -372,9 +358,10 @@ class UserDatabase: RepositoryUserDatabase {
             else -> return listOf(
                 TrainingRoutine(
                     dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
-                        Exercise2(
+                        Exercise(
                             "Combinations of tension exercises",
                             "Tens exercise combos without getting off the parallel bar",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -382,9 +369,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.ALL
                         ),
-                        Exercise2(
+                        Exercise(
                             "Press plank",
                             "Press plank: go up to handstand and return to plank position. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -392,9 +380,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.PLANK
                         ),
-                        Exercise2(
+                        Exercise(
                             "Push-up plank",
                             "Push-up plank: lower as much as possible and return to plank. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -406,9 +395,10 @@ class UserDatabase: RepositoryUserDatabase {
                 ),
                 TrainingRoutine(
                     dayOfWeekForTraining[1], "Exercises calisthenic tens", listOf(
-                        Exercise2(
+                        Exercise(
                             "Combinations of tension exercises",
                             "Tens exercise combos without getting off the parallel bar",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -416,9 +406,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.ALL
                         ),
-                        Exercise2(
+                        Exercise(
                             "Front lever press",
                             "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -426,9 +417,10 @@ class UserDatabase: RepositoryUserDatabase {
                             2,
                             TypeTensExercise.FRONT_LEVEL
                         ),
-                        Exercise2(
+                        Exercise(
                             "Front lever pull-up",
                             "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
+                            ExerciseLevel.ADVANCED,
                             TypeExercise.TENS,
                             emptyList(),
                             3,
@@ -478,12 +470,16 @@ class UserDatabase: RepositoryUserDatabase {
                     ") y donde cada ejercicio data class Exercise(\n" +
                     "    val name: String,\n" +
                     "    val description: String,\n" +
+                    "    val exerciseLevel: ExerciseLevel" +
                     "    val type: TypeExercise,\n" +
                     "    val trainedMuscles: List<String>,\n" +
                     "    val series: Int,\n" +
                     "    val repetitions: Int,\n" +
                     "    val restBetweenSeries: Int\n" +
-                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO. E implementa la rutina creada a esta rutina ya hecha para despues juntar las dos, sin cambiar la que te he pasado $trainingRoutineTensString"
+                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO y la propiedad " +
+                    "exerciseLevel deben tener los siguientes valores BEGINNER, INTERMEDIATE, ADVANCED, ELITE segun la dificultad " +
+                    "del ejercicio. E implementa la rutina creada a esta rutina ya hecha para despues juntar las dos, sin cambiar " +
+                    "la que te he pasado $trainingRoutineTensString"
         } else {
             return "Hazme un json de rutinas de entrenamiento por dia en base a estas preguntas respondidas.\n $answeredQuestions. La lista de rutinas deber ser serializable para esta clase data class RoutinesResponse(\n" +
                     "    val routines: List<TrainingRoutine>\n" +
@@ -494,12 +490,15 @@ class UserDatabase: RepositoryUserDatabase {
                     ") y donde cada ejercicio data class Exercise(\n" +
                     "    val name: String,\n" +
                     "    val description: String,\n" +
+                    "    val exerciseLevel: ExerciseLevel" +
                     "    val type: TypeExercise,\n" +
                     "    val trainedMuscles: List<String>,\n" +
                     "    val series: Int,\n" +
                     "    val repetitions: Int,\n" +
                     "    val restBetweenSeries: Int\n" +
-                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO"
+                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO y la propiedad " +
+                    "exerciseLevel deben tener los siguientes valores BEGINNER, INTERMEDIATE, ADVANCED, ELITE segun la dificultad " +
+                    "del ejercicio"
         }
     }
 
