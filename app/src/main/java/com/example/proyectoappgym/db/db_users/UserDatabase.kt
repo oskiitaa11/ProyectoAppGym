@@ -77,7 +77,6 @@ class UserDatabase: RepositoryUserDatabase {
                .addOnSuccessListener {  result ->
                    continuation.resume(result.user)
                }.addOnFailureListener {
-                   var c = it.message
                    continuation.resume(null)
                }
         }
@@ -88,7 +87,6 @@ class UserDatabase: RepositoryUserDatabase {
                     .addOnSuccessListener {
                         continuation.resume(true) //2 es true
                     }.addOnFailureListener {
-                        var c = it.message
                         continuation.resume(false) //1 es false
                     }
             } else {
@@ -305,6 +303,12 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. You do a tension exercise.\n" +
+                                    "\n" +
+                                    "2. When you finish the exercise, you move on to another tension exercise without getting off the parallel bar or pull-up bar.\n" +
+                                    "\n" +
+                                    "3. After completing all the exercises, you get off the bar, rest for a few minutes, and then start over.\n" +
+                                    "\n",
                             TypeTensExercise.ALL
                         ),
                         Exercise(
@@ -316,6 +320,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
+                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
+                                    "3. Get into a plank position, then lift your legs up into a handstand, and return back down into the plank",
                             TypeTensExercise.PLANK
                         ),
                         Exercise(
@@ -327,6 +334,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
+                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
+                                    "3. Get into a plank position, then do you a push-up, without puffing out your chest, and return back up into the plank",
                             TypeTensExercise.PLANK
                         ),
                         Exercise(
@@ -338,6 +348,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a parallel bar.\n" +
+                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
+                                    "3. Get into a front lever position, then lift your legs up until you're upside down, and return back down to the front lever.",
                             TypeTensExercise.FRONT_LEVEL
                         ),
                         Exercise(
@@ -349,6 +362,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a parallel bar.\n" +
+                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
+                                    "3. Get into a front lever position, then lift your body up until which your hips touches the parallel bar, and return back down to the front lever.",
                             TypeTensExercise.FRONT_LEVEL
                         ),
                     )
@@ -367,6 +383,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. You do a tension exercise.\n" +
+                                    "2. When you finish the exercise, you move on to another tension exercise without getting off the parallel bar or pull-up bar.\n" +
+                                    "3. After completing all the exercises, you get off the bar, rest for a few minutes, and then start over.\n",
                             TypeTensExercise.ALL
                         ),
                         Exercise(
@@ -378,6 +397,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
+                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
+                                    "3. Get into a plank position, then lift your legs up into a handstand, and return back down into the plank",
                             TypeTensExercise.PLANK
                         ),
                         Exercise(
@@ -389,6 +411,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
+                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
+                                    "3. Get into a plank position, then do you a push-up, without puffing out your chest, and return back up into the plank",
                             TypeTensExercise.PLANK
                         ),
                     )
@@ -404,6 +429,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. You do a tension exercise.\n" +
+                                    "2. When you finish the exercise, you move on to another tension exercise without getting off the parallel bar or pull-up bar.\n" +
+                                    "3. After completing all the exercises, you get off the bar, rest for a few minutes, and then start over.\n",
                             TypeTensExercise.ALL
                         ),
                         Exercise(
@@ -415,6 +443,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a parallel bar.\n" +
+                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
+                                    "3. Get into a front lever position, then lift your legs up until you're upside down, and return back down to the front lever.",
                             TypeTensExercise.FRONT_LEVEL
                         ),
                         Exercise(
@@ -426,6 +457,9 @@ class UserDatabase: RepositoryUserDatabase {
                             3,
                             5,
                             2,
+                            "1. Hang the resistance band from a parallel bar.\n" +
+                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
+                                    "3. Get into a front lever position, then lift your body up until which your hips touches the parallel bar, and return back down to the front lever.",
                             TypeTensExercise.FRONT_LEVEL
                         ),
                     )
@@ -470,16 +504,20 @@ class UserDatabase: RepositoryUserDatabase {
                     ") y donde cada ejercicio data class Exercise(\n" +
                     "    val name: String,\n" +
                     "    val description: String,\n" +
-                    "    val exerciseLevel: ExerciseLevel" +
+                    "    val exerciseLevel: ExerciseLevel,\n" +
                     "    val type: TypeExercise,\n" +
                     "    val trainedMuscles: List<String>,\n" +
                     "    val series: Int,\n" +
                     "    val repetitions: Int,\n" +
-                    "    val restBetweenSeries: Int\n" +
-                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO y la propiedad " +
+                    "    val restBetweenSeries: Int,\n" +
+                    "    val stepsForDoIt: String,\n" +
+                    "    val typeTensExercise: TypeTensExercise? = null,\n" +
+                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO, la propiedad " +
                     "exerciseLevel deben tener los siguientes valores BEGINNER, INTERMEDIATE, ADVANCED, ELITE segun la dificultad " +
-                    "del ejercicio. E implementa la rutina creada a esta rutina ya hecha para despues juntar las dos, sin cambiar " +
-                    "la que te he pasado $trainingRoutineTensString"
+                    "del ejercicio, la propiedad stepsForDoIt debe contener un string, con los pasos enumerados de como se hace el ejercicio," +
+                    "intentando ejercitar todos los musculos en la semana y 2 ejercicios por cada musculo" +
+                    " E implementa la rutina creada a esta rutina " +
+                    "ya hecha para despues juntar las dos, sin cambiar la que te he pasado $trainingRoutineTensString"
         } else {
             return "Hazme un json de rutinas de entrenamiento por dia en base a estas preguntas respondidas.\n $answeredQuestions. La lista de rutinas deber ser serializable para esta clase data class RoutinesResponse(\n" +
                     "    val routines: List<TrainingRoutine>\n" +
@@ -490,15 +528,18 @@ class UserDatabase: RepositoryUserDatabase {
                     ") y donde cada ejercicio data class Exercise(\n" +
                     "    val name: String,\n" +
                     "    val description: String,\n" +
-                    "    val exerciseLevel: ExerciseLevel" +
+                    "    val exerciseLevel: ExerciseLevel,\n" +
                     "    val type: TypeExercise,\n" +
                     "    val trainedMuscles: List<String>,\n" +
                     "    val series: Int,\n" +
                     "    val repetitions: Int,\n" +
-                    "    val restBetweenSeries: Int\n" +
-                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO y la propiedad " +
+                    "    val restBetweenSeries: Int,\n" +
+                    "    val stepsForDoIt: String,\n" +
+                    "    val typeTensExercise: TypeTensExercise? = null,\n" +
+                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO, la propiedad " +
                     "exerciseLevel deben tener los siguientes valores BEGINNER, INTERMEDIATE, ADVANCED, ELITE segun la dificultad " +
-                    "del ejercicio"
+                    "del ejercicio, la propiedad stepsForDoIt debe contener un string, con los pasos enumerados de como se hace el ejercicio," +
+                    "intentando ejercitar todos los musculos en la semana y 2 ejercicios por cada musculo."
         }
     }
 

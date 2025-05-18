@@ -59,9 +59,11 @@ import androidx.navigation.toRoute
 import com.example.proyectoappgym.entity.Gender
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.entity.BottomBarItem
+import com.example.proyectoappgym.ui.graphs.HomeGraphRoute
 import com.example.proyectoappgym.ui.screens.HomeRoute
 import com.example.proyectoappgym.ui.screens.LoginScreen
 import com.example.proyectoappgym.ui.graphs.ProfileGraphRoute
+import com.example.proyectoappgym.ui.graphs.homeGraph
 import com.example.proyectoappgym.ui.viewmodels.LoginViewmodel
 import com.example.proyectoappgym.ui.screens.ProfileRoute
 import com.example.proyectoappgym.ui.screens.RegistrationQuestionsScreen
@@ -164,7 +166,7 @@ fun NavScreensWithingLoginScreen() {
     ) { innerpadding ->
         NavHost(
             navController = navController,
-            startDestination = HomeRoute,
+            startDestination = HomeGraphRoute,
             popExitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
             popEnterTransition = { slideInHorizontally(animationSpec = tween(800)) },
             enterTransition = { slideInHorizontally(animationSpec = tween(800)) },
@@ -173,7 +175,7 @@ fun NavScreensWithingLoginScreen() {
                 .fillMaxSize().padding(bottom = innerpadding.calculateBottomPadding())
         ) {
 
-            homeDestination(navController)
+            homeGraph(navController)
             profileGraph(navController)
         }
     }

@@ -104,7 +104,7 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
         if(allErrorsFields.values.all { it.isEmpty() }) onRegistrationQuestion(name.trim(), username.trim(), password, email.lowercase().trim(), birthdate, gender)
     }
 
-    if(showWaitingDialog) ShowWaitingDialog("Heading forwards a questions screen")
+    if(showWaitingDialog) ShowWaitingDialog("Heading to questions")
 
     Scaffold(topBar = { TopAppBarRegistration(onBack) }) { innerPadding ->
         Column(

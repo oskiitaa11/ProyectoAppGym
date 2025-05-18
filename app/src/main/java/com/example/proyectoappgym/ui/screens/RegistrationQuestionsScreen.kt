@@ -57,10 +57,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.db.db_questions.QuestionsRegistration.allQuestions
+import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.User
+import org.checkerframework.checker.units.qual.s
 
 @SuppressLint("UnrememberedMutableState", "RememberReturnType")
 @Composable
@@ -189,41 +191,42 @@ fun RegistrationQuestionsScreen(
             modifier = Modifier.fillMaxWidth().padding(top = 15.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            ShowButtonForNextOrPreviousQuestion("Back", R.drawable.ic_arrow_back_ios_new_24,
-                {
-                    if (showError) showError = false
-                    if (progress > 0) progress--
-                }
-            )
+            ShowButtonForNextOrPreviousQuestion("Back", R.drawable.ic_arrow_back_ios_new_24
+            ) {
+                if (showError) showError = false
+                if (progress > 0) progress--
+            }
             ShowButtonForNextOrPreviousQuestion(
-                "Next", R.drawable.ic_arrow_forward_ios_24,
-                {
-                    if(actualQuestion == allQuestionsScreen.last()) {
-                        showError = (allChecked[actualQuestion.question]?.filterValues { it }?.count() as Int) < getNecessaryNumberForTrainingDays(allChecked.filterKeys { question -> allQuestionsScreen.any { question == it.question } }) { necessariesDaysForTraining = it }
-                    } else {
-                        showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
+                "Next", R.drawable.ic_arrow_forward_ios_24
+            ) {
+                if (actualQuestion == allQuestionsScreen.last()) {
+                    showError = (allChecked[actualQuestion.question]?.filterValues { it }
+                        ?.count() as Int) < getNecessaryNumberForTrainingDays(allChecked.filterKeys { question -> allQuestionsScreen.any { question == it.question } }) {
+                        necessariesDaysForTraining = it
                     }
-
-                    /*Si no hay ninguna respuesta a true se asigna true a showError,
-                    siempre que sea la ultima pregunta*/
-                    if (actualQuestion == allQuestionsScreen.last() && !showError) {
-                        user.allQuestionsAnswered = getAllQuestionAnswered(allChecked)
-                        addUser(user)
-                        showWaitingDialog = true
-                        textForShowInDialog = "Adding user"
-                    } else if (actualQuestion == allQuestionsScreen.first()) { //Si la respuesta respondida es la primera
-                        chooseQuestionAccordingToAnswerByFirstQuestion(
-                            allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[0]) as Boolean,
-                            allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[1]) as Boolean,
-                            allQuestionsScreen
-                        )
-                    }
-
-                    if (!showError) progress++
-                    //Cuando la pregunta sea la primera, según la respuesta elegida le aparecerá una pregunta u otro
-
+                } else {
+                    showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                 }
-            )
+
+                /*Si no hay ninguna respuesta a true se asigna true a showError,
+                siempre que sea la ultima pregunta*/
+                if (actualQuestion == allQuestionsScreen.last() && !showError) {
+                    user.allQuestionsAnswered = getAllQuestionAnswered(allChecked)
+                    addUser(user)
+                    showWaitingDialog = true
+                    textForShowInDialog = "Adding user"
+                } else if (actualQuestion == allQuestionsScreen.first()) { //Si la respuesta respondida es la primera
+                    chooseQuestionAccordingToAnswerByFirstQuestion(
+                        allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[0]) as Boolean,
+                        allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[1]) as Boolean,
+                        allQuestionsScreen
+                    )
+                }
+
+                if (!showError) progress++
+                //Cuando la pregunta sea la primera, según la respuesta elegida le aparecerá una pregunta u otro
+
+            }
 
         }
 
@@ -427,7 +430,11 @@ fun isQuestionInAllQuestions(indexQuestionInOriginalList: Int, allQuestionsScree
 
 fun getAllQuestionAnswered(allChecked: Map<String, MutableMap<String, Boolean>>): MutableMap<String, List<String>> {
     val allQuestionsAnswered = mutableMapOf<String, List<String>>()
-    val pairs = allChecked.map { (question, map) -> Pair(question, map.filter { (_, value) -> value }.keys.toList()) }
+    val sortedDaysOfWeek = allChecked["Which days of the week can/do you want to train?"]?.filter{ (_, isSelected) -> isSelected }?.keys?.sortedBy { dayOfWeek-> DayOfWeek.fromString(dayOfWeek).idDay } ?: emptyList()
+    val allCheckedMutable = allChecked.toMutableMap()
+    val pairs = allCheckedMutable.map { (question, map) -> Pair(question, map.filter { (_, value) -> value }.keys.toList()) }.toMutableList()
+    allCheckedMutable.remove("Which days of the week can/do you want to train?")
+    pairs.add(Pair("Which days of the week can/do you want to train?", sortedDaysOfWeek))
     allQuestionsAnswered.putAll(pairs)
 
     return allQuestionsAnswered
