@@ -148,7 +148,7 @@ fun ShowExercise(exercise: Exercise, onExerciseScreen: (Exercise) -> Unit) {
         overlineContent = { Image(painter = painterResource(actualIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
         supportingContent = { Text("${exercise.series} sets of ${exercise.repetitions} repetitions") },
         modifier = Modifier.fillMaxWidth().clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onExerciseScreen(exercise) },
-        colors = ListItemDefaults.colors(containerColor = colorResource(R.color.dark_blue), headlineColor = Color.White, overlineColor = Color.White.copy(alpha = 0.7f), supportingColor = Color.White.copy(alpha = 0.5f))
+        colors = ListItemDefaults.colors(containerColor = Color(164, 169, 186), headlineColor = Color.White, overlineColor = Color.White.copy(alpha = 0.7f), supportingColor = Color.White.copy(alpha = 0.5f))
     )
 
     HorizontalDivider(thickness = 2.dp, color = Color.White.copy(alpha = 0.5f))

@@ -1,10 +1,15 @@
 package com.example.proyectoappgym.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -85,11 +90,17 @@ fun ExerciseScreen(exercise: Exercise, goBackToHome: () -> Unit) {
             ).background(colorResource(R.color.lightBlack)).verticalScroll(state)
         ) {
             ListItem(
-                headlineContent = { Text("How to do it?", fontStyle = FontStyle.Italic) },
+                headlineContent = { Text("How to do it?", fontStyle = FontStyle.Italic, modifier = Modifier.padding(bottom = 5.dp)) },
                 leadingContent = { Icon(painter = painterResource(R.drawable.ic_ordinal_list), contentDescription = "Steps icon", tint = Color.White) },
                 supportingContent = { Text(exercise.stepsForDoIt) },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = Color.White, leadingIconColor = Color.White, supportingColor = Color.White),
             )
+
+            Text("Type of exercise", fontStyle = FontStyle.Italic, fontSize = 15.sp, color = Color.White, modifier = Modifier.padding(start = 55.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 55.dp)) {
+                Image(painter = painterResource(exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
+                Text(exercise.type.nameType)
+            }
         }
     }
 }
