@@ -14,11 +14,8 @@ data class Exercise(
     val exerciseLevel: ExerciseLevel,
     val type: TypeExercise,
     val trainedMuscles: List<String>,
-    val series: Int,
-    val repetitions: Int,
-    val restBetweenSeries: Int,
     val stepsForDoIt: String,
     val typeTensExercise: TypeTensExercise? = null,
 ): Parcelable {
-    constructor(): this("", "", ExerciseLevel.BEGINNER, TypeExercise.BASIC, emptyList<String>(), 0, 0, 0, "")
+    constructor(): this("", "", ExerciseLevel.BEGINNER, TypeExercise.BASIC, emptyList<String>(), "")
 }
