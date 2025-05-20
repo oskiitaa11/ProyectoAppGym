@@ -1,6 +1,9 @@
 package com.example.proyectoappgym.entity
 
-class RealizationExercise(
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RealizationExercise(
     val exercise: Exercise,
     val series: Int,
     val repetitions: Int,

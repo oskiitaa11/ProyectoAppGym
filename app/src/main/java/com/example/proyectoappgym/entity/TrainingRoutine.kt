@@ -6,7 +6,7 @@ import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
-@Parcelize
+
 @Serializable
 data class TrainingRoutine(
     @SerializedName("dayOfWeek")
@@ -17,7 +17,7 @@ data class TrainingRoutine(
     val name: String,
     @SerializedName("exercises")
     @Expose
-    val exercises: List<Exercise>
-): Parcelable {
+    val exercises: List<RealizationExercise>
+){
     constructor(): this(DayOfWeek.MONDAY, "", emptyList())
 }
