@@ -1,6 +1,7 @@
 package com.example.proyectoappgym.db.db_users
 
 import android.annotation.SuppressLint
+import com.example.proyectoappgym.db.db_routines.AllExercises
 import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
 import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
 import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
@@ -8,6 +9,7 @@ import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.ExerciseLevel
+import com.example.proyectoappgym.entity.RealizationExercise
 import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.TypeExercise
 import com.example.proyectoappgym.entity.TypeTensExercise
@@ -58,6 +60,7 @@ class UserDatabase: RepositoryUserDatabase {
         .build()
     private val api: OpenAiApi = retrofit.create(OpenAiApi::class.java)
     private val apiKey = "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"
+    private val allTensExercises = AllExercises
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -288,183 +291,18 @@ class UserDatabase: RepositoryUserDatabase {
                 ?: emptyList(),
             dayOfWeekForTraining.size
         )
+        val isNoob = questions["How long have you been training?"]?.any { it != "I've been training for a year or more" } ?: false
+        val trainingRoutineOneTrainingDay = TrainingRoutine(dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(RealizationExercise(allTensExercises.tensRoutine[0], 0, 0, 0), RealizationExercise(allTensExercises.tensRoutine[1], 3, 5, 2), RealizationExercise(allTensExercises.tensRoutine[2], 3, 5, 2), RealizationExercise(allTensExercises.tensRoutine[5], 3, 5, 2), RealizationExercise(allTensExercises.tensRoutine[6], 3, 5, 2)))
+        val trainingRoutineTwoTrainingDays = listOf(
+            TrainingRoutine(dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
+                RealizationExercise(allTensExercises.tensRoutine[0], 0, 0, 0), RealizationExercise(allTensExercises.tensRoutine[1], 3, 5, 2), RealizationExercise(allTensExercises.tensRoutine[2], 3, 5, 2), if(isNoob) RealizationExercise(allTensExercises.tensRoutine[4], 3, 5, 2) else RealizationExercise(allTensExercises.tensRoutine[3], 3, 5, 2))),
+            TrainingRoutine(dayOfWeekForTraining[1], "Exercises calisthenic tens", listOf(RealizationExercise(allTensExercises.tensRoutine[0], 3, 5, 2), RealizationExercise(allTensExercises.tensRoutine[5], 3, 5, 2), RealizationExercise(allTensExercises.tensRoutine[6], 3, 5, 2), if(isNoob) RealizationExercise(allTensExercises.tensRoutine[8], 3, 5, 2) else RealizationExercise(allTensExercises.tensRoutine[7], 3, 5, 2)))
+        )
 
-        when (daysForTensTraining) {
-            0 -> return emptyList<TrainingRoutine>()
-            1 -> return listOf(
-                TrainingRoutine(
-                    dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
-                        Exercise(
-                            "Combinations of tension exercises",
-                            "Tens exercise combos without getting off the parallel bar",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. You do a tension exercise.\n" +
-                                    "\n" +
-                                    "2. When you finish the exercise, you move on to another tension exercise without getting off the parallel bar or pull-up bar.\n" +
-                                    "\n" +
-                                    "3. After completing all the exercises, you get off the bar, rest for a few minutes, and then start over.\n" +
-                                    "\n",
-                            TypeTensExercise.ALL
-                        ),
-                        Exercise(
-                            "Press plank",
-                            "Press plank: go up to handstand and return to plank position. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
-                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
-                                    "3. Get into a plank position, then lift your legs up into a handstand, and return back down into the plank",
-                            TypeTensExercise.PLANK
-                        ),
-                        Exercise(
-                            "Push-up plank",
-                            "Push-up plank: lower as much as possible and return to plank. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
-                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
-                                    "3. Get into a plank position, then do you a push-up, without puffing out your chest, and return back up into the plank",
-                            TypeTensExercise.PLANK
-                        ),
-                        Exercise(
-                            "Front lever press",
-                            "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a parallel bar.\n" +
-                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
-                                    "3. Get into a front lever position, then lift your legs up until you're upside down, and return back down to the front lever.",
-                            TypeTensExercise.FRONT_LEVEL
-                        ),
-                        Exercise(
-                            "Front lever pull-up",
-                            "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a parallel bar.\n" +
-                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
-                                    "3. Get into a front lever position, then lift your body up until which your hips touches the parallel bar, and return back down to the front lever.",
-                            TypeTensExercise.FRONT_LEVEL
-                        ),
-                    )
-                )
-            )
-
-            else -> return listOf(
-                TrainingRoutine(
-                    dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
-                        Exercise(
-                            "Combinations of tension exercises",
-                            "Tens exercise combos without getting off the parallel bar",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. You do a tension exercise.\n" +
-                                    "2. When you finish the exercise, you move on to another tension exercise without getting off the parallel bar or pull-up bar.\n" +
-                                    "3. After completing all the exercises, you get off the bar, rest for a few minutes, and then start over.\n",
-                            TypeTensExercise.ALL
-                        ),
-                        Exercise(
-                            "Press plank",
-                            "Press plank: go up to handstand and return to plank position. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
-                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
-                                    "3. Get into a plank position, then lift your legs up into a handstand, and return back down into the plank",
-                            TypeTensExercise.PLANK
-                        ),
-                        Exercise(
-                            "Push-up plank",
-                            "Push-up plank: lower as much as possible and return to plank. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a pull-up bar and tie a secure knot.\n" +
-                                    "2. Leave a loop, step into it, and make sure the elastic band rests around your hips.\n" +
-                                    "3. Get into a plank position, then do you a push-up, without puffing out your chest, and return back up into the plank",
-                            TypeTensExercise.PLANK
-                        ),
-                    )
-                ),
-                TrainingRoutine(
-                    dayOfWeekForTraining[1], "Exercises calisthenic tens", listOf(
-                        Exercise(
-                            "Combinations of tension exercises",
-                            "Tens exercise combos without getting off the parallel bar",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. You do a tension exercise.\n" +
-                                    "2. When you finish the exercise, you move on to another tension exercise without getting off the parallel bar or pull-up bar.\n" +
-                                    "3. After completing all the exercises, you get off the bar, rest for a few minutes, and then start over.\n",
-                            TypeTensExercise.ALL
-                        ),
-                        Exercise(
-                            "Front lever press",
-                            "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a parallel bar.\n" +
-                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
-                                    "3. Get into a front lever position, then lift your legs up until you're upside down, and return back down to the front lever.",
-                            TypeTensExercise.FRONT_LEVEL
-                        ),
-                        Exercise(
-                            "Front lever pull-up",
-                            "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
-                            ExerciseLevel.ADVANCED,
-                            TypeExercise.TENS,
-                            emptyList(),
-                            3,
-                            5,
-                            2,
-                            "1. Hang the resistance band from a parallel bar.\n" +
-                                    "2. Step into the band so that one part is attached to the bar and the other wraps around your hips. Tuck your legs into the lower part of the band.\n" +
-                                    "3. Get into a front lever position, then lift your body up until which your hips touches the parallel bar, and return back down to the front lever.",
-                            TypeTensExercise.FRONT_LEVEL
-                        ),
-                    )
-                )
-            )
+        return when (daysForTensTraining) {
+            0 -> emptyList<TrainingRoutine>()
+            1 -> listOf(trainingRoutineOneTrainingDay)
+            else -> trainingRoutineTwoTrainingDays
         }
     }
 

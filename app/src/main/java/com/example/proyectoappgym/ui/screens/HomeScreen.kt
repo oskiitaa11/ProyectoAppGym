@@ -72,6 +72,7 @@ import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.ExerciseLevel
 import com.example.proyectoappgym.entity.Question
+import com.example.proyectoappgym.entity.RealizationExercise
 import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.viewmodels.HomeViewmodel
@@ -86,7 +87,7 @@ fun NavController.goToHomeScreen(){
     navigate(HomeRoute)
 }
 
-fun NavGraphBuilder.homeDestination(onExerciseScreen: (Exercise) -> Unit, onProfileScreen: () -> Unit) {
+fun NavGraphBuilder.homeDestination(onExerciseScreen: (RealizationExercise) -> Unit, onProfileScreen: () -> Unit) {
 
     composable<HomeRoute>(
         enterTransition = { fadeIn(animationSpec = tween(800)) },
@@ -106,7 +107,7 @@ fun NavGraphBuilder.homeDestination(onExerciseScreen: (Exercise) -> Unit, onProf
 
 
 @Composable
-fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (Exercise) -> Unit) {
+fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (RealizationExercise) -> Unit) {
     val state = rememberLazyListState()
     //Se asigna la siguiente rutina de entrenamiento, es decir la que tiene un numero mayor que el numero del dia actual
     var nextTrainingRoutine: TrainingRoutine = getNextTrainingRoutine(user.trainingRoutines)
@@ -123,8 +124,8 @@ fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (Exerc
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(color = Color.White)
             LazyColumn(state = state) {
-                itemsIndexed(items = nextTrainingRoutine.exercises) { _, exercise ->
-                    ShowExercise(exercise, onExerciseScreen)
+                itemsIndexed(items = nextTrainingRoutine.exercises) { _, realizationExercise ->
+                    ShowExercise(realizationExercise, onExerciseScreen)
                 }
             }
         }
@@ -133,9 +134,9 @@ fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (Exerc
 
 @SuppressLint("UnrememberedMutableInteractionSource")
 @Composable
-fun ShowExercise(exercise: Exercise, onExerciseScreen: (Exercise) -> Unit) {
+fun ShowExercise(realizationExercise: RealizationExercise, onExerciseScreen: (RealizationExercise) -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
-    val actualIconLvl = when(exercise.exerciseLevel) {
+    val actualIconLvl = when(realizationExercise.exercise.exerciseLevel) {
         ExerciseLevel.BEGINNER -> R.drawable.beginner_lvl
         ExerciseLevel.INTERMEDIATE -> R.drawable.intermediate_lvl
         ExerciseLevel.ADVANCED -> R.drawable.advanced_lvl
@@ -143,11 +144,11 @@ fun ShowExercise(exercise: Exercise, onExerciseScreen: (Exercise) -> Unit) {
     }
 
     ListItem(
-        headlineContent = { Text(exercise.name) },
+        headlineContent = { Text(realizationExercise.exercise.name) },
         leadingContent = {  },
         overlineContent = { Image(painter = painterResource(actualIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
-        supportingContent = { Text("${exercise.series} sets of ${exercise.repetitions} repetitions") },
-        modifier = Modifier.fillMaxWidth().clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onExerciseScreen(exercise) },
+        supportingContent = { Text("${realizationExercise.series} sets of ${realizationExercise.repetitions} repetitions") },
+        modifier = Modifier.fillMaxWidth().clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onExerciseScreen(realizationExercise) },
         colors = ListItemDefaults.colors(containerColor = Color(164, 169, 186), headlineColor = Color.White, overlineColor = Color.White.copy(alpha = 0.7f), supportingColor = Color.White.copy(alpha = 0.5f))
     )
 

@@ -1,5 +1,8 @@
 package com.example.proyectoappgym.ui.screens
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,15 +25,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -41,17 +48,21 @@ import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
+import com.example.proyectoappgym.entity.RealizationExercise
 import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.ui.viewmodels.ExerciseViewmodel
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import java.nio.file.WatchEvent
+import androidx.core.net.toUri
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
 
 @Serializable
 data class ExerciseRoute(val exerciseString: String)
 
-fun NavController.goToExerciseRoute(exercise: Exercise) {
+fun NavController.goToExerciseRoute(exercise: RealizationExercise) {
     val convertToJson = Gson()
     val stringExercise = convertToJson.toJson(exercise)
 
@@ -67,18 +78,20 @@ fun NavGraphBuilder.exerciseDestination(goBackToHome: () -> Unit) {
         }
         val json = Gson()
         val exerciseRoute: ExerciseRoute = navBackStackEntry.toRoute()
-        val exercise: Exercise = json.fromJson(exerciseRoute.exerciseString, Exercise::class.java)
+        val exercise: RealizationExercise = json.fromJson(exerciseRoute.exerciseString, RealizationExercise::class.java)
 
         ExerciseScreen(exercise, goBackToHome)
     }
 }
 
+@SuppressLint("DiscouragedApi")
 @Composable
-fun ExerciseScreen(exercise: Exercise, goBackToHome: () -> Unit) {
+fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () -> Unit) {
     val state = rememberScrollState()
+    val context = LocalContext.current
 
     Scaffold(
-        topBar = { ShowTopAppBarExerciseScreen(exercise.name, goBackToHome) }
+        topBar = { ShowTopAppBarExerciseScreen(realizationExercise.exercise.name, goBackToHome) }
     ) { innerpadding ->
         Column(
             verticalArrangement = Arrangement.Top,
@@ -89,17 +102,19 @@ fun ExerciseScreen(exercise: Exercise, goBackToHome: () -> Unit) {
                 start = innerpadding.calculateLeftPadding(LayoutDirection.Ltr)
             ).background(colorResource(R.color.lightBlack)).verticalScroll(state)
         ) {
+            VideoPlayer(context, realizationExercise.exercise.nameVideo)
+
             ListItem(
                 headlineContent = { Text("How to do it?", fontStyle = FontStyle.Italic, modifier = Modifier.padding(bottom = 5.dp)) },
                 leadingContent = { Icon(painter = painterResource(R.drawable.ic_ordinal_list), contentDescription = "Steps icon", tint = Color.White) },
-                supportingContent = { Text(exercise.stepsForDoIt) },
+                supportingContent = { Text(realizationExercise.exercise.stepsForDoIt) },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = Color.White, leadingIconColor = Color.White, supportingColor = Color.White),
             )
 
             Text("Type of exercise", fontStyle = FontStyle.Italic, fontSize = 15.sp, color = Color.White, modifier = Modifier.padding(start = 55.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 55.dp)) {
-                Image(painter = painterResource(exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
-                Text(exercise.type.nameType)
+                Image(painter = painterResource(realizationExercise.exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
+                Text(realizationExercise.exercise.type.nameType)
             }
         }
     }
@@ -116,5 +131,51 @@ fun ShowTopAppBarExerciseScreen(nameExercise: String, goBackToHome: () -> Unit) 
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = colorResource(R.color.lightBlack), titleContentColor = Color.White)
+    )
+}
+
+@SuppressLint("DiscouragedApi")
+@Composable
+fun VideoPlayer(
+    context: Context,
+    videoResName: String, // este sería tu nameVideo
+    modifier: Modifier = Modifier
+) {
+    val resId = remember(videoResName) {
+        context.resources.getIdentifier(videoResName, "raw", context.packageName)
+    }
+
+    if (resId == 0) {
+        // Maneja error si el video no existe
+        return
+    }
+
+    val uri = remember(resId) {
+        "android.resource://${context.packageName}/$resId".toUri()
+    }
+
+    val exoPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            setMediaItem(androidx.media3.common.MediaItem.fromUri(uri))
+            prepare()
+            playWhenReady = true
+            repeatMode = ExoPlayer.REPEAT_MODE_ALL
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    AndroidView(
+        modifier = modifier,
+        factory = {
+            PlayerView(context).apply {
+                player = exoPlayer
+                useController = false // o true si quieres los controles
+            }
+        }
     )
 }
