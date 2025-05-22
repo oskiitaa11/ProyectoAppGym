@@ -98,4 +98,5 @@ dependencies {
     implementation(libs.firebase.storage)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.coil.gif)
 }
