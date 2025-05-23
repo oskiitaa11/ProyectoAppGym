@@ -721,7 +721,7 @@ object AllExercises {
             nameVideo = "incline_bench_press_with_barbell_or_dumbbells"
         ),
         Exercise(
-            name = "Parallel Bar Dips",
+            name = "Dips Weighted",
             description = "With the torso leaning forward, it targets the chest more.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.BASIC,
@@ -763,8 +763,8 @@ object AllExercises {
             nameVideo = "deadlift"
         ),
         Exercise(
-            name = "Pull-ups",
-            description = "A classic exercise mainly working the back, though it also involves other muscles.",
+            name = "Pull-ups Weighted",
+            description = "A classic exercise mainly working the back, though it also involves other muscles, using a weighted.",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.LATISSIMUS_DORSI, Muscles.BICEPS),
@@ -1235,7 +1235,7 @@ object AllExercises {
             typeTensExercise = TypeTensExercise.FRONT_LEVEL
         ),
         Exercise(
-            name = "Maltese front lever press",
+            name = "Maltesse front lever press",
             nameVideo = "maltesse_front_lever_press",
             description = "Perform front lever press, with a wider arm position. Use a resistance band",
             exerciseLevel = ExerciseLevel.ADVANCED,
