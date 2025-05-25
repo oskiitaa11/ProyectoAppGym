@@ -15,8 +15,10 @@ data class Exercise(
     val trainedPrimaryMuscles: List<Muscles>,
     val trainedSecondaryMuscles: List<Muscles>,
     val nameVideo: String,
+    val idImageMuscles: Int,
+    val idCoverImage: Int,
     val stepsForDoIt: String,
     val typeTensExercise: TypeTensExercise? = null,
 ) {
-    constructor(): this("", "", ExerciseLevel.BEGINNER, TypeExercise.BASIC, emptyList(), emptyList(), "", "")
+    constructor(): this("", "", ExerciseLevel.BEGINNER, TypeExercise.BASIC, emptyList(), emptyList(), "", emptyList(), 0, "")
 }

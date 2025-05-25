@@ -3,13 +3,11 @@ package com.example.proyectoappgym.db.db_users
 import android.annotation.SuppressLint
 import androidx.compose.runtime.mutableStateListOf
 import com.example.proyectoappgym.db.db_routines.AllExercises
-import com.example.proyectoappgym.db.db_routines.AllNamesExercises
 import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
 import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
 import com.example.proyectoappgym.db.retrofit.entity.ExercisesName
 import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
 import com.example.proyectoappgym.db.retrofit.entity.Routines
-import com.example.proyectoappgym.db.retrofit.entity.RoutinesName
 import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.ExerciseLevel
@@ -65,8 +63,6 @@ class UserDatabase: RepositoryUserDatabase {
         .build()
     private val api: OpenAiApi = retrofit.create(OpenAiApi::class.java)
     private val apiKey = "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"
-    private val allExercises = AllExercises
-    private val allNamesExercises = AllNamesExercises
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -273,8 +269,7 @@ class UserDatabase: RepositoryUserDatabase {
         val response = api.getChatResponse("Bearer $apiKey", request)
         val receivedMessage = response.choices[0].message.content
         val json = receivedMessage.substringAfter("```json").substringBefore("```")
-        val trainingRoutineNames = Gson().fromJson<Routines>(json, object : TypeToken<RoutinesName>() {}.type).trainingRoutines
-        val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutines
+        val trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutines.toMutableList()
 
         isSuccess = suspendCoroutine<Boolean> { continuation ->
             db.collection("Users").whereEqualTo("email", emailUser).get().addOnSuccessListener { result ->
@@ -299,11 +294,32 @@ class UserDatabase: RepositoryUserDatabase {
             dayOfWeekForTraining.size
         )
         val isNoob = questions["How long have you been training?"]?.any { it != "I've been training for a year or more" } ?: false
-        val trainingRoutineOneTrainingDay = TrainingRoutine(dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(RealizationExercise(allExercises.tensRoutine[0], 0, 0, 0), RealizationExercise(allExercises.tensRoutine[1], 3, 5, 2), RealizationExercise(allExercises.tensRoutine[2], 3, 5, 2), RealizationExercise(allExercises.tensRoutine[5], 3, 5, 2), RealizationExercise(allExercises.tensRoutine[6], 3, 5, 2)))
+        val trainingRoutineOneTrainingDay = TrainingRoutine(
+            dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
+            RealizationExercise(ExercisesName.COMBOS_TENSION, 0, 0, 0),
+            RealizationExercise(ExercisesName.PRESS_PLANK, 3, 5, 2),
+            RealizationExercise(ExercisesName.PUSH_UP_PLANK, 3, 5, 2),
+            RealizationExercise(ExercisesName.PULL_UP_FRONT_LEVER, 3, 5, 2),
+            RealizationExercise(ExercisesName.PRESS_FRONT_LEVER, 3, 5, 2)
+            )
+        )
         val trainingRoutineTwoTrainingDays = listOf(
-            TrainingRoutine(dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
-                RealizationExercise(allExercises.tensRoutine[0], 0, 0, 0), RealizationExercise(allExercises.tensRoutine[1], 3, 5, 2), RealizationExercise(allExercises.tensRoutine[2], 3, 5, 2), if(isNoob) RealizationExercise(allExercises.tensRoutine[4], 3, 5, 2) else RealizationExercise(allExercises.tensRoutine[3], 3, 5, 2))),
-            TrainingRoutine(dayOfWeekForTraining[1], "Exercises calisthenic tens", listOf(RealizationExercise(allExercises.tensRoutine[0], 3, 5, 2), RealizationExercise(allExercises.tensRoutine[5], 3, 5, 2), RealizationExercise(allExercises.tensRoutine[6], 3, 5, 2), if(isNoob) RealizationExercise(allExercises.tensRoutine[8], 3, 5, 2) else RealizationExercise(allExercises.tensRoutine[7], 3, 5, 2)))
+            TrainingRoutine(
+                dayOfWeekForTraining[0], "Exercises calisthenic tens", listOf(
+                    RealizationExercise(ExercisesName.COMBOS_TENSION, 0, 0, 0),
+                    RealizationExercise(ExercisesName.PRESS_PLANK, 3, 5, 2),
+                    RealizationExercise(ExercisesName.PUSH_UP_PLANK, 3, 5, 2),
+                    if(isNoob) RealizationExercise(ExercisesName.HANDSTAND_PUSH_UP, 3, 5, 2) else RealizationExercise(ExercisesName.MALTESE_PLANK_PUSH_UP, 3, 5, 2)
+                )
+            ),
+            TrainingRoutine(
+                dayOfWeekForTraining[1], "Exercises calisthenic tens", listOf(
+                    RealizationExercise(ExercisesName.COMBOS_TENSION, 3, 5, 2),
+                    RealizationExercise(ExercisesName.PRESS_FRONT_LEVER, 3, 5, 2),
+                    RealizationExercise(ExercisesName.PULL_UP_FRONT_LEVER, 3, 5, 2),
+                    if(isNoob) RealizationExercise(ExercisesName.PULL_UP_HOLDING_UP, 3, 5, 2) else RealizationExercise(ExercisesName.MALTESE_FRONT_LEVER_PRESS, 3, 5, 2)
+                )
+            )
         )
 
         return when (daysForTensTraining) {
@@ -351,7 +367,7 @@ class UserDatabase: RepositoryUserDatabase {
                     "    val series: Int,\n" +
                     "    val repetitions: Int,\n" +
                     "    val restBetweenSeries: Int\n" +
-                    "). La propiedad " +
+                    "). La propiedad exercise debe coger los siguientes valores $exercisesForSend. Se tiene que ejercitar todos los musculos entre los dias de la semana dado." +
                     " E implementa la rutina creada a esta rutina " +
                     "ya hecha para despues juntar las dos, sin cambiar la que te he pasado $trainingRoutineTensString"
         } else {
@@ -360,22 +376,14 @@ class UserDatabase: RepositoryUserDatabase {
                     ") Cada rutina de cada dia debe ser serializable para esta clase data class TrainingRoutine(\n" +
                     "    val dayOfWeek: DayOfWeek,\n" +
                     "    val name: String,\n" +
-                    "    val exercises: List<Exercise>\n" +
-                    ") y donde cada ejercicio data class Exercise(\n" +
-                    "    val name: String,\n" +
-                    "    val description: String,\n" +
-                    "    val exerciseLevel: ExerciseLevel,\n" +
-                    "    val type: TypeExercise,\n" +
-                    "    val trainedMuscles: List<String>,\n" +
+                    "    val exercises: List<RealizationExercise>\n" +
+                    ") y donde cada ejercicio @Serializable\n" +
+                    "data class RealizationExercise(\n" +
+                    "    val exercise: ExercisesName,\n" +
                     "    val series: Int,\n" +
                     "    val repetitions: Int,\n" +
-                    "    val restBetweenSeries: Int,\n" +
-                    "    val stepsForDoIt: String,\n" +
-                    "    val typeTensExercise: TypeTensExercise? = null,\n" +
-                    "). La propiedad type debe coger los siguientes valores MACHINES, WEIGHTLIFTING, BASIC, CARDIO, la propiedad " +
-                    "exerciseLevel deben tener los siguientes valores BEGINNER, INTERMEDIATE, ADVANCED, ELITE segun la dificultad " +
-                    "del ejercicio, la propiedad stepsForDoIt debe contener un string, con los pasos enumerados de como se hace el ejercicio," +
-                    "intentando ejercitar todos los musculos en la semana y 2 ejercicios por cada musculo."
+                    "    val restBetweenSeries: Int\n" +
+                    "). La propiedad exercise debe coger los siguientes valores $exercisesForSend. Se tiene que ejercitar todos los musculos entre los dias de la semana dado."
         }
     }
 
@@ -396,7 +404,7 @@ class UserDatabase: RepositoryUserDatabase {
             }
             "Both" -> {
                 if(isMachinesExercises) exercisesList.addAll(ExercisesName.entries.subList(0, 22))
-                if(isWeightliftingExercises) exercisesList.addAll(ExercisesName.entries.subList(39, exercisesList.size - 1))
+                if(isWeightliftingExercises) exercisesList.addAll(ExercisesName.entries.subList(39, 79))
                 if(isBasicExercises) exercisesList.addAll(ExercisesName.entries.subList(22, 39))
             }
         }
@@ -412,8 +420,6 @@ class UserDatabase: RepositoryUserDatabase {
         responsesGym.forEach { if(it == "Weightlifting exercises") daysForTrainingNotTens++ }
 
         return@coroutineScope daysForTraining - daysForTrainingNotTens
-    }
-
     }
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
         val storageRef = FirebaseStorage.getInstance().reference

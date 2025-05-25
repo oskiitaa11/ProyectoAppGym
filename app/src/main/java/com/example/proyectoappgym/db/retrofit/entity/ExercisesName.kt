@@ -76,5 +76,14 @@ enum class ExercisesName(val exercise: Exercise) {
     WEIGHTED_CRUNCH(AllExercises.weightlifting[30]),
     LEG_RAISES_WITH_WEIGHT(AllExercises.weightlifting[31]),
     RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE(AllExercises.weightlifting[32]),
-    WEIGHTED_PLANK(AllExercises.weightlifting[33])
+    WEIGHTED_PLANK(AllExercises.weightlifting[33]),
+    COMBOS_TENSION(AllExercises.tensRoutine[0]),
+    PRESS_PLANK(AllExercises.tensRoutine[1]),
+    PUSH_UP_PLANK(AllExercises.tensRoutine[2]),
+    MALTESE_PLANK_PUSH_UP(AllExercises.tensRoutine[3]),
+    HANDSTAND_PUSH_UP(AllExercises.tensRoutine[4]),
+    PULL_UP_FRONT_LEVER(AllExercises.tensRoutine[5]),
+    PRESS_FRONT_LEVER(AllExercises.tensRoutine[6]),
+    MALTESE_FRONT_LEVER_PRESS(AllExercises.tensRoutine[7]),
+    PULL_UP_HOLDING_UP(AllExercises.tensRoutine[8])
 }

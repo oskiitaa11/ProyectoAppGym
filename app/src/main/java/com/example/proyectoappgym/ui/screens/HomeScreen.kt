@@ -136,17 +136,11 @@ fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (Reali
 @Composable
 fun ShowExercise(realizationExercise: RealizationExercise, onExerciseScreen: (RealizationExercise) -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
-    val actualIconLvl = when(realizationExercise.exercise.exerciseLevel) {
-        ExerciseLevel.BEGINNER -> R.drawable.beginner_lvl
-        ExerciseLevel.INTERMEDIATE -> R.drawable.intermediate_lvl
-        ExerciseLevel.ADVANCED -> R.drawable.advanced_lvl
-        ExerciseLevel.ELITE -> R.drawable.elite_lvl
-    }
 
     ListItem(
         headlineContent = { Text(realizationExercise.exercise.name) },
         leadingContent = {  },
-        overlineContent = { Image(painter = painterResource(actualIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
+        overlineContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.exerciseLevel.idIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
         supportingContent = { Text("${realizationExercise.series} sets of ${realizationExercise.repetitions} repetitions") },
         modifier = Modifier.fillMaxWidth().clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onExerciseScreen(realizationExercise) },
         colors = ListItemDefaults.colors(containerColor = Color(164, 169, 186), headlineColor = Color.White, overlineColor = Color.White.copy(alpha = 0.7f), supportingColor = Color.White.copy(alpha = 0.5f))

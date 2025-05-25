@@ -355,9 +355,6 @@ fun validateTextUsername(valueText: String, usernameIsEqualToEmail: Boolean, cha
     } else if(valueText.length > 20) {
         changeValueField("Must be less than 20 characters")
         return
-    } else if(!valueText.contains(Regex("[A-Z]"))) {
-        changeValueField("Must have at least one upper case")
-        return
     } else if(valueText.contains(Regex("['´`\"\\-+\\\\/@<>&;^#=():%*|]"))) {
         insertedEspecialCharacters = valueText.filter { it.toString().matches(Regex("[|'´`\"+\\\\/<>;&^#=():%*]")) }
         changeValueField("Invalid characters: $insertedEspecialCharacters")

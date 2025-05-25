@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -56,6 +58,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
 import java.nio.file.WatchEvent
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 
@@ -89,6 +96,7 @@ fun NavGraphBuilder.exerciseDestination(goBackToHome: () -> Unit) {
 fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () -> Unit) {
     val state = rememberScrollState()
     val context = LocalContext.current
+    val uri = "android.resource://${context.packageName}/raw/${realizationExercise.exercise.exercise.nameVideo}".toUri()
 
     Scaffold(
         topBar = { ShowTopAppBarExerciseScreen(realizationExercise.exercise.name, goBackToHome) }
@@ -102,19 +110,19 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
                 start = innerpadding.calculateLeftPadding(LayoutDirection.Ltr)
             ).background(colorResource(R.color.lightBlack)).verticalScroll(state)
         ) {
-            VideoPlayer(context, realizationExercise.exercise.nameVideo)
+            VideoPlayer(uri)
 
             ListItem(
                 headlineContent = { Text("How to do it?", fontStyle = FontStyle.Italic, modifier = Modifier.padding(bottom = 5.dp)) },
                 leadingContent = { Icon(painter = painterResource(R.drawable.ic_ordinal_list), contentDescription = "Steps icon", tint = Color.White) },
-                supportingContent = { Text(realizationExercise.exercise.stepsForDoIt) },
+                supportingContent = { Text(realizationExercise.exercise.exercise.stepsForDoIt) },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = Color.White, leadingIconColor = Color.White, supportingColor = Color.White),
             )
 
             Text("Type of exercise", fontStyle = FontStyle.Italic, fontSize = 15.sp, color = Color.White, modifier = Modifier.padding(start = 55.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 55.dp)) {
-                Image(painter = painterResource(realizationExercise.exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
-                Text(realizationExercise.exercise.type.nameType)
+                Image(painter = painterResource(realizationExercise.exercise.exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
+                Text(realizationExercise.exercise.exercise.type.nameType, color = Color.White)
             }
         }
     }
@@ -127,7 +135,7 @@ fun ShowTopAppBarExerciseScreen(nameExercise: String, goBackToHome: () -> Unit) 
         title = { Text(nameExercise, fontSize = 15.sp) },
         navigationIcon = {
             IconButton(goBackToHome) {
-                Icon(painter = painterResource(R.drawable.ic_arrow_back_24), contentDescription = "Icon back")
+                Icon(painter = painterResource(R.drawable.ic_arrow_back_24), contentDescription = "Icon back", tint = Color.White)
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(containerColor = colorResource(R.color.lightBlack), titleContentColor = Color.White)
@@ -136,46 +144,44 @@ fun ShowTopAppBarExerciseScreen(nameExercise: String, goBackToHome: () -> Unit) 
 
 @SuppressLint("DiscouragedApi")
 @Composable
-fun VideoPlayer(
-    context: Context,
-    videoResName: String, // este sería tu nameVideo
-    modifier: Modifier = Modifier
-) {
-    val resId = remember(videoResName) {
-        context.resources.getIdentifier(videoResName, "raw", context.packageName)
-    }
-
-    if (resId == 0) {
-        // Maneja error si el video no existe
-        return
-    }
-
-    val uri = remember(resId) {
-        "android.resource://${context.packageName}/$resId".toUri()
-    }
-
+fun VideoPlayer(uri: Uri) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(androidx.media3.common.MediaItem.fromUri(uri))
+            setMediaItem(MediaItem.fromUri(uri))
             prepare()
             playWhenReady = true
-            repeatMode = ExoPlayer.REPEAT_MODE_ALL
+            repeatMode = Player.REPEAT_MODE_ALL
         }
     }
 
-    DisposableEffect(Unit) {
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE -> exoPlayer.pause()
+                Lifecycle.Event.ON_RESUME -> exoPlayer.play()
+                Lifecycle.Event.ON_DESTROY -> exoPlayer.release()
+                else -> {}
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
             exoPlayer.release()
         }
     }
 
     AndroidView(
-        modifier = modifier,
         factory = {
             PlayerView(context).apply {
                 player = exoPlayer
-                useController = false // o true si quieres los controles
+                useController = false // o false si no quieres controles
             }
-        }
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
     )
 }

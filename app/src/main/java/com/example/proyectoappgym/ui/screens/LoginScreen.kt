@@ -67,8 +67,8 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
     val allErrorsText = remember { mutableStateMapOf("email" to "", "password" to "") }
     val validateFieldsLogin: () -> Unit = {
         allErrorsText.forEach { (field, _) -> allErrorsText[field] = "" }
-        validateEmailLogin(email, { errorText -> allErrorsText["email"] = errorText })
-        validatePasswordLogin(password, { errorText -> allErrorsText["password"] = errorText })
+        validateEmailLogin(email) { errorText -> allErrorsText["email"] = errorText }
+        validatePasswordLogin(password) { errorText -> allErrorsText["password"] = errorText }
     }
     var showWaitingDialog by remember { mutableStateOf(false) }
     var stateScroll = rememberScrollState()
