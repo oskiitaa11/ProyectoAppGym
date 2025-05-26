@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -32,10 +33,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,6 +68,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.example.proyectoappgym.entity.Muscles
 
 @Serializable
 data class ExerciseRoute(val exerciseString: String)
@@ -110,20 +114,35 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
                 start = innerpadding.calculateLeftPadding(LayoutDirection.Ltr)
             ).background(colorResource(R.color.lightBlack)).verticalScroll(state)
         ) {
-            VideoPlayer(uri)
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Lvl: ")
+                Image(
+                    painter = painterResource(realizationExercise.exercise.exercise.exerciseLevel.idIconLvl),
+                    contentDescription = "Icon Lvl",
+                    modifier = Modifier.size(30.dp).padding(bottom = 8.dp)
+                )
+            }
 
+            VideoPlayer(uri)
             ListItem(
                 headlineContent = { Text("How to do it?", fontStyle = FontStyle.Italic, modifier = Modifier.padding(bottom = 5.dp)) },
                 leadingContent = { Icon(painter = painterResource(R.drawable.ic_ordinal_list), contentDescription = "Steps icon", tint = Color.White) },
                 supportingContent = { Text(realizationExercise.exercise.exercise.stepsForDoIt) },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = Color.White, leadingIconColor = Color.White, supportingColor = Color.White),
             )
-
+            Spacer(modifier = Modifier.height(20.dp))
             Text("Type of exercise", fontStyle = FontStyle.Italic, fontSize = 15.sp, color = Color.White, modifier = Modifier.padding(start = 55.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 55.dp)) {
                 Image(painter = painterResource(realizationExercise.exercise.exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
                 Text(realizationExercise.exercise.exercise.type.nameType, color = Color.White)
             }
+            Spacer(modifier = Modifier.height(20.dp))
+            ShowInvolvedMuscles(realizationExercise.exercise.exercise.idImageMuscles, realizationExercise.exercise.exercise.trainedPrimaryMuscles, realizationExercise.exercise.exercise.trainedSecondaryMuscles)
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
@@ -184,4 +203,33 @@ fun VideoPlayer(uri: Uri) {
             .fillMaxWidth()
             .height(250.dp)
     )
+}
+
+@Composable
+fun ShowInvolvedMuscles(idImageMuscles: Int, primaryMuscles: List<Muscles>, secondaryMuscles: List<Muscles>) {
+    val primaryMusclesString = primaryMuscles.map { it.nameMuscle }.toString().replace("[", "").replace("]", "")
+    val secondaryMusclesString = secondaryMuscles.map { it.nameMuscle }.toString().replace("[", "").replace("]", "")
+
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 15.dp, bottom = 10.dp)) {
+        Image(painter = painterResource(R.drawable.icon_muscles), contentDescription = "Icon Muscles", modifier = Modifier.size(25.dp))
+        Text("Involved muscles", color = Color.White, fontStyle = FontStyle.Italic, modifier = Modifier.padding(start = 15.dp))
+    }
+    Row {
+        Image(painter = painterResource(idImageMuscles), contentDescription = "Muscles Image", modifier = Modifier.padding(start = 45.dp, end = 20.dp))
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(" ", modifier = Modifier.background(Color(224, 98, 75)).size(7.dp))
+                Text("Primary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp))
+            }
+            Text(primaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp)
+
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(" ", modifier = Modifier.background(Color(215, 159, 143)).size(7.dp))
+                Text("Secondary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp))
+            }
+            Text(secondaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp)
+        }
+    }
+
 }

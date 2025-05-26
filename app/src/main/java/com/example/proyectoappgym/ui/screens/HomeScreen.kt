@@ -138,15 +138,15 @@ fun ShowExercise(realizationExercise: RealizationExercise, onExerciseScreen: (Re
     val interactionSource = remember { MutableInteractionSource() }
 
     ListItem(
-        headlineContent = { Text(realizationExercise.exercise.name) },
-        leadingContent = {  },
+        headlineContent = { Text(realizationExercise.exercise.exercise.name, fontSize = 12.sp) },
+        leadingContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.idCoverImage), contentDescription = "Cover Image", modifier = Modifier.size(80.dp)) },
         overlineContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.exerciseLevel.idIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
         supportingContent = { Text("${realizationExercise.series} sets of ${realizationExercise.repetitions} repetitions") },
         modifier = Modifier.fillMaxWidth().clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onExerciseScreen(realizationExercise) },
-        colors = ListItemDefaults.colors(containerColor = Color(164, 169, 186), headlineColor = Color.White, overlineColor = Color.White.copy(alpha = 0.7f), supportingColor = Color.White.copy(alpha = 0.5f))
+        colors = ListItemDefaults.colors(containerColor = colorResource(R.color.lightBlack), headlineColor = Color.White, overlineColor = Color.White.copy(alpha = 0.7f), supportingColor = Color.White.copy(alpha = 0.5f))
     )
 
-    HorizontalDivider(thickness = 2.dp, color = Color.White.copy(alpha = 0.5f))
+    HorizontalDivider(thickness = 2.dp, color = Color.White)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1321,7 +1321,7 @@ object AllExercises {
         3. Then, continue with forward exercises—ending with the one you can’t complete.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.ALL,
-            idCoverImage = R.drawable.combos_tension,
+            idCoverImage = 0,//R.drawable.combos_tension,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1338,7 +1338,7 @@ object AllExercises {
         3. Then, lower your legs back down to return to the plank position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = R.drawable.press_plank,
+            idCoverImage = 0,//R.drawable.press_plank,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1355,7 +1355,7 @@ object AllExercises {
         3. Then, return to the plank position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = R.drawable.push_up_plank,
+            idCoverImage = 0, //R.drawable.push_up_plank,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1373,7 +1373,7 @@ object AllExercises {
         4. Then, return to scapular protraction.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = R.drawable.maltese_plank_push_up,
+            idCoverImage = 0,//R.drawable.maltese_plank_push_up,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1390,7 +1390,7 @@ object AllExercises {
         3. Raise your body forward with your arms outstretched.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = R.drawable.handstand_push_up,
+            idCoverImage = 0,//R.drawable.handstand_push_up,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1407,7 +1407,7 @@ object AllExercises {
         3. Then, lower the legs down to the front lever position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = R.drawable.press_front_lever,
+            idCoverImage = 0,//R.drawable.press_front_lever,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1424,7 +1424,7 @@ object AllExercises {
         4. Then, lower the legs down to the front lever position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = R.drawable.pull_up_front_lever,
+            idCoverImage = 0,//R.drawable.pull_up_front_lever,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1442,7 +1442,7 @@ object AllExercises {
         4. Then, lower the legs down to front lever position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = R.drawable.maltese_front_lever_press,
+            idCoverImage = 0,//R.drawable.maltese_front_lever_press,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1459,7 +1459,7 @@ object AllExercises {
         4. Holding up 3s and lower body down to pull-up position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = R.drawable.pull_up_holding_up,
+            idCoverImage = 0,//R.drawable.pull_up_holding_up,
             idImageMuscles = 0
         ),
     )
