@@ -38,4 +38,5 @@ enum class Muscles(val nameMuscle: String) {
 
     override fun toString(): String {
         return super.toString()
-    }}
+    }
+}

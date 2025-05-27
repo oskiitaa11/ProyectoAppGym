@@ -4,7 +4,6 @@ import com.example.proyectoappgym.R
 import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.ExerciseLevel
 import com.example.proyectoappgym.entity.Muscles
-import com.example.proyectoappgym.entity.TensExercise
 import com.example.proyectoappgym.entity.TypeExercise
 import com.example.proyectoappgym.entity.TypeTensExercise
 
