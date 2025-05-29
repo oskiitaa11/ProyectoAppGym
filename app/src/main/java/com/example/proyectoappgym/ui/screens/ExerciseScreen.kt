@@ -119,7 +119,7 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
                 horizontalArrangement = Arrangement.End,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Lvl: ")
+                Text("Lvl: ", color = Color.White)
                 Image(
                     painter = painterResource(realizationExercise.exercise.exercise.exerciseLevel.idIconLvl),
                     contentDescription = "Icon Lvl",
@@ -219,14 +219,14 @@ fun ShowInvolvedMuscles(idImageMuscles: Int, primaryMuscles: List<Muscles>, seco
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(" ", modifier = Modifier.background(Color(224, 98, 75)).size(7.dp))
-                Text("Primary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp))
+                Text("Primary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp), color = Color.White)
             }
             Text(primaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp)
 
             Spacer(modifier = Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(" ", modifier = Modifier.background(Color(215, 159, 143)).size(7.dp))
-                Text("Secondary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp))
+                Text("Secondary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp), color = Color.White)
             }
             Text(secondaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp)
         }

@@ -2,6 +2,7 @@ package com.example.proyectoappgym.db.db_users
 
 import android.net.Uri
 import com.example.proyectoappgym.db.retrofit.entity.ExercisesName
+import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.User
@@ -25,4 +26,5 @@ interface RepositoryUserDatabase {
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun authWithGoogle(idToken: String): Boolean
+    suspend fun changeWeeklyRoutine(oldAnsweredQuestions: Map<String, List<String>>, newAnsweredQuestions: Map<String, List<String>>, actualRoutines: Routines, question: String, newResponses: List<String>): List<TrainingRoutine>
 }

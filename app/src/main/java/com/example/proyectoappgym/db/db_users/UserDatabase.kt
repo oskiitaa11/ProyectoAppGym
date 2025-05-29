@@ -102,6 +102,7 @@ class UserDatabase: RepositoryUserDatabase {
 
     override suspend fun authWithGoogle(idToken: String): Boolean {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
+
         return suspendCoroutine { continuation ->
             FirebaseAuth.getInstance().signInWithCredential(credential)
                 .addOnCompleteListener { task ->
@@ -255,12 +256,30 @@ class UserDatabase: RepositoryUserDatabase {
         return uidLoggedUser
     }
 
+    override suspend fun changeWeeklyRoutine(
+        oldAnsweredQuestions: Map<String, List<String>>,
+        newAnsweredQuestion: Map<String, List<String>>,
+        actualRoutines: Routines,
+        question: String,
+        newResponses: List<String>
+    ): List<TrainingRoutine> {
+        val isCalisthenicTensionResponse = question == "What types of calisthenics exercises do you focus on or want to focus on?" && newResponses.any { it == "Tension exercises" }
+        var exercisesForSendGpt = emptyList<ExercisesName>()
+        var routines = mutableListOf<TrainingRoutine>()
+
+        if(isCalisthenicTensionResponse) routines.addAll(implementCalisthenicRoutine(newAnsweredQuestion))
+        else {
+            exercisesForSendGpt = makeExercisesListForSend(mapOf(question to newResponses))
+
+        }
+    }
+
     override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String): Boolean {
         var isSuccess = false
         val anyTensionExercises = questions["What types of calisthenics exercises do you focus on or want to focus on?"]?.any { it == "Tension exercises" } ?: false
         val trainingRoutinesTens = if(anyTensionExercises) implementCalisthenicRoutine(questions)
         else null
-        var message = makeFromAnsweredQuestions(questions, trainingRoutinesTens)
+        var message = makeMessageFromAnsweredQuestions(questions, trainingRoutinesTens)
         val request = ChatRequest(
             messages = listOf(
                 ChatMessage(role = "user", content = message)
@@ -344,7 +363,7 @@ class UserDatabase: RepositoryUserDatabase {
         return newQuestions
     }
 */
-    private suspend fun makeFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>, trainingRoutineTens: List<TrainingRoutine>?): String {
+    private suspend fun makeMessageFromAnsweredQuestions(answeredQuestions: Map<String, List<String>>, trainingRoutineTens: List<TrainingRoutine>?): String {
         var stringQuestions = ""
         var stringResponses = ""
         var trainingRoutineTensString = trainingRoutineTens?.toString() ?: ""
