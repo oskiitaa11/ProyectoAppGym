@@ -52,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -139,7 +140,7 @@ fun ShowExercise(realizationExercise: RealizationExercise, onExerciseScreen: (Re
 
     ListItem(
         headlineContent = { Text(realizationExercise.exercise.exercise.name, fontSize = 12.sp) },
-        leadingContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.idCoverImage), contentDescription = "Cover Image", modifier = Modifier.size(80.dp)) },
+        leadingContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.idCoverImage), contentDescription = "Cover Image", contentScale = ContentScale.Crop, modifier = Modifier.size(80.dp)) },
         overlineContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.exerciseLevel.idIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
         supportingContent = { Text("${realizationExercise.series} sets of ${realizationExercise.repetitions} repetitions") },
         modifier = Modifier.fillMaxWidth().clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onExerciseScreen(realizationExercise) },

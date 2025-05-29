@@ -103,7 +103,7 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
     val uri = "android.resource://${context.packageName}/raw/${realizationExercise.exercise.exercise.nameVideo}".toUri()
 
     Scaffold(
-        topBar = { ShowTopAppBarExerciseScreen(realizationExercise.exercise.name, goBackToHome) }
+        topBar = { ShowTopAppBarExerciseScreen(realizationExercise.exercise.exercise.name, goBackToHome) }
     ) { innerpadding ->
         Column(
             verticalArrangement = Arrangement.Top,
@@ -215,20 +215,20 @@ fun ShowInvolvedMuscles(idImageMuscles: Int, primaryMuscles: List<Muscles>, seco
         Text("Involved muscles", color = Color.White, fontStyle = FontStyle.Italic, modifier = Modifier.padding(start = 15.dp))
     }
     Row {
-        Image(painter = painterResource(idImageMuscles), contentDescription = "Muscles Image", modifier = Modifier.padding(start = 45.dp, end = 20.dp))
+        Image(painter = painterResource(idImageMuscles), contentDescription = "Muscles Image", modifier = Modifier.padding(start = 40.dp).size(200.dp))
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(" ", modifier = Modifier.background(Color(224, 98, 75)).size(7.dp))
                 Text("Primary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp), color = Color.White)
             }
-            Text(primaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp)
+            Text(primaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp, color = Color.White)
 
             Spacer(modifier = Modifier.height(10.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(" ", modifier = Modifier.background(Color(215, 159, 143)).size(7.dp))
                 Text("Secondary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp), color = Color.White)
             }
-            Text(secondaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp)
+            Text(secondaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp, color = Color.White)
         }
     }
 
