@@ -160,7 +160,7 @@ fun NavController.goToEditProfileScreen() {
     navigate(EditProfileRoute)
 }
 
-fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit) {
+fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType, Map<String, List<String>>) -> Unit) {
     composable<EditProfileRoute> { navBackStackEntry ->
         val editProfileViewmodel: EditProfileViewmodel = viewModel(navBackStackEntry) {
             EditProfileViewmodel(
@@ -171,7 +171,7 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQu
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
         val allQuestions = editProfileViewmodel.allQuestions
         val showDialog by editProfileViewmodel.showDialog.collectAsStateWithLifecycle()
-        val allStringQuestionUser = currentUser.allQuestionsAnswered.filter { (question, responses) -> responses.isNotEmpty() }.keys.toList()
+        val allStringQuestionUser = currentUser.allQuestionsAnswered.filter { (_, responses) -> responses.isNotEmpty() }.keys.toList()
         val allQuestionsFiltered = if(currentUser.allQuestionsAnswered.isNotEmpty())
             allQuestions.filter { question -> question.question in allStringQuestionUser }
         else emptyList()
@@ -184,7 +184,7 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQu
             backProfileScreen,
             { newName -> editProfileViewmodel.updateName(newName) },
             { newAvatar -> editProfileViewmodel.updateAvatarProfile(newAvatar) },
-            goToQuestionForModifierScreen,
+            { questionForModifier, selectedResponses, responseType -> goToQuestionForModifierScreen(questionForModifier, selectedResponses, responseType, currentUser.allQuestionsAnswered) },
             { editProfileViewmodel.updateShowDialog() }
         )
     }

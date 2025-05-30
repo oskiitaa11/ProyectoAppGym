@@ -35,8 +35,4 @@ enum class Muscles(val nameMuscle: String) {
     RHOMBOIDS("Rhomboids"),
     ILIOPSOAS("Iliopsoas"),
     TENSOR_FASCIAE_FEMORIS("Tensor fasciae femoris");
-
-    override fun toString(): String {
-        return super.toString()
-    }
 }

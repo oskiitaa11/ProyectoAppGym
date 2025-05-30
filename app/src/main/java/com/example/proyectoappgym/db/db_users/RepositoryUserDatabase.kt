@@ -26,5 +26,5 @@ interface RepositoryUserDatabase {
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun authWithGoogle(idToken: String): Boolean
-    suspend fun changeWeeklyRoutine(oldAnsweredQuestions: Map<String, List<String>>, newAnsweredQuestions: Map<String, List<String>>, actualRoutines: Routines, question: String, newResponses: List<String>): List<TrainingRoutine>
+    suspend fun changeWeeklyRoutine(oldAnsweredQuestions: Map<String, List<String>>, newAnsweredQuestion: Map<String, List<String>>, actualRoutines: List<TrainingRoutine>, question: String, newResponses: List<String>): Boolean
 }

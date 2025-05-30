@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import com.example.proyectoappgym.db.db_routines.AllExercises
 import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
 import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
+import com.example.proyectoappgym.db.retrofit.entity.ChatResponse
 import com.example.proyectoappgym.db.retrofit.entity.ExercisesName
 import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
 import com.example.proyectoappgym.db.retrofit.entity.Routines
@@ -155,18 +156,6 @@ class UserDatabase: RepositoryUserDatabase {
         auth.signOut()
     }
 
-    private fun convertUserToMap(user: User) {
-        linkedMapOf(
-            "name" to user.name,
-            "username" to user.username,
-            "email" to user.email,
-            "password" to user.password,
-            "birthdate" to user.birthdate,
-            "gender" to user.gender.toString(),
-            "allQuestionsWithAnswered" to user.allQuestionsAnswered
-        )
-    }
-
     override suspend fun deleteUser(user: User): String {
         var textTaskCompleted = ""
 
@@ -259,18 +248,42 @@ class UserDatabase: RepositoryUserDatabase {
     override suspend fun changeWeeklyRoutine(
         oldAnsweredQuestions: Map<String, List<String>>,
         newAnsweredQuestion: Map<String, List<String>>,
-        actualRoutines: Routines,
+        actualRoutines: List<TrainingRoutine>,
         question: String,
-        newResponses: List<String>
-    ): List<TrainingRoutine> {
+        newResponses: List<String>,
+    ): Boolean {
         val isCalisthenicTensionResponse = question == "What types of calisthenics exercises do you focus on or want to focus on?" && newResponses.any { it == "Tension exercises" }
         var exercisesForSendGpt = emptyList<ExercisesName>()
         var routines = mutableListOf<TrainingRoutine>()
+        val addRoutinesWithGpt = (!newResponses.any { it == "Tension exercises" }) || (isCalisthenicTensionResponse && newResponses.size >= 2)
+        val message: String
+        val request: ChatRequest
+        val response: ChatResponse
+        val receivedMessage: String
+        val json: String
+        var trainingRoutines = emptyList<TrainingRoutine>()
 
         if(isCalisthenicTensionResponse) routines.addAll(implementCalisthenicRoutine(newAnsweredQuestion))
-        else {
+        if(addRoutinesWithGpt) {
             exercisesForSendGpt = makeExercisesListForSend(mapOf(question to newResponses))
+            message = makeMessageForUpdateRoutine(oldAnsweredQuestions, question, newResponses, isCalisthenicTensionResponse, actualRoutines, routines, exercisesForSendGpt)
+            request = ChatRequest(
+                messages = listOf(
+                    ChatMessage(role = "user", content = message)
+                )
+            )
+            response = api.getChatResponse("Bearer $apiKey", request)
+            receivedMessage = response.choices[0].message.content
+            json = receivedMessage.substringAfter("```json").substringBefore("```")
+            trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutines.toMutableList()
+        }
 
+        return suspendCoroutine<Boolean> { continuation ->
+            db.collection("Users").document(uidLoggedUser ?: "").update("trainingRoutines", trainingRoutines).addOnSuccessListener { result ->
+                continuation.resume(true)
+            }.addOnFailureListener {
+                continuation.resume(false)
+            }
         }
     }
 
@@ -348,6 +361,39 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
+    private suspend fun makeMessageForUpdateRoutine(oldAnsweredQuestions: Map<String, List<String>>, question: String, newResponses: List<String>, isCalisthenicsTension: Boolean, actualRoutine: List<TrainingRoutine>, routineWithTension: List<TrainingRoutine>, exercisesName: List<ExercisesName>): String {
+        var newResponsesWithoutTension = newResponses.toMutableList().remove("Tension exercises")
+
+        if(isCalisthenicsTension) {
+            return "Con estas preguntas $oldAnsweredQuestions me has dado esta rutina $actualRoutine. La pregunta $question ha cambiado de respuesta " +
+                    "a $newResponsesWithoutTension. Creame un json cambiandome la antigua rutina, adaptandola a las nuevas respuestas y juntala " +
+                    "junto con esta rutina  $routineWithTension, que sea serializable para estas clases data class TrainingRoutine(\\n\" +\n" +
+                    "                    \"    val dayOfWeek: DayOfWeek,\\n\" +\n" +
+                    "                    \"    val name: String,\\n\" +\n" +
+                    "                    \"    val exercises: List<RealizationExercise>\\n\" +\n" +
+                    "                    \"), donde cada ejercicio data class RealizationExercise(\\n\" +\n" +
+                    "                    \"    val exercise: ExercisesName,\\n\" +\n" +
+                    "                    \"    val series: Int,\\n\" +\n" +
+                    "                    \"    val repetitions: Int,\\n\" +\n" +
+                    "                    \"    val restBetweenSeries: Int\\n\" +\n" +
+                    "                    \") y donde ExerciseName pueda coger los siguientes valores $exercisesName"
+        } else {
+            return "Con estas preguntas $oldAnsweredQuestions me has dado esta rutina $actualRoutine. La pregunta $question ha cambiado de " +
+                    "respuesta a $newResponsesWithoutTension. Creame un json dandome una nueva rutina cambiando la actual solo modificando " +
+                    "lo necesario para que se cumpla la nueva de respuesta del usuario, que sea serializable para estas clases " +
+                    "data class TrainingRoutine(\\n\" +\n" +
+                    "                    \"    val dayOfWeek: DayOfWeek,\\n\" +\n" +
+                    "                    \"    val name: String,\\n\" +\n" +
+                    "                    \"    val exercises: List<RealizationExercise>\\n\" +\n" +
+                    "                    \"), donde cada ejercicio data class RealizationExercise(\\n\" +\n" +
+                    "                    \"    val exercise: ExercisesName,\\n\" +\n" +
+                    "                    \"    val series: Int,\\n\" +\n" +
+                    "                    \"    val repetitions: Int,\\n\" +\n" +
+                    "                    \"    val restBetweenSeries: Int\\n\" +\n" +
+                    "                    \") y donde ExerciseName pueda coger los siguientes valores $exercisesName"
+        }
+    }
+
     /*private suspend fun makeQuestionsForRequest(questions: Map<String, List<String>>): Map<String, List<String>> {
         val newQuestions = questions.toMutableMap()
         val calisthenicQuestionsResponses = questions["What types of calisthenics exercises do you focus on or want to focus on?"] ?: emptyList()
@@ -406,7 +452,7 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
-    suspend fun makeExercisesListForSend(answeredQuestions: Map<String, List<String>>): List<ExercisesName> {
+    private suspend fun makeExercisesListForSend(answeredQuestions: Map<String, List<String>>): List<ExercisesName> {
         val responsesChooseTraining = answeredQuestions["Are you more into calisthenics or gym workouts?"]
         val chooseCalisthenicsExercisesForTraining = answeredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]
         var exercisesList = mutableStateListOf<ExercisesName>()
@@ -431,7 +477,7 @@ class UserDatabase: RepositoryUserDatabase {
         return exercisesList
     }
 
-    suspend fun getNumberOfDays(responsesCalisthenic: List<String>, responsesGym: List<String>, daysForTraining: Int): Int = coroutineScope {
+    private suspend fun getNumberOfDays(responsesCalisthenic: List<String>, responsesGym: List<String>, daysForTraining: Int): Int = coroutineScope {
         var daysForTrainingNotTens = 0
 
         responsesCalisthenic.forEach { if(it == "Basic exercises") daysForTrainingNotTens++ }

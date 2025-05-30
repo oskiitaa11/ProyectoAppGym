@@ -20,7 +20,7 @@ fun NavGraphBuilder.profileGraph(navController: NavController) {
             { navController.goToEditProfileScreen() },
             {  }
         )
-        editProfileDestination({ navController.popBackStack() }, { questionForModifier, selectedResponses, responseType -> navController.goToQuestionForModifier(questionForModifier, selectedResponses, responseType) })
+        editProfileDestination({ navController.popBackStack() }, { questionForModifier, selectedResponses, responseType, oldAnsweredQuestions -> navController.goToQuestionForModifier(questionForModifier, selectedResponses, responseType) })
         questionForModifierDestination { navController.popBackStack() }
     }
 }

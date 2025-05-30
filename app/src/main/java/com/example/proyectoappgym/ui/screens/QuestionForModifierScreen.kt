@@ -39,6 +39,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ComposableOpenTarget
+import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
@@ -57,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -64,6 +66,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.ui.screens.ShowNextQuestionForFirstQuestion
@@ -91,6 +94,8 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
                     (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions
                 )
             }
+        val currentUser by questionForModifierViewmodel.currentUser.collectAsStateWithLifecycle()
+        val hasChangeRoutine by questionForModifierViewmodel.isChangeRoutine.collectAsStateWithLifecycle()
         val questionForModifierRoute = navBackStackEntry.toRoute<QuestionForModifierRoute>()
         val questionForModifier = questionForModifierRoute.answeredQuestion
         val selectedResponses = questionForModifierRoute.selectedResponses
@@ -105,7 +110,9 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
             questionForModifierViewmodel.allQuestions.find { "What types of calisthenics exercises do you focus on or want to focus on?" == it.question }
         else null
         val selectedInitialResponse = if(isEqualFirstQuestion) questionForModifierRoute.selectedResponses[0] else null
+        val oldAnsweredQuestions = currentUser.allQuestionsAnswered
 
+        if(currentUser.name.isNotEmpty())
         QuestionForModifierScreen(
             questionForModifier,
             allResponsesDb,
@@ -115,6 +122,10 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
             backToEditProfile,
             gymQuestion,
             calisthenicQuestion,
+            hasChangeRoutine,
+            { question, newResponses ->
+                questionForModifierViewmodel.changeWeeklyRoutine(oldAnsweredQuestions, oldAnsweredQuestions.toMutableMap().apply { set(question, newResponses) }, question, newResponses)
+            },
             { question, newResponses ->
                 questionForModifierViewmodel.updateResponsesOfQuestion(question, newResponses)
             }
@@ -135,6 +146,8 @@ fun QuestionForModifierScreen(
     backToEditProfile: () -> Unit,
     gymQuestion: Question?,
     calisthenicQuestion: Question?,
+    hasChangeRoutines: Boolean?,
+    changeWeeklyRoutine: (question: String, newResponses: List<String>) -> Unit,
     changeCorrectedResponse: (String, List<String>) -> Unit,
     removeResponsesOfQuestion: (String) -> Unit
 ) {
@@ -148,6 +161,7 @@ fun QuestionForModifierScreen(
         if (allStringResponses.toSet() != allResponsesDb.toSet()) {
             if(allStringResponses.isNotEmpty())
                 changeCorrectedResponse(questionForModifier, allStringResponses)
+                changeWeeklyRoutine(questionForModifier, allStringResponses)
         }
         backToEditProfile()
     }
@@ -230,6 +244,7 @@ fun QuestionForModifierScreen(
                             if(selectedInitialResponse != "Both") changeCorrectedResponse(question, selectedResponses)
                             if(allStringResponses.isNotEmpty()) {
                                 changeCorrectedResponse(questionForModifier, allStringResponses)
+                                if(question.isNotEmpty()) changeWeeklyRoutine(question, selectedResponses)
                                 backToEditProfile()
                             }
                         }
@@ -305,7 +320,7 @@ fun getInitialPairsForResponses(selectedResponsesDb: List<String>, allResponses:
 
 @Composable
 fun ShowNextQuestionForFirstQuestion(selectedResponse: String, selectedInitialResponse: String, gymQuestion: Question?, calisthenicQuestion: Question?, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
-    var isSelectedInitialResponse = selectedInitialResponse == "De los dos"
+    var isSelectedInitialResponse = selectedInitialResponse == "Both"
 
     if(isSelectedInitialResponse) {
         updateQuestions("", listOf(""))
