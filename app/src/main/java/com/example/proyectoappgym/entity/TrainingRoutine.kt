@@ -16,7 +16,7 @@ data class TrainingRoutine(
     val name: String,
     @SerializedName("exercises")
     @Expose
-    val exercises: List<RealizationExercise>
+    var exercises: List<RealizationExercise>
 ) {
     constructor(): this(DayOfWeek.MONDAY, "", emptyList())
 }

@@ -79,9 +79,17 @@ import kotlinx.serialization.Serializable
 import kotlin.collections.set
 
 @Serializable
-data class QuestionForModifierRoute(val answeredQuestion: String, val selectedResponses: List<String>, val responsesType: ResponsesType)
+data class QuestionForModifierRoute(
+    val answeredQuestion: String,
+    val selectedResponses: List<String>,
+    val responsesType: ResponsesType
+)
 
-fun NavController.goToQuestionForModifier(answeredQuestion: String, selectedResponses: List<String>, responsesType: ResponsesType) {
+fun NavController.goToQuestionForModifier(
+    answeredQuestion: String,
+    selectedResponses: List<String>,
+    responsesType: ResponsesType
+) {
     navigate(QuestionForModifierRoute(answeredQuestion, selectedResponses, responsesType))
 }
 
@@ -101,37 +109,46 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
         val selectedResponses = questionForModifierRoute.selectedResponses
         val responsesType = questionForModifierRoute.responsesType
         val allResponsesDb =
-            questionForModifierViewmodel.allQuestions.find { it.question == questionForModifier }?.responses?.toList() ?: emptyList()
-        val isEqualFirstQuestion = questionForModifier == "Are you more into calisthenics or gym workouts?"
-        val gymQuestion = if(isEqualFirstQuestion)
+            questionForModifierViewmodel.allQuestions.find { it.question == questionForModifier }?.responses?.toList()
+                ?: emptyList()
+        val isEqualFirstQuestion =
+            questionForModifier == "Are you more into calisthenics or gym workouts?"
+        val gymQuestion = if (isEqualFirstQuestion)
             questionForModifierViewmodel.allQuestions.find { "What types of gym exercises do you focus on or want to focus on?" == it.question }
         else null
         val calisthenicQuestion = if (isEqualFirstQuestion)
             questionForModifierViewmodel.allQuestions.find { "What types of calisthenics exercises do you focus on or want to focus on?" == it.question }
         else null
-        val selectedInitialResponse = if(isEqualFirstQuestion) questionForModifierRoute.selectedResponses[0] else null
+        val selectedInitialResponse =
+            if (isEqualFirstQuestion) questionForModifierRoute.selectedResponses[0] else null
         val oldAnsweredQuestions = currentUser.allQuestionsAnswered
 
-        if(currentUser.name.isNotEmpty())
-        QuestionForModifierScreen(
-            questionForModifier,
-            allResponsesDb,
-            selectedResponses,
-            selectedInitialResponse,
-            responsesType,
-            backToEditProfile,
-            gymQuestion,
-            calisthenicQuestion,
-            hasChangeRoutine,
-            { question, newResponses ->
-                questionForModifierViewmodel.changeWeeklyRoutine(oldAnsweredQuestions, oldAnsweredQuestions.toMutableMap().apply { set(question, newResponses) }, question, newResponses)
-            },
-            { question, newResponses ->
-                questionForModifierViewmodel.updateResponsesOfQuestion(question, newResponses)
+        if (currentUser.name.isNotEmpty())
+            QuestionForModifierScreen(
+                questionForModifier,
+                allResponsesDb,
+                selectedResponses,
+                selectedInitialResponse,
+                responsesType,
+                backToEditProfile,
+                gymQuestion,
+                calisthenicQuestion,
+                currentUser.allQuestionsAnswered,
+                hasChangeRoutine,
+                { newAnsweredQuestions, question, newResponses ->
+                    questionForModifierViewmodel.changeWeeklyRoutine(
+                        oldAnsweredQuestions,
+                        newAnsweredQuestions,
+                        question,
+                        newResponses
+                    )
+                },
+                { question, newResponses ->
+                    questionForModifierViewmodel.updateResponsesOfQuestion(question, newResponses)
+                }
+            ) { question ->
+                questionForModifierViewmodel.removeResponsesOfQuestion(question)
             }
-        ) {
-            question -> questionForModifierViewmodel.removeResponsesOfQuestion(question)
-        }
     }
 }
 
@@ -146,22 +163,30 @@ fun QuestionForModifierScreen(
     backToEditProfile: () -> Unit,
     gymQuestion: Question?,
     calisthenicQuestion: Question?,
+    actualAnsweredQuestions: Map<String, List<String>>,
     hasChangeRoutines: Boolean?,
-    changeWeeklyRoutine: (question: String, newResponses: List<String>) -> Unit,
+    changeWeeklyRoutine: (Map<String, List<String>>, question: String, newResponses: List<String>) -> Unit,
     changeCorrectedResponse: (String, List<String>) -> Unit,
     removeResponsesOfQuestion: (String) -> Unit
 ) {
-    var allResponses = remember { mutableStateMapOf(*getInitialPairsForResponses(selectedResponsesDb, allResponsesDb).toTypedArray()) } //Variable donde se guardan las respuesta y si estan seleccionadas
+    var allResponses = remember {
+        mutableStateMapOf(
+            *getInitialPairsForResponses(
+                selectedResponsesDb,
+                allResponsesDb
+            ).toTypedArray()
+        )
+    } //Variable donde se guardan las respuesta y si estan seleccionadas
     var isMultipleResponse = responsesType == ResponsesType.CHECKBOX
     var showDialogForQuestion by remember { mutableStateOf(false) } //Variable para mostrar dialogo
     var allStringResponses = emptyList<String>() //Variable para guardar las respuestas en cadena
     val updateResponses: () -> Unit = {//Funcion para actualizar las respuestas en la base de datos
         allStringResponses = allResponses.filterValues { it }.keys.toList()
 
-        if (allStringResponses.toSet() != allResponsesDb.toSet()) {
-            if(allStringResponses.isNotEmpty())
+        if (allStringResponses.toSet() != selectedResponsesDb.toSet()) {
+            if (allStringResponses.isNotEmpty())
                 changeCorrectedResponse(questionForModifier, allStringResponses)
-                changeWeeklyRoutine(questionForModifier, allStringResponses)
+                changeWeeklyRoutine(actualAnsweredQuestions.toMutableMap().apply { set(questionForModifier, allStringResponses) }, questionForModifier, allStringResponses)
         }
         backToEditProfile()
     }
@@ -195,17 +220,17 @@ fun QuestionForModifierScreen(
             )
             Spacer(modifier = Modifier.height(20.dp))
             LazyVerticalGrid(
-                columns = GridCells.Fixed(if(allResponsesDb.size > 4) 2 else 1),
+                columns = GridCells.Fixed(if (allResponsesDb.size > 4) 2 else 1),
                 verticalArrangement = Arrangement.Center,
                 horizontalArrangement = Arrangement.Center
             ) {
                 allResponses.forEach { (response, isSelected) ->
                     item {
                         ShowResponse(response, isSelected) { response, isSelected ->
-                            if(isMultipleResponse)
+                            if (isMultipleResponse)
                                 allResponses[response] = isSelected
                             else
-                                if(isSelected) {
+                                if (isSelected) {
                                     allResponses.forEach { response, isSelected ->
                                         allResponses[response] = false
                                     }
@@ -219,32 +244,49 @@ fun QuestionForModifierScreen(
             }
 
             ShowButtonsApply {
-                if (gymQuestion == null && calisthenicQuestion == null) updateResponses()
-                else {
+                if (gymQuestion == null && calisthenicQuestion == null) {
+                    updateResponses()
+                } else {
                     allStringResponses = allResponses.filterValues { it }.keys.toList()
                     if (allStringResponses.toSet() != selectedResponsesDb.toSet())
-                        if(allStringResponses.isNotEmpty()) showDialogForQuestion = true
+                        if (allStringResponses.isNotEmpty()) showDialogForQuestion = true
                 }
 
             }
 
-            if(showDialogForQuestion) {
-                selectedResponse = allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()[0]
+            if (showDialogForQuestion) {
+                selectedResponse =
+                    allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()[0]
                 ShowNextQuestionForFirstQuestion(
                     selectedResponse,
                     selectedInitialResponse ?: "",
                     gymQuestion,
                     calisthenicQuestion,
                     { question, selectedResponses ->
-                        if(selectedResponses.isEmpty()) undoChanges()
-                        else  {
-                            if(selectedResponse == "Gym") removeResponsesOfQuestion(calisthenicQuestion?.question ?: "")
-                            else if(selectedResponse == "Calisthenics") removeResponsesOfQuestion(gymQuestion?.question ?: "")
+                        if (selectedResponses.isEmpty()) undoChanges()
+                        else {
+                            if (selectedResponse == "Gym") removeResponsesOfQuestion(
+                                calisthenicQuestion?.question ?: ""
+                            )
+                            else if (selectedResponse == "Calisthenics") removeResponsesOfQuestion(
+                                gymQuestion?.question ?: ""
+                            )
 
-                            if(selectedInitialResponse != "Both") changeCorrectedResponse(question, selectedResponses)
-                            if(allStringResponses.isNotEmpty()) {
+                            if (selectedInitialResponse != "Both") changeCorrectedResponse(
+                                question,
+                                selectedResponses
+                            )
+                            if (allStringResponses.isNotEmpty()) {
                                 changeCorrectedResponse(questionForModifier, allStringResponses)
-                                if(question.isNotEmpty()) changeWeeklyRoutine(question, selectedResponses)
+
+                                changeWeeklyRoutine(
+                                    actualAnsweredQuestions.toMutableMap().apply {
+                                        set(questionForModifier, allStringResponses)
+                                        set(question, selectedResponses)
+                                    },
+                                    question,
+                                    if(selectedResponses[0].isEmpty()) emptyList() else selectedResponses
+                                )
                                 backToEditProfile()
                             }
                         }
@@ -264,36 +306,60 @@ fun ShowTopAppBarUpdateQuestion(backToEditProfile: () -> Unit) {
         title = { Text("Update user data") },
         navigationIcon = {
             IconButton(backToEditProfile) {
-                Icon(painter = painterResource(R.drawable.ic_arrow_back_24), contentDescription = "Icon back")
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_back_24),
+                    contentDescription = "Icon back"
+                )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, navigationIconContentColor = Color.White, titleContentColor = Color.White)
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent,
+            navigationIconContentColor = Color.White,
+            titleContentColor = Color.White
+        )
     )
 }
 
 @SuppressLint("SuspiciousIndentation")
 @Composable
-fun ShowResponse(response: String, isCorrectedResponse: Boolean, changeCorrectedResponse: (String, Boolean) -> Unit) {
-    var widthCard = if(response.length<=9) 150.dp else if(isCorrectedResponse) (response.length * 14).dp else (response.length * 14).dp
+fun ShowResponse(
+    response: String,
+    isCorrectedResponse: Boolean,
+    changeCorrectedResponse: (String, Boolean) -> Unit
+) {
+    var widthCard =
+        if (response.length <= 9) 150.dp else if (isCorrectedResponse) (response.length * 14).dp else (response.length * 14).dp
 
-        Card(
-            onClick = { changeCorrectedResponse(response, !isCorrectedResponse) },
-            elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
-            colors = CardDefaults.cardColors(containerColor = colorResource(if(isCorrectedResponse) R.color.lightGreen else R.color.black), contentColor = Color.White),
+    Card(
+        onClick = { changeCorrectedResponse(response, !isCorrectedResponse) },
+        elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = colorResource(if (isCorrectedResponse) R.color.lightGreen else R.color.black),
+            contentColor = Color.White
+        ),
+        modifier = Modifier
+            .padding(10.dp)
+            .width(widthCard)
+            .wrapContentWidth(align = Alignment.CenterHorizontally)
+            .sizeIn(minWidth = widthCard)
+    ) {
+        Text(
+            response,
+            color = Color.White,
+            maxLines = 4,
             modifier = Modifier
-                .padding(10.dp)
-                .width(widthCard)
-                .wrapContentWidth(align = Alignment.CenterHorizontally)
-                .sizeIn(minWidth = widthCard)
-        ) {
-            Text(response, color = Color.White, maxLines = 4, modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 15.dp))
-        }
+                .align(Alignment.CenterHorizontally)
+                .padding(vertical = 15.dp)
+        )
+    }
 }
 
 @Composable
 fun ShowButtonsApply(updateCorrectedResponse: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 15.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -308,7 +374,10 @@ fun ShowButtonsApply(updateCorrectedResponse: () -> Unit) {
     }
 }
 
-fun getInitialPairsForResponses(selectedResponsesDb: List<String>, allResponses: List<String>): List<Pair<String, Boolean>> {
+fun getInitialPairsForResponses(
+    selectedResponsesDb: List<String>,
+    allResponses: List<String>
+): List<Pair<String, Boolean>> {
     var pairsList = mutableListOf<Pair<String, Boolean>>()
 
     allResponses.forEach { response ->
@@ -319,19 +388,35 @@ fun getInitialPairsForResponses(selectedResponsesDb: List<String>, allResponses:
 }
 
 @Composable
-fun ShowNextQuestionForFirstQuestion(selectedResponse: String, selectedInitialResponse: String, gymQuestion: Question?, calisthenicQuestion: Question?, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
+fun ShowNextQuestionForFirstQuestion(
+    selectedResponse: String,
+    selectedInitialResponse: String,
+    gymQuestion: Question?,
+    calisthenicQuestion: Question?,
+    updateQuestions: (String, List<String>) -> Unit,
+    undoChanges: () -> Unit
+) {
     var isSelectedInitialResponse = selectedInitialResponse == "Both"
 
-    if(isSelectedInitialResponse) {
-        updateQuestions("", listOf(""))
+    if (isSelectedInitialResponse) {
+        updateQuestions(if(selectedResponse == "Gym") gymQuestion?.question ?: "" else calisthenicQuestion?.question ?: "", listOf(""))
         return
     }
 
-    when(selectedResponse) {
+    when (selectedResponse) {
         "Gym" -> ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
-        "Calisthenics" -> ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
+        "Calisthenics" -> ShowDialogQuestion(
+            calisthenicQuestion as Question,
+            updateQuestions,
+            undoChanges
+        )
+
         else -> {
-            if(selectedInitialResponse == "Gym") ShowDialogQuestion(calisthenicQuestion as Question, updateQuestions, undoChanges)
+            if (selectedInitialResponse == "Gym") ShowDialogQuestion(
+                calisthenicQuestion as Question,
+                updateQuestions,
+                undoChanges
+            )
             else ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
         }
     }
@@ -339,7 +424,11 @@ fun ShowNextQuestionForFirstQuestion(selectedResponse: String, selectedInitialRe
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowDialogQuestion(question: Question, updateQuestions: (String, List<String>) -> Unit, undoChanges: () -> Unit) {
+fun ShowDialogQuestion(
+    question: Question,
+    updateQuestions: (String, List<String>) -> Unit,
+    undoChanges: () -> Unit
+) {
     var selectedResponses = remember { mutableStateListOf<String>() }
 
     AlertDialog(
@@ -351,7 +440,10 @@ fun ShowDialogQuestion(question: Question, updateQuestions: (String, List<String
             ) {
                 TextButton(
                     { updateQuestions(question.question, selectedResponses) },
-                    colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen), contentColor = Color.White),
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = colorResource(R.color.lightGreen),
+                        contentColor = Color.White
+                    ),
                     modifier = Modifier.width(200.dp)
                 ) {
                     Text("Update")
@@ -373,14 +465,19 @@ fun ShowDialogQuestion(question: Question, updateQuestions: (String, List<String
 }
 
 @Composable
-fun ShowResponsesDialog(question: Question, isSelectedResponse: (String) -> Boolean, addResponse: (String) -> Unit, removeResponse: (String) -> Unit) {
+fun ShowResponsesDialog(
+    question: Question,
+    isSelectedResponse: (String) -> Boolean,
+    addResponse: (String) -> Unit,
+    removeResponse: (String) -> Unit
+) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         question.responses.forEach { response ->
             ShowResponse(response, isSelectedResponse(response)) { response, isSelected ->
-                if(isSelected) addResponse(response) else removeResponse(response)
+                if (isSelected) addResponse(response) else removeResponse(response)
             }
         }
     }

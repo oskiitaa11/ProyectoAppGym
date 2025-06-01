@@ -12,6 +12,7 @@ import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.ExerciseLevel
+import com.example.proyectoappgym.entity.Muscles
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.RealizationExercise
 import com.example.proyectoappgym.entity.TrainingRoutine
@@ -41,7 +42,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import kotlin.collections.component1
 import kotlin.collections.component2
+import kotlin.collections.filterKeys
+import kotlin.collections.forEach
 import kotlin.collections.map
+import kotlin.collections.toMutableList
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.jvm.java
@@ -253,30 +257,21 @@ class UserDatabase: RepositoryUserDatabase {
         newResponses: List<String>,
     ): Boolean {
         val isCalisthenicTensionResponse = question == "What types of calisthenics exercises do you focus on or want to focus on?" && newResponses.any { it == "Tension exercises" }
-        var exercisesForSendGpt = emptyList<ExercisesName>()
+        val isCalisthenicsBasicResponse = question == "What types of calisthenics exercises do you focus on or want to focus on?" && newResponses.any { it == "Basic exercises" }
+        val isMachineExercisesResponse = question == "What types of calisthenics exercises do you focus on or want to focus on?" && newResponses.any { it == "Machine exercises" }
+        val isWeightlifting = question == "What types of calisthenics exercises do you focus on or want to focus on?" && newResponses.any { it == "Weightlifting exercises" }
         var routines = mutableListOf<TrainingRoutine>()
-        val addRoutinesWithGpt = (!newResponses.any { it == "Tension exercises" }) || (isCalisthenicTensionResponse && newResponses.size >= 2)
-        val message: String
-        val request: ChatRequest
-        val response: ChatResponse
-        val receivedMessage: String
-        val json: String
         var trainingRoutines = emptyList<TrainingRoutine>()
+        var mapWithDifferences = makeMapWithDifferencesOfTwoMaps(oldAnsweredQuestions, newAnsweredQuestion)
+        var removedExercisesType = getRemovedExercisesType(oldAnsweredQuestions, newAnsweredQuestion)
+        var addedExerciseType = getAddedExerciseType(oldAnsweredQuestions, newAnsweredQuestion)
 
-        if(isCalisthenicTensionResponse) routines.addAll(implementCalisthenicRoutine(newAnsweredQuestion))
-        if(addRoutinesWithGpt) {
-            exercisesForSendGpt = makeExercisesListForSend(mapOf(question to newResponses))
-            message = makeMessageForUpdateRoutine(oldAnsweredQuestions, question, newResponses, isCalisthenicTensionResponse, actualRoutines, routines, exercisesForSendGpt)
-            request = ChatRequest(
-                messages = listOf(
-                    ChatMessage(role = "user", content = message)
-                )
-            )
-            response = api.getChatResponse("Bearer $apiKey", request)
-            receivedMessage = response.choices[0].message.content
-            json = receivedMessage.substringAfter("```json").substringBefore("```")
-            trainingRoutines = Gson().fromJson<Routines>(json, object : TypeToken<Routines>() {}.type).trainingRoutines.toMutableList()
+        if(removedExercisesType.isNotEmpty()) removedDaysRoutines(removedExercisesType, actualRoutines)
+        if(addedExerciseType.isNotEmpty()) {
+            if(isCalisthenicTensionResponse) routines.addAll(implementCalisthenicTensionRoutine(newAnsweredQuestion))
+            if(isCalisthenicsBasicResponse)
         }
+
 
         return suspendCoroutine<Boolean> { continuation ->
             db.collection("Users").document(uidLoggedUser ?: "").update("trainingRoutines", trainingRoutines).addOnSuccessListener { result ->
@@ -290,7 +285,7 @@ class UserDatabase: RepositoryUserDatabase {
     override suspend fun saveUserTrainingRoutinesGpt(questions: Map<String, List<String>>, emailUser: String): Boolean {
         var isSuccess = false
         val anyTensionExercises = questions["What types of calisthenics exercises do you focus on or want to focus on?"]?.any { it == "Tension exercises" } ?: false
-        val trainingRoutinesTens = if(anyTensionExercises) implementCalisthenicRoutine(questions)
+        val trainingRoutinesTens = if(anyTensionExercises) implementCalisthenicTensionRoutine(questions)
         else null
         var message = makeMessageFromAnsweredQuestions(questions, trainingRoutinesTens)
         val request = ChatRequest(
@@ -313,7 +308,7 @@ class UserDatabase: RepositoryUserDatabase {
         return isSuccess
     }
 
-    private suspend fun implementCalisthenicRoutine(questions: Map<String, List<String>>): List<TrainingRoutine> {
+    private suspend fun implementCalisthenicTensionRoutine(questions: Map<String, List<String>>): List<TrainingRoutine> {
         val dayOfWeekForTraining =
             questions["Which days of the week can/do you want to train?"]?.map { dayOfWeek ->
                 DayOfWeek.fromString(dayOfWeek)
@@ -362,7 +357,7 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     private suspend fun makeMessageForUpdateRoutine(oldAnsweredQuestions: Map<String, List<String>>, question: String, newResponses: List<String>, isCalisthenicsTension: Boolean, actualRoutine: List<TrainingRoutine>, routineWithTension: List<TrainingRoutine>, exercisesName: List<ExercisesName>): String {
-        var newResponsesWithoutTension = newResponses.toMutableList().remove("Tension exercises")
+        var newResponsesWithoutTension = newResponses.toMutableList().apply { remove("Tension exercises") }
 
         if(isCalisthenicsTension) {
             return "Con estas preguntas $oldAnsweredQuestions me has dado esta rutina $actualRoutine. La pregunta $question ha cambiado de respuesta " +
@@ -460,17 +455,18 @@ class UserDatabase: RepositoryUserDatabase {
         val isBasicExercises = chooseCalisthenicsExercisesForTraining?.any { it == "Basic exercises" } ?: false
         val isMachinesExercises = chooseGymExercisesForTraining?.any { it == "Machine exercises" } ?: false
         val isWeightliftingExercises = chooseGymExercisesForTraining?.any { it == "Weightlifting exercises" } ?: false
+        val allExercises = ExercisesName.entries
 
         when(responsesChooseTraining!![0]) {
-            "Calisthenics" -> if(isBasicExercises) exercisesList.addAll(ExercisesName.entries.subList(22, 39))
+            "Calisthenics" -> if(isBasicExercises) exercisesList.addAll(allExercises.subList(22, 39))
             "Gym" -> {
-                if(isMachinesExercises) exercisesList.addAll(ExercisesName.entries.subList(0, 22))
-                if(isWeightliftingExercises) exercisesList.subList(39, exercisesList.size - 1)
+                if(isMachinesExercises) exercisesList.addAll(allExercises.subList(0, 22))
+                if(isWeightliftingExercises) exercisesList.addAll(allExercises.subList(39, 73))
             }
             "Both" -> {
-                if(isMachinesExercises) exercisesList.addAll(ExercisesName.entries.subList(0, 22))
-                if(isWeightliftingExercises) exercisesList.addAll(ExercisesName.entries.subList(39, 79))
-                if(isBasicExercises) exercisesList.addAll(ExercisesName.entries.subList(22, 39))
+                if(isMachinesExercises) exercisesList.addAll(allExercises.subList(0, 22))
+                if(isWeightliftingExercises) exercisesList.addAll(allExercises.subList(39, 73))
+                if(isBasicExercises) exercisesList.addAll(allExercises.subList(22, 39))
             }
         }
 
@@ -485,6 +481,100 @@ class UserDatabase: RepositoryUserDatabase {
         responsesGym.forEach { if(it == "Weightlifting exercises") daysForTrainingNotTens++ }
 
         return@coroutineScope daysForTraining - daysForTrainingNotTens
+    }
+
+    private suspend fun makeMapWithDifferencesOfTwoMaps(oldAnsweredQuestions: Map<String, List<String>>, newAnsweredQuestion: Map<String, List<String>>): Map<String, List<String>> {
+        var oldAnsweredExercisesTypeQuestions = filterMapForTheExercisesTypeQuestions(oldAnsweredQuestions)
+        var newAnsweredExercisesTypeQuestions = filterMapForTheExercisesTypeQuestions(newAnsweredQuestion)
+        var differentMap = mutableMapOf<String, List<String>>()
+
+        oldAnsweredExercisesTypeQuestions.forEach { (question, selectedResponses) ->
+            newAnsweredExercisesTypeQuestions[question]?.forEach {
+                if(!selectedResponses.contains(it)) {
+                    if(!differentMap.contains(question)) differentMap.put(question, emptyList())
+                    differentMap[question] = differentMap[question]?.toMutableList().apply { this!!.add(it) } ?: emptyList<String>()
+                }
+            } ?: differentMap.put(question, emptyList())
+        }
+
+        differentMap.put("Are you more into calisthenics or gym workouts?", newAnsweredQuestion["Are you more into calisthenics or gym workouts?"] ?: emptyList())
+        return differentMap
+    }
+
+    private suspend fun filterMapForTheExercisesTypeQuestions(answeredQuestions: Map<String, List<String>>): Map<String, List<String>> {
+       return answeredQuestions.filterKeys {
+                    it == "What types of gym exercises do you focus on or want to focus on?" ||
+                    it == "What types of calisthenics exercises do you focus on or want to focus on?"
+        }
+    }
+
+    private suspend fun getAddedExerciseType(oldAnsweredQuestions: Map<String, List<String>>, newAnsweredQuestion: Map<String, List<String>>): List<String> {
+        var oldAnsweredExercisesTypeQuestions = filterMapForTheExercisesTypeQuestions(oldAnsweredQuestions)
+        var newAnsweredExercisesTypeQuestions = filterMapForTheExercisesTypeQuestions(newAnsweredQuestion)
+        var addedExercisesType = mutableListOf<String>()
+
+        oldAnsweredExercisesTypeQuestions.forEach { (question, selectedResponses) ->
+            newAnsweredExercisesTypeQuestions[question]?.forEach {
+                if(!selectedResponses.contains(it)) {
+                    addedExercisesType.add(it)
+                }
+            }
+        }
+
+        return addedExercisesType
+    }
+
+    private suspend fun getRemovedExercisesType(oldAnsweredQuestions: Map<String, List<String>>, newAnsweredQuestion: Map<String, List<String>>): List<String> {
+        var oldAnsweredExercisesTypeQuestions = filterMapForTheExercisesTypeQuestions(oldAnsweredQuestions)
+        var newAnsweredExercisesTypeQuestions = filterMapForTheExercisesTypeQuestions(newAnsweredQuestion)
+        var removedExercisesType = mutableListOf<String>()
+
+        newAnsweredExercisesTypeQuestions.forEach { (question, newSelectedResponses) ->
+            oldAnsweredExercisesTypeQuestions[question]?.forEach {
+                if(!newSelectedResponses.contains(it)) {
+                    //if(!differentMap.contains(question)) differentMap.put(question, emptyList())
+                    removedExercisesType.add(it)
+                }
+            }
+        }
+
+        return removedExercisesType
+    }
+
+    private suspend fun removedDaysRoutines(removedExercisesType: List<String>, actualRoutine: List<TrainingRoutine>): List<TrainingRoutine> {
+        val newActualRoutine = actualRoutine.toMutableList()
+
+        actualRoutine.forEach { trainingRoutine ->
+             trainingRoutine.exercises = trainingRoutine.exercises.filter { realizationExercise ->
+                removedExercisesType.any { realizationExercise.exercise.exercise.type.nameType == it }
+            }
+        }
+
+        return actualRoutine
+    }
+
+    private suspend fun implementCalisthenicBasicRoutine(newAnsweredQuestion: Map<String, List<String>>, newRoutines: List<TrainingRoutine>, exerciseTypeForAdd: List<String>) {
+        val daysForTrain = newAnsweredQuestion["Which days of the week can/do you want to train?"]?.count() ?: 0
+        val emptyDays = newRoutines.filter { it.exercises.isEmpty() || it.exercises.size < 5 }
+        val trainingMuscles = newRoutines.flatMap { trainingRoutine ->
+            trainingRoutine.exercises.map { it.exercise.exercise.trainedPrimaryMuscles }
+        }.flatten()
+        val musclesForTrain = Muscles.entries.filter { muscle ->
+            trainingMuscles.any { muscle == it }
+        }
+
+        if(daysForTrain == exerciseTypeForAdd.size)
+            exerciseTypeForAdd.forEach {
+                when(it) {
+                    TypeExercise.BASIC.nameType -> getCalisthenicBasicRoutine()
+                    TypeExercise.WEIGHTLIFTING.nameType -> getWeightliftingRoutine()
+                    TypeExercise.MACHINES.nameType -> getMachinesExercisesRoutine()
+                }
+            }
+    }
+
+    private suspend fun getCalisthenicBasicRoutine() {
+
     }
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
         val storageRef = FirebaseStorage.getInstance().reference
