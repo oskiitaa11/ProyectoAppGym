@@ -553,7 +553,7 @@ class UserDatabase: RepositoryUserDatabase {
         return actualRoutine
     }
 
-    private suspend fun implementCalisthenicBasicRoutine(newAnsweredQuestion: Map<String, List<String>>, newRoutines: List<TrainingRoutine>, exerciseTypeForAdd: List<String>) {
+    private suspend fun implementRoutine(newAnsweredQuestion: Map<String, List<String>>, newRoutines: List<TrainingRoutine>, exerciseTypeForAdd: List<String>) {
         val daysForTrain = newAnsweredQuestion["Which days of the week can/do you want to train?"]?.count() ?: 0
         val emptyDays = newRoutines.filter { it.exercises.isEmpty() || it.exercises.size < 5 }
         val trainingMuscles = newRoutines.flatMap { trainingRoutine ->
@@ -573,8 +573,65 @@ class UserDatabase: RepositoryUserDatabase {
             }
     }
 
-    private suspend fun getCalisthenicBasicRoutine() {
+    private suspend fun getCalisthenicBasicRoutine(musclesForTrain: List<Muscles>, daysForTrain: Int, daysLeftForTrain: Int, daysOfWeekForTrain: List<DayOfWeek>, goal: String) {
+        val isDayPullUp = musclesForTrain.any { it == Muscles.LATISSIMUS_DORSI || it == Muscles.TRICEPS || Muscles.TRAPEZIUS == it }
+        val isDayPushUp = musclesForTrain.any { it == Muscles.BICEPS ||it == Muscles.PECTORALS || it == Muscles.DELTOIDS }
+        val isDayCore = musclesForTrain.any { it == Muscles.ABS }
+        val isDayLegs = musclesForTrain.any { it == Muscles.ADDUCTORS || it == Muscles.CALVES || it == Muscles.GLUTEUS || it == Muscles.QUADRICEPS }
+        val exercisesPullUp = listOf(ExercisesName.PULL_UPS, ExercisesName.NEGATIVE_PULL_UPS,
+            ExercisesName.CHIN_UPS, ExercisesName.PULL_UP_HOLDING_UP)
+        val exercisesPushUp = listOf(ExercisesName.PUSH_UPS, ExercisesName.CLOSED_GRIP_PUSH_UPS,
+            ExercisesName.CHIN_UPS, ExercisesName.DIPS)
+        val exercisesCore = listOf(ExercisesName.CRUNCHES, ExercisesName.PLANK, ExercisesName.CRUNCHES,
+            ExercisesName.RUSSIAN_TWISTS, ExercisesName.MOUNTAIN_CLIMBERS)
+        val exercisesLegs = listOf(ExercisesName.SQUATS, ExercisesName.JUMP_SQUATS, ExercisesName.LUNGES,
+            ExercisesName.CALF_RAISES, ExercisesName.STEP_UPS)
+        val numberRepetitions = when(goal) {
+            "Gain more strength" -> 6
+            "Increase endurance" -> 20
+            "Build more muscle" -> 12
+            else -> 0
+        }
+        val restBetweenSeries = when(goal) {
+            "Gain more strength", "Build more muscle" -> 2
+            "Increase endurance" -> 1
+            else -> 0
+        }
+        val realizationExercises = if(isDayPullUp)
+            exercisesToRealizationExercise(exercisesPullUp, numberRepetitions, restBetweenSeries) else
+                if(isDayPushUp) exercisesToRealizationExercise(exercisesPushUp, numberRepetitions, restBetweenSeries) else
+                    if(isDayCore) exercisesToRealizationExercise(exercisesCore, numberRepetitions, restBetweenSeries) else
+                        exercisesToRealizationExercise(exercisesLegs, numberRepetitions, restBetweenSeries)
 
+        when(daysForTrain) {
+            1 -> TrainingRoutine(daysOfWeekForTrain[0],
+                if(isDayPullUp) "Pull-up day" else if(isDayPushUp) "Push-up day" else "Calisthenic basic day",
+                realizationExercises
+            )
+        }
+    }
+
+    private suspend fun exercisesToRealizationExercise(exercises: List<ExercisesName>, repetitions: Int, restBetweenSeries: Int): List<RealizationExercise> {
+       return exercises.map { RealizationExercise(it, 3, repetitions, restBetweenSeries) }
+    }
+
+    private suspend fun createRoutine(answeredQuestions: Map<String, List<String>>) {
+        val numberOfDaysForTraining = answeredQuestions["Which days of the week can/do you want to train?"]?.count() ?: 0
+        val numberOfTypeExercises = (answeredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.count() ?: 0) + (answeredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.count() ?: 0)
+        val typeExercisesGym = answeredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
+        val typeExercisesCalisthenics = answeredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"] ?: emptyList()
+        val allTypeExercisesForTrain = typeExercisesGym.toMutableList().apply { addAll(typeExercisesCalisthenics) }
+        val allTypeDuplicatesExercises = if(numberOfTypeExercises % 2 == 0) allTypeExercisesForTrain.flatMap { List(2) { it } }
+        else if(numberOfTypeExercises == 1) allTypeExercisesForTrain.flatMap { List(numberOfDaysForTraining) { it } }
+        else if(numberOfTypeExercises % numberOfDaysForTraining == 1) allTypeExercisesForTrain.flatMap { if (it == ) }
+
+        if(numberOfDaysForTraining == numberOfTypeExercises) {
+            allTypeExercisesForTrain.forEach {
+                when(it) {
+                    TypeExercise.MACHINES.nameType ->
+                }
+            }
+        }
     }
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
         val storageRef = FirebaseStorage.getInstance().reference
