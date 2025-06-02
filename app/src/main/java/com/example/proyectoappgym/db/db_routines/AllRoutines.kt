@@ -72,8 +72,7 @@ object AllRoutines {
         ExercisesName.PULL_UPS,
         ExercisesName.CHIN_UPS,
         ExercisesName.NEGATIVE_PULL_UPS,
-        ExercisesName.PULL_UP_HOLDING_UP,
-        ExercisesName.BENCH_DIPS
+        ExercisesName.PULL_UP_HOLDING_UP
     )
 
     val routineBasicPushUp = listOf(
@@ -95,7 +94,7 @@ object AllRoutines {
         ExercisesName.FRENCH_PRESS_WITH_BARBELL_OR_DUMBBELLS
     )
 
-    val routineWeightLiftingPullUp = listOf(
+    val routineWeightliftingPullUp = listOf(
         ExercisesName.DEADLIFT,                              // Peso muerto (espalda baja y cadena posterior)
         ExercisesName.BARBELL_ROW,                           // Remo con barra
         ExercisesName.ONE_ARM_DUMBBELL_ROW,                  // Remo con mancuerna a una mano
@@ -110,10 +109,11 @@ object AllRoutines {
 
     val routineWeightliftingLegs = listOf(
         ExercisesName.BARBELL_SQUATS,                         // Sentadillas con barra
-        ExercisesName.LEG_PRESS,                              // Prensa de piernas
+        ExercisesName.LEG_EXTENSION_MACHINE,                              // Prensa de piernas
         ExercisesName.ROMANIAN_DEADLIFT,                      // Peso muerto rumano (femorales/glúteos)
         ExercisesName.DUMBBELL_LUNGES,                        // Zancadas con mancuernas
-        ExercisesName.STANDING_OR_SEATED_CALF_RAISES          // Elevaciones de talones (gemelos de pie o sentado)
+        ExercisesName.STANDING_OR_SEATED_CALF_RAISES,          // Elevaciones de talones (gemelos de pie o sentado)
+        ExercisesName.LEG_PRESS_MACHINE,
     )
 
     val routineWeightliftingCore = listOf(
@@ -121,6 +121,8 @@ object AllRoutines {
         ExercisesName.LEG_RAISES_WITH_WEIGHT,                  // Elevaciones de piernas con peso
         ExercisesName.RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE,    // Giros rusos con mancuerna o disco
         ExercisesName.WEIGHTED_PLANK,                          // Plancha con peso
+        ExercisesName.AB_CRUNCH_MACHINE,
+        ExercisesName.CRUNCHES
     )
 
     val routineMachinesExercisesPushUp = listOf(
@@ -147,13 +149,17 @@ object AllRoutines {
         ExercisesName.LEG_EXTENSION_MACHINE,
         ExercisesName.LEG_CURL_MACHINE,
         ExercisesName.ABDUCTOR_MACHINE,
-        ExercisesName.CABLE_PULL_THROUGH
+        ExercisesName.CABLE_PULL_THROUGH,
+        ExercisesName.SQUATS,
+        ExercisesName.STANDING_OR_SEATED_CALF_RAISES
     )
 
     val routineMachineExercisesCore = listOf(
         ExercisesName.AB_CRUNCH_MACHINE,
         ExercisesName.OBLIQUE_MACHINE,
         ExercisesName.CABLE_CRUNCH_MACHINE,
-        ExercisesName.BACK_EXTENSION_MACHINE
+        ExercisesName.BACK_EXTENSION_MACHINE,
+        ExercisesName.RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE,
+        ExercisesName.LEG_RAISES_WITH_WEIGHT
     )
 }

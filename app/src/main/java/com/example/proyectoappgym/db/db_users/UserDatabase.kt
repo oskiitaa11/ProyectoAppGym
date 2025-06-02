@@ -3,6 +3,7 @@ package com.example.proyectoappgym.db.db_users
 import android.annotation.SuppressLint
 import androidx.compose.runtime.mutableStateListOf
 import com.example.proyectoappgym.db.db_routines.AllExercises
+import com.example.proyectoappgym.db.db_routines.AllRoutines
 import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
 import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
 import com.example.proyectoappgym.db.retrofit.entity.ChatResponse
@@ -40,6 +41,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.annotation.meta.When
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.filterKeys
@@ -68,6 +70,8 @@ class UserDatabase: RepositoryUserDatabase {
         .build()
     private val api: OpenAiApi = retrofit.create(OpenAiApi::class.java)
     private val apiKey = "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"
+    private val allRoutines = AllRoutines
+    private val allExercises = AllExercises
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -624,14 +628,73 @@ class UserDatabase: RepositoryUserDatabase {
         val allTypeDuplicatesExercises = if(numberOfTypeExercises % 2 == 0) allTypeExercisesForTrain.flatMap { List(2) { it } }
         else if(numberOfTypeExercises == 1) allTypeExercisesForTrain.flatMap { List(numberOfDaysForTraining) { it } }
         else if(numberOfTypeExercises % numberOfDaysForTraining == 1) allTypeExercisesForTrain.flatMap { if (it == ) }
+        val weeklyRoutines = emptyList<TrainingRoutine>()
+        val numberTrainingDays = 4
+        val daysOfWeekForTrain = answeredQuestions["Which days of the week can/do you want to train?"] ?: emptyList()
+        val goals = answeredQuestions["What are your goals?"] ?: emptyList()
+        val repetitions = when(goals[0]) {
+            "Gain more strength" -> 6
+            "Increase endurance" -> 20
+            "Build more muscle" -> 12
+            else -> 0
+        }
+        val restBetweenSeries = when(goals[0]) {
+            "Gain more strength" -> 2
+            "Increase endurance" -> 1
+            "Build more muscle" -> 2
+            else -> 0
+        }
 
-        if(numberOfDaysForTraining == numberOfTypeExercises) {
-            allTypeExercisesForTrain.forEach {
-                when(it) {
-                    TypeExercise.MACHINES.nameType ->
+        if(numberOfDaysForTraining) addRoutine(weeklyRoutines)
+
+        if(numberOfDaysForTraining == 4) {
+            if(numberOfDaysForTraining == numberOfTypeExercises) {
+                allTypeExercisesForTrain.forEach {
+                    when(it) {
+                        TypeExercise.MACHINES.nameType -> {
+                            when(numberOfDaysForTraining) {
+                                4 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineMachinesExercisesPushUp, 3, repetitions, restBetweenSeries, "Push-day")
+                                3 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineMachineExercisesPullUp, 3, repetitions, restBetweenSeries, "Pull-up day")
+                                2 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineMachineExercisesLegs, 3, repetitions, restBetweenSeries, "Legs day")
+                                1 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineMachineExercisesCore, 3, repetitions, restBetweenSeries, "Core day")
+                            }
+                        }
+                        TypeExercise.WEIGHTLIFTING.nameType -> {
+                            when(numberOfDaysForTraining) {
+                                4 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineWeightliftingPushUp, 3, repetitions, restBetweenSeries, "Push-day")
+                                3 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineWeightliftingPullUp, 3, repetitions, restBetweenSeries, "Pull-up day")
+                                2 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineWeightliftingLegs, 3, repetitions, restBetweenSeries, "Legs day")
+                                1 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineWeightliftingCore, 3, repetitions, restBetweenSeries, "Core day")
+                            }
+                        }
+                        TypeExercise.BASIC.nameType -> {
+                            when(numberOfDaysForTraining) {
+                                4 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineBasicPushUp, 4, repetitions, restBetweenSeries, "Push-day")
+                                3 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineBasicPullUp, 4, repetitions, restBetweenSeries, "Pull-up day")
+                                2 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineBasicLegs, 4, repetitions, restBetweenSeries, "Legs day")
+                                1 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineBasicCore, 4, repetitions, restBetweenSeries, "Core day")
+                            }
+                        }
+                        TypeExercise.TENS.nameType -> {
+                            when(numberOfDaysForTraining) {
+                                4 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineTensionPushUp, 4, repetitions, restBetweenSeries, "Push-day")
+                                3 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineTensionPullUp, 4, repetitions, restBetweenSeries, "Pull-up day")
+                                2 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineBasicLegs, 4, repetitions, restBetweenSeries, "Legs day")
+                                1 -> addRoutine(weeklyRoutines.toMutableList(), daysOfWeekForTrain.toMutableList(), allRoutines.routineBasicCore, 4, repetitions, restBetweenSeries, "Core day")
+                            }
+                        }
+                    }
                 }
             }
         }
+
+
+    }
+
+    private suspend fun addRoutine(routines: MutableList<TrainingRoutine>, daysOfWeek: MutableList<String>, exercises: List<ExercisesName>, sets: Int, repetitions: Int, restBetweenSeries: Int, name: String) {
+       val realizationExercises = exercises.map { RealizationExercise(it, sets, repetitions, restBetweenSeries ) }
+
+        routines.add(TrainingRoutine(DayOfWeek.fromString(daysOfWeek[0]), name, realizationExercises))
     }
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
         val storageRef = FirebaseStorage.getInstance().reference
