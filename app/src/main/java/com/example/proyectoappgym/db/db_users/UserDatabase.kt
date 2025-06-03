@@ -275,7 +275,7 @@ class UserDatabase: RepositoryUserDatabase {
         if(removedExercisesType.isNotEmpty()) removedDaysRoutines(removedExercisesType, actualRoutines)
         if(addedExerciseType.isNotEmpty()) {
             if(isCalisthenicTensionResponse) routines.addAll(implementCalisthenicTensionRoutine(newAnsweredQuestion))
-            if(isCalisthenicsBasicResponse)
+            //if(isCalisthenicsBasicResponse)
         }
 
 
@@ -572,9 +572,9 @@ class UserDatabase: RepositoryUserDatabase {
         if(daysForTrain == exerciseTypeForAdd.size)
             exerciseTypeForAdd.forEach {
                 when(it) {
-                    TypeExercise.BASIC.nameType -> getCalisthenicBasicRoutine()
-                    TypeExercise.WEIGHTLIFTING.nameType -> getWeightliftingRoutine()
-                    TypeExercise.MACHINES.nameType -> getMachinesExercisesRoutine()
+                    TypeExercise.BASIC.nameType -> {} //getCalisthenicBasicRoutine()
+                    TypeExercise.WEIGHTLIFTING.nameType -> {} //getWeightliftingRoutine()
+                    TypeExercise.MACHINES.nameType -> {}//getMachinesExercisesRoutine()
                 }
             }
     }
@@ -622,7 +622,7 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-    private suspend fun createRoutine(answeredQuestions: Map<String, List<String>>) {
+    override suspend fun createRoutine(answeredQuestions: Map<String, List<String>>) {
         var numberOfDaysForTraining = answeredQuestions["Which days of the week can/do you want to train?"]?.count() ?: 0
         val numberOfTypeExercises = (answeredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.count() ?: 0) + (answeredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.count() ?: 0)
         val typeExercisesGym = answeredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
@@ -647,7 +647,14 @@ class UserDatabase: RepositoryUserDatabase {
         }
         var excludedExercises = mutableListOf<ExercisesName>()
 
-        if(numberOfDaysForTraining == 4) {
+        if(numberOfDaysForTraining == 5) {
+            allTypeDuplicatesExercises.forEach {
+                addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
+                daysOfWeekForTrain.removeFirst()
+                numberTrainingDays -= 1
+            }
+            addRoutine(weeklyRoutines, daysOfWeekForTrain.first(), listOf(ExercisesName.RUNNING), 0, 0, 0, "Running day")
+        } else if(numberOfDaysForTraining == 4) {
             allTypeDuplicatesExercises.forEach {
                 addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
                 daysOfWeekForTrain.removeFirst()
@@ -688,7 +695,7 @@ class UserDatabase: RepositoryUserDatabase {
                 routine.exercises = routine.exercises.filterNot { it.exercise in excludedExercises }
             }
         } else {
-
+            addRoutineFullBody(if(typeExercisesCalisthenics.isNotEmpty()) typeExercisesCalisthenics[0] else typeExercisesGym[0], weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
         }
 
 
@@ -873,14 +880,28 @@ class UserDatabase: RepositoryUserDatabase {
         }
 
     private suspend fun addRoutineFullBody(typeExercise: String, weeklyRoutines: MutableList<TrainingRoutine>, dayOfWeekForTrain: String, repetitions: Int, restBetweenSeries: Int) {
-        val routineMachinesExercises: List<ExercisesName>
-
+        val routineAllExercises: List<ExercisesName>
+        
+        
         when(typeExercise) {
             TypeExercise.MACHINES.nameType -> {
-                routineMachinesExercises = allRoutines.routineMachineExercisesPushUp.subList(3, 6)
-                addRoutine(weeklyRoutines, dayOfWeekForTrain,  repetitions, restBetweenSeries)
+                routineAllExercises = allRoutines.routineMachineExercisesPushUp.subList(3, 6) + (allRoutines.routineMachineExercisesPullUp - listOf(ExercisesName.BACK_EXTENSION_MACHINE,
+                    ExercisesName.LAT_PULLDOWN_MACHINE)) + (allRoutines.routineMachineExercisesCore - ExercisesName.BACK_EXTENSION_MACHINE) + (allRoutines.routineMachineExercisesLegs - ExercisesName.CABLE_PULL_THROUGH)
             }
+            TypeExercise.WEIGHTLIFTING.nameType -> {
+                routineAllExercises = (allRoutines.routineWeightliftingPushUp - listOf(ExercisesName.FRONT_RAISES_WITH_DUMBBELLS_OR_BARBELL, ExercisesName.FRENCH_PRESS_WITH_BARBELL_OR_DUMBBELLS, ExercisesName.OVERHEAD_TRICEPS_EXTENSION_WITH_DUMBBELL)) + (allRoutines.routineWeightliftingPullUp - listOf(ExercisesName.ONE_ARM_DUMBBELL_ROW,
+                    ExercisesName.DEADLIFT, ExercisesName.BARBELL_CURL, ExercisesName.CONCENTRATION_CURL)) + (allRoutines.routineWeightliftingCore - listOf(ExercisesName.AB_CRUNCH_MACHINE, ExercisesName.CRUNCHES)) + (allRoutines.routineWeightliftingLegs - listOf(ExercisesName.CABLE_PULL_THROUGH, ExercisesName.LEG_EXTENSION_MACHINE))
+            }
+            TypeExercise.BASIC.nameType -> {
+                routineAllExercises = allRoutines.routineBasicPushUp + allRoutines.routineBasicPullUp + allRoutines.routineBasicLegs + allRoutines.routineBasicCore
+            }
+            TypeExercise.TENS.nameType -> {
+                routineAllExercises = allRoutines.routineTensionPushUp + allRoutines.routineTensionPullUp + allRoutines.routineBasicLegs + allRoutines.routineBasicCore
+            }
+            else -> routineAllExercises = emptyList()
         }
+
+        addRoutine(weeklyRoutines, dayOfWeekForTrain, routineAllExercises, 3, repetitions, restBetweenSeries, "Full-body day")
     }
 
     private suspend fun joinToList(exercises1: List<ExercisesName>, exercises2: List<ExercisesName>, excludedExercises: List<ExercisesName>): List<ExercisesName> {

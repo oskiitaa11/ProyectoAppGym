@@ -1,5 +1,6 @@
 package com.example.proyectoappgym.db.retrofit.entity
 
+import androidx.compose.material3.AlertDialog
 import com.example.proyectoappgym.db.db_routines.AllExercises
 import com.example.proyectoappgym.entity.Exercise
 
@@ -85,5 +86,6 @@ enum class ExercisesName(val exercise: Exercise) {
     PULL_UP_FRONT_LEVER(AllExercises.tensRoutine[5]),
     PRESS_FRONT_LEVER(AllExercises.tensRoutine[6]),
     MALTESE_FRONT_LEVER_PRESS(AllExercises.tensRoutine[7]),
-    PULL_UP_HOLDING_UP(AllExercises.tensRoutine[8])
+    PULL_UP_HOLDING_UP(AllExercises.tensRoutine[8]),
+    RUNNING(AllExercises.cardio[0])
 }

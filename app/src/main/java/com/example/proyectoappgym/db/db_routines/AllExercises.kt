@@ -1418,9 +1418,9 @@ object AllExercises {
             trainedPrimaryMuscles = emptyList<Muscles>(),
             trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
-        2. Get into the front-lever position.
-        3. Raise your legs while performing scapular retraction.
-        4. Then, lower the legs down to the front lever position.
+        1. Get into the front-lever position.
+        2. Raise your legs while performing scapular retraction.
+        3. Then, lower the legs down to the front lever position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
             idCoverImage = 0,//R.drawable.pull_up_front_lever,
@@ -1453,14 +1453,33 @@ object AllExercises {
             trainedPrimaryMuscles = emptyList<Muscles>(),
             trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
-        2. Get into the pull-up position.
-        3. Upper your body with the chin over the bar.
-        4. Holding up 3s and lower body down to pull-up position.
+        1. Get into the pull-up position.
+        2. Upper your body with the chin over the bar.
+        3. Holding up 3s and lower body down to pull-up position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
             idCoverImage = 0,//R.drawable.pull_up_holding_up,
             idImageMuscles = 0
         ),
+    )
+
+    val cardio = listOf(
+        Exercise(
+            name = "Running",
+            nameVideo = "running",
+            description = "Running at a normal pace to be able to run between 5 and 10 km",
+            exerciseLevel = ExerciseLevel.INTERMEDIATE,
+            type = TypeExercise.CARDIO,
+            trainedPrimaryMuscles = listOf(Muscles.GASTROCNEMIUS, Muscles.GLUTEUS, Muscles.HAMSTRINGS,
+                Muscles.QUADRICEPS, Muscles.SOLEUS),
+            trainedSecondaryMuscles = listOf(Muscles.OBLIQUES, Muscles.ABS),
+            stepsForDoIt = """
+        1. Running at a normal pace.
+        2. Try do some 5 kms minimum.
+    """.trimIndent(),
+            idCoverImage = R.drawable.running,//R.drawable.pull_up_holding_up,
+            idImageMuscles = R.drawable.muscles_running
+        )
     )
     //TensExercise("Pull-up hold: pull until your chin is above the bar, hold for 3 seconds, then lower. Do it without a band if possible", TypeTensExercise.FRONT_LEVEL))
 }

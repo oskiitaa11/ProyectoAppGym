@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CreateRestoreCredentialRequest
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -65,12 +66,12 @@ fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettin
         val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         if(currentUser.username.isNotEmpty())
-            ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen)
+            ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen) { profileViewmodel.createRoutine() }
     }
 }
 
 @Composable
-fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit) {
+fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit, createRoutine: () -> Unit) {
     Scaffold(topBar = { ShowTopAppBarProfile() }) { innerpadding ->
         Column(
             verticalArrangement = Arrangement.Top,
@@ -95,6 +96,9 @@ fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen:
                 colors = ButtonColors(Color(255f, 255f, 255f, 0.2f), Color.White, Color.DarkGray, Color.DarkGray)
             ) {
                 Text("Edit Profile")
+            }
+            TextButton(createRoutine) {
+                Text("Create")
             }
         }
     }
