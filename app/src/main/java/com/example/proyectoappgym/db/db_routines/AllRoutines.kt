@@ -99,7 +99,6 @@ object AllRoutines {
         ExercisesName.BARBELL_ROW,                           // Remo con barra
         ExercisesName.ONE_ARM_DUMBBELL_ROW,                  // Remo con mancuerna a una mano
         ExercisesName.DUMBBELL_PULLOVER,                     // Pullover con mancuerna (dorsales y pecho)
-        ExercisesName.LAT_PULLDOWN_CABLE,                    // Jalón en polea alta
         ExercisesName.PULL_UPS_WEIGHTED,                     // Dominadas lastradas
         ExercisesName.BARBELL_CURL,                          // Curl de bíceps con barra
         ExercisesName.DUMBBELL_CURL,                         // Curl de bíceps con mancuernas
@@ -125,14 +124,13 @@ object AllRoutines {
         ExercisesName.CRUNCHES
     )
 
-    val routineMachinesExercisesPushUp = listOf(
+    val routineMachineExercisesPushUp = listOf(
         ExercisesName.CHEST_PRESS_MACHINE,
         ExercisesName.PECK_DECK_MACHINE,
         ExercisesName.INCLINE_PRESS_MACHINE,
         ExercisesName.SHOULDER_PRESS_MACHINE,
         ExercisesName.LATERAL_RAISE_MACHINE,
-        ExercisesName.TRICEP_EXTENSION_MACHINE,
-        ExercisesName.TRAPEZIUS_MACHINE
+        ExercisesName.TRICEP_EXTENSION_MACHINE
     )
 
     val routineMachineExercisesPullUp = listOf(
@@ -142,7 +140,8 @@ object AllRoutines {
         ExercisesName.LEVER_SEATED_ROW,
         ExercisesName.BICEP_CURL_MACHINE,
         ExercisesName.PREACHER_CURL_MACHINE,
-        ExercisesName.BACK_EXTENSION_MACHINE
+        ExercisesName.BACK_EXTENSION_MACHINE,
+        ExercisesName.TRAPEZIUS_MACHINE
     )
     val routineMachineExercisesLegs = listOf(
         ExercisesName.LEG_PRESS_MACHINE,
