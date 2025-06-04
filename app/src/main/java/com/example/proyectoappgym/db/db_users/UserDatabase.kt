@@ -12,6 +12,7 @@ import com.example.proyectoappgym.db.retrofit.entity.ChatResponse
 import com.example.proyectoappgym.db.retrofit.entity.ExercisesName
 import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
 import com.example.proyectoappgym.db.retrofit.entity.Routines
+import com.example.proyectoappgym.entity.Avatars
 import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.ExerciseLevel
@@ -197,7 +198,7 @@ class UserDatabase: RepositoryUserDatabase {
         suspendCoroutine<Unit> { db.collection("Users").document(uidLoggedUser as String).update("name", newName) }
     }
 
-    override suspend fun updateAvatarProfile(newAvatar: Int) {
+    override suspend fun updateAvatarProfile(newAvatar: Avatars) {
         suspendCoroutine<Unit> {
             db.collection("Users")
                 .document(uidLoggedUser as String)
@@ -628,7 +629,7 @@ class UserDatabase: RepositoryUserDatabase {
         val typeExercisesGym = answeredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
         val typeExercisesCalisthenics = answeredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"] ?: emptyList()
         val allTypeExercisesForTrain = typeExercisesGym.toMutableList().apply { addAll(typeExercisesCalisthenics) }
-        val allTypeDuplicatesExercises = getAllTypeExercises(allTypeExercisesForTrain, numberOfDaysForTraining, numberOfTypeExercises)
+        val allTypeDuplicatesExercises = getAllTypeExercises(allTypeExercisesForTrain, numberOfDaysForTraining, numberOfTypeExercises).toMutableList()
         val weeklyRoutines = mutableListOf<TrainingRoutine>()
         var numberTrainingDays = 4
         val daysOfWeekForTrain = answeredQuestions["Which days of the week can/do you want to train?"]?.toMutableList() ?: mutableListOf()
@@ -646,8 +647,10 @@ class UserDatabase: RepositoryUserDatabase {
             else -> 0
         }
         var excludedExercises = mutableListOf<ExercisesName>()
+        var actualTypeExercise = ""
 
         if(numberOfDaysForTraining == 5) {
+
             allTypeDuplicatesExercises.forEach {
                 addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
                 daysOfWeekForTrain.removeFirst()
@@ -668,11 +671,17 @@ class UserDatabase: RepositoryUserDatabase {
                 ExercisesName.BACK_EXTENSION_MACHINE
             )
 
-            allTypeDuplicatesExercises.forEach {
+            repeat(numberTrainingDays) {
+                actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeFirst() else actualTypeExercise
+                addRoutineAccordingType(actualTypeExercise,it+1, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
+                if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeFirst()
+            }
+
+            /*allTypeDuplicatesExercises.forEach {
                 addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
                 if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeFirst()
                 numberTrainingDays -= 1
-            }
+            }*/
 
             weeklyRoutines.forEach { routine ->
                 routine.exercises = routine.exercises.filterNot { it.exercise in excludedExercises }
@@ -708,30 +717,56 @@ class UserDatabase: RepositoryUserDatabase {
     }
 
     private suspend fun getAllTypeExercises(allTypeExercisesForTrain: List<String>, numberOfDaysForTraining: Int, numberOfTypeExercises: Int): List<String> {
+        val allTypeDuplicatesExercises = mutableListOf<String>()
+        val thereIsTensionExercises = allTypeExercisesForTrain.any { it == "Tension exercises" }
+        var typeExerciseForDuplicate: String
+
         if(numberOfTypeExercises == 1) {
-            return allTypeExercisesForTrain.flatMap { List(numberOfDaysForTraining) { it.toString() } }
+            allTypeExercisesForTrain.forEach { typeExercise ->
+                allTypeDuplicatesExercises.addAll(List(numberOfDaysForTraining) { typeExercise })
+            }
+            return allTypeDuplicatesExercises
         }
 
         if(numberOfDaysForTraining == 5) {
-            return when(numberOfTypeExercises) {
-                2 -> allTypeExercisesForTrain.flatMap { List(if(it == allTypeExercisesForTrain[0]) 2 else 3) { it.toString() } } //
-                3 -> allTypeExercisesForTrain.flatMap { List(if(it != allTypeExercisesForTrain[1]) 2 else 0) { it.toString() } }
-                else -> allTypeExercisesForTrain.flatMap { List(if(it == allTypeExercisesForTrain.last()) 2 else 0) { it.toString() } }
+            when(numberOfTypeExercises) {
+                2 -> allTypeExercisesForTrain.forEach { typeExercise ->
+                    typeExerciseForDuplicate = if(thereIsTensionExercises) "Tension exercises" else allTypeExercisesForTrain[0]
+                    allTypeDuplicatesExercises.addAll(List(if(typeExercise == typeExerciseForDuplicate) 2 else 3) { typeExercise })
+                }
+                3 -> allTypeExercisesForTrain.forEach { typeExercise ->
+                    typeExerciseForDuplicate = if(thereIsTensionExercises) "Tension exercises" else allTypeExercisesForTrain[1]
+                    allTypeDuplicatesExercises.addAll(List(if(typeExercise != typeExerciseForDuplicate) 2 else 1) { typeExercise })
+                }
+                else -> allTypeExercisesForTrain.forEach { typeExercise ->
+                    typeExerciseForDuplicate = if(thereIsTensionExercises) "Tension exercises" else allTypeExercisesForTrain.last()
+                    allTypeDuplicatesExercises.addAll(List(if(typeExercise == typeExerciseForDuplicate) 2 else 1) { typeExercise })
+                }
             }
         } else if(numberOfDaysForTraining == 4) {
-            return when(numberOfTypeExercises) {
-                2 -> allTypeExercisesForTrain.flatMap { List(2) { it.toString() } }
-                3 -> allTypeExercisesForTrain.flatMap { List(if(it == allTypeExercisesForTrain.last()) 2 else 0) { it.toString() } }
-                else -> allTypeExercisesForTrain
+            when(numberOfTypeExercises) {
+                2 -> allTypeExercisesForTrain.forEach { typeExercise ->
+                    allTypeDuplicatesExercises.addAll(List(2) { typeExercise })
+                }
+                3 -> allTypeExercisesForTrain.forEach { typeExercise ->
+                    typeExerciseForDuplicate = if(thereIsTensionExercises) "Tension exercises" else allTypeExercisesForTrain.last()
+                    allTypeDuplicatesExercises.addAll(List(if(typeExercise == typeExerciseForDuplicate) 2 else 1) { typeExercise })
+                }
+                else -> allTypeDuplicatesExercises.addAll(allTypeExercisesForTrain)
             }
         } else if(numberOfDaysForTraining == 3) {
-            return when(numberOfTypeExercises) {
-                2 -> allTypeExercisesForTrain.flatMap { List(if(allTypeExercisesForTrain.last() == it) 2 else 0) { it.toString() } }
-                else -> allTypeExercisesForTrain
+            when(numberOfTypeExercises) {
+                2 -> allTypeExercisesForTrain.forEach { typeExercise ->
+                    typeExerciseForDuplicate = if(thereIsTensionExercises) "Tension exercises" else allTypeExercisesForTrain[0]
+                    allTypeDuplicatesExercises.addAll(List(if(typeExerciseForDuplicate == typeExercise) 2 else 1) { typeExercise })
+                }
+                else -> allTypeDuplicatesExercises.addAll(allTypeExercisesForTrain)
             }
         } else {
             return allTypeExercisesForTrain
         }
+
+        return allTypeDuplicatesExercises
 
     }
 

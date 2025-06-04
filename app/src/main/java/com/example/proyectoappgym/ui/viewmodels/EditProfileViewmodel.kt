@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.proyectoappgym.db.db_questions.QuestionsRegistration.allQuestions
 import com.example.proyectoappgym.db.db_questions.RepositoryQuestions
 import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
+import com.example.proyectoappgym.entity.Avatars
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,7 +31,7 @@ class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase, val
         }
     }
 
-    fun updateAvatarProfile(newAvatar: Int) {
+    fun updateAvatarProfile(newAvatar: Avatars) {
         viewModelScope.launch {
             userDatabase.updateAvatarProfile(newAvatar)
         }

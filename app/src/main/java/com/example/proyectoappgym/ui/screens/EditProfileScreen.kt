@@ -140,6 +140,7 @@ import coil.compose.AsyncImagePainter.State.Empty.painter
 import coil.request.ImageRequest
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.entity.Avatars
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.User
@@ -192,7 +193,7 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQu
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialog: Boolean, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Int) -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
+fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialog: Boolean, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Avatars) -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
     var isEdited by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -212,7 +213,7 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
     ) { uri: Uri? ->
         imageUri = uri
     }*/
-    var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar) }
+    var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar.idAvatar) }
     var showSheet by remember { mutableStateOf(false) }
     var widthTextField by remember { mutableIntStateOf(currentUser.name.length * 15) }
 
@@ -237,7 +238,7 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
         topBar = {
             ShowTopAppBarEditProfileScreen {
                 if(currentUser.name != textFieldValue.text) updateName(textFieldValue.text)
-                if(currentAvatar != currentUser.profileAvatar) updateAvatarProfile(currentAvatar)
+                if(currentAvatar != currentUser.profileAvatar.idAvatar) updateAvatarProfile(Avatars.fromId(currentAvatar))
                 backProfileScreen()
             }
         }

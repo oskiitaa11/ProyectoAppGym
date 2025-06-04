@@ -22,10 +22,10 @@ class ProfileViewmodel(private val userDatabase: RepositoryUserDatabase): ViewMo
             userDatabase.createRoutine(
                 mapOf(
                     "Are you more into calisthenics or gym workouts?" to listOf("Gym"),
-                    "What types of gym exercises do you focus on or want to focus on?" to listOf("Machine exercises", "Weightlifting exercises"),
-                    "What types of calisthenics exercises do you focus on or want to focus on?" to listOf("Tension exercises", "Basic exercises"),
+                    "What types of gym exercises do you focus on or want to focus on?" to listOf(),
+                    "What types of calisthenics exercises do you focus on or want to focus on?" to listOf("Tension exercises"),
                     "What are your goals?" to listOf("Gain more strength", "Increase endurance", "Build more muscle"),
-                    "Which days of the week can/do you want to train?" to listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+                    "Which days of the week can/do you want to train?" to listOf("Monday", "Tuesday", "Wednesday")
                 )
             )
         }

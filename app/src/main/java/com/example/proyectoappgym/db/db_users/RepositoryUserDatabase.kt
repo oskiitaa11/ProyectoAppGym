@@ -3,6 +3,7 @@ package com.example.proyectoappgym.db.db_users
 import android.net.Uri
 import com.example.proyectoappgym.db.retrofit.entity.ExercisesName
 import com.example.proyectoappgym.db.retrofit.entity.Routines
+import com.example.proyectoappgym.entity.Avatars
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.User
@@ -19,7 +20,7 @@ interface RepositoryUserDatabase {
     suspend fun updateCurrentUser()
     suspend fun getCurrentUser(): MutableStateFlow<User?>
     suspend fun updateNameCurrentUser(newName: String)
-    suspend fun updateAvatarProfile(avatar: Int)
+    suspend fun updateAvatarProfile(avatar: Avatars)
     suspend fun updateResponses(question: String, newResponses: List<String>)
     suspend fun removeResponsesOfQuestion(question: String)
     suspend fun saveUserTrainingRoutinesGpt(answeredQuestions: Map<String, List<String>>, emailUser: String): Boolean

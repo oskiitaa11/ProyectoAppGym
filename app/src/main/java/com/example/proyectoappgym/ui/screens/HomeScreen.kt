@@ -114,7 +114,7 @@ fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (Reali
     var nextTrainingRoutine: TrainingRoutine = getNextTrainingRoutine(user.trainingRoutines)
 
     Scaffold(
-        topBar = { ShowTopAppBarHome(user.name, user.profileAvatar, onProfileScreen) },
+        topBar = { ShowTopAppBarHome(user.name, user.profileAvatar.idAvatar, onProfileScreen) },
     ) { innerpadding ->
         Column(modifier = Modifier.fillMaxSize().padding(
             top = innerpadding.calculateTopPadding(),

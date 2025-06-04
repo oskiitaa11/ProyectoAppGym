@@ -80,7 +80,7 @@ fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen:
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             Image(
-                painter = painterResource(user.profileAvatar),
+                painter = painterResource(user.profileAvatar.idAvatar),
                 contentDescription = "Profile avatar",
                 modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
                     .height(80.dp)

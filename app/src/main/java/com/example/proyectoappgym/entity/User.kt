@@ -1,6 +1,9 @@
 package com.example.proyectoappgym.entity
 
 import com.example.proyectoappgym.R
+import com.google.gson.annotations.Expose
+import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 
 data class User(
     val username: String,
@@ -10,7 +13,9 @@ data class User(
     val birthdate: String,
     val gender: Gender,
     var allQuestionsAnswered: Map<String, List<String>> = mapOf(),
-    var profileAvatar: Int = R.drawable.avatar1,
+    @SerializedName("profileAvatar")
+    @Expose
+    var profileAvatar: Avatars = Avatars.AVATAR1,
     var trainingRoutines: List<TrainingRoutine> = emptyList<TrainingRoutine>()
 ) {
     constructor(): this("", "", "", "", "", Gender.NONE)

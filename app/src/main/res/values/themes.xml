@@ -4,7 +4,7 @@
 
     <style name="Theme.ProyectoAppGym.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/lightBlack</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_my_fitness_app</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_my_fitness_app</item>
         <item name="postSplashScreenTheme">@style/Theme.ProyectoAppGym</item>
     </style>
 </resources>
