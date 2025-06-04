@@ -55,6 +55,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 import kotlin.jvm.java
 
+
 class UserDatabase: RepositoryUserDatabase {
 
     private lateinit var db: FirebaseFirestore
@@ -630,7 +631,7 @@ class UserDatabase: RepositoryUserDatabase {
         val typeExercisesCalisthenics = answeredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"] ?: emptyList()
         val allTypeExercisesForTrain = typeExercisesGym.toMutableList().apply { addAll(typeExercisesCalisthenics) }
         val allTypeDuplicatesExercises = getAllTypeExercises(allTypeExercisesForTrain, numberOfDaysForTraining, numberOfTypeExercises).toMutableList()
-        val weeklyRoutines = mutableListOf<TrainingRoutine>()
+        var weeklyRoutines = mutableListOf<TrainingRoutine>()
         var numberTrainingDays = 4
         val daysOfWeekForTrain = answeredQuestions["Which days of the week can/do you want to train?"]?.toMutableList() ?: mutableListOf()
         val goals = answeredQuestions["What are your goals?"] ?: emptyList()
@@ -648,6 +649,8 @@ class UserDatabase: RepositoryUserDatabase {
         }
         var excludedExercises = mutableListOf<ExercisesName>()
         var actualTypeExercise = ""
+        var exercises: Map<DayOfWeek, List<TrainingRoutine>> = emptyMap()
+        var finalWeeklyRoutines: List<TrainingRoutine>
 
         if(numberOfDaysForTraining == 5) {
 
@@ -671,11 +674,21 @@ class UserDatabase: RepositoryUserDatabase {
                 ExercisesName.BACK_EXTENSION_MACHINE
             )
 
-            repeat(numberTrainingDays) {
-                actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeFirst() else actualTypeExercise
-                addRoutineAccordingType(actualTypeExercise,it+1, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
-                if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeFirst()
+            for(numberOfTrainingDay in 4 downTo 0) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
+                actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeAt(0) else actualTypeExercise
+                addRoutineAccordingType(actualTypeExercise, numberOfTrainingDay, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
+                if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeAt(0)
             }
+
+            weeklyRoutines = weeklyRoutines.groupBy { it.dayOfWeek }.map { (dayOfWeek, trainingRoutines) ->
+                if(trainingRoutines.size >= 2) {
+                    val nameList = trainingRoutines.map { it.name }.map { it.replace("day", "") }
+                    var name: String = ""
+                    nameList.forEach { name += it }
+                    name = name.replace(Regex("([a-z]) ([A-Z])"), "$1-$2") + "day"
+                    TrainingRoutine(dayOfWeek, name, trainingRoutines.flatMap { it.exercises })
+                } else TrainingRoutine(dayOfWeek, trainingRoutines[0].name, trainingRoutines[0].exercises)
+            }.toMutableList()
 
             /*allTypeDuplicatesExercises.forEach {
                 addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
@@ -694,11 +707,27 @@ class UserDatabase: RepositoryUserDatabase {
                 ExercisesName.BACK_EXTENSION_MACHINE
             )
 
-            allTypeDuplicatesExercises.forEach {
+            for(numberOfTrainingDay in 4 downTo 0) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
+                actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeAt(0) else actualTypeExercise
+                addRoutineAccordingType(actualTypeExercise, numberOfTrainingDay, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
+                if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeAt(0)
+            }
+
+            weeklyRoutines = weeklyRoutines.groupBy { it.dayOfWeek }.map { (dayOfWeek, trainingRoutines) ->
+                if(trainingRoutines.size >= 2) {
+                    val nameList = trainingRoutines.map { it.name }.map { it.replace("day", "") }
+                    var name: String = ""
+                    nameList.forEach { name += it }
+                    name = name.replace(Regex("([a-z]) ([A-Z])"), "$1-$2") + "day"
+                    TrainingRoutine(dayOfWeek, name, trainingRoutines.flatMap { it.exercises })
+                } else TrainingRoutine(dayOfWeek, trainingRoutines[0].name, trainingRoutines[0].exercises)
+            }.toMutableList()
+
+            /*allTypeDuplicatesExercises.forEach {
                 addRoutineWithTwoDaysForTraining(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
                 if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeFirst()
                 numberTrainingDays -= 2
-            }
+            }*/
 
             weeklyRoutines.forEach { routine ->
                 routine.exercises = routine.exercises.filterNot { it.exercise in excludedExercises }
