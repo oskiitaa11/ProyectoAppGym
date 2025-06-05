@@ -23,6 +23,7 @@ import com.example.proyectoappgym.entity.TrainingRoutine
 import com.example.proyectoappgym.entity.TypeExercise
 import com.example.proyectoappgym.entity.TypeTensExercise
 import com.example.proyectoappgym.entity.User
+import com.example.proyectoappgym.ui.screens.ExerciseScreen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
@@ -647,96 +648,112 @@ class UserDatabase: RepositoryUserDatabase {
             "Build more muscle" -> 2
             else -> 0
         }
-        var excludedExercises = mutableListOf<ExercisesName>()
-        var actualTypeExercise = ""
-        var exercises: Map<DayOfWeek, List<TrainingRoutine>> = emptyMap()
-        var finalWeeklyRoutines: List<TrainingRoutine>
+        var excludedExercises = mutableListOf(
+            ExercisesName.CABLE_PULL_THROUGH,
+            ExercisesName.LEG_EXTENSION_MACHINE,
+            ExercisesName.AB_CRUNCH_MACHINE,
+            ExercisesName.BACK_EXTENSION_MACHINE,
+            ExercisesName.FRENCH_PRESS_WITH_BARBELL_OR_DUMBBELLS,
+            ExercisesName.OVERHEAD_TRICEPS_EXTENSION_WITH_DUMBBELL,
+            ExercisesName.LATERAL_RAISES_WITH_DUMBBELLS,
+            ExercisesName.JUMP_SQUATS,
+            ExercisesName.BARBELL_CURL,
+            ExercisesName.CONCENTRATION_CURL
+        )
+        var c = 9
 
         if(numberOfDaysForTraining == 5) {
+            excludedExercises = mutableListOf(
+                ExercisesName.DEADLIFT,
+                ExercisesName.CONCENTRATION_CURL
+            )
 
             allTypeDuplicatesExercises.forEach {
                 addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
-                daysOfWeekForTrain.removeFirst()
+                daysOfWeekForTrain.removeAt(0)
                 numberTrainingDays -= 1
             }
             addRoutine(weeklyRoutines, daysOfWeekForTrain.first(), listOf(ExercisesName.RUNNING), 0, 0, 0, "Running day")
+            removeExercisesOfRoutine(weeklyRoutines, excludedExercises)
         } else if(numberOfDaysForTraining == 4) {
+            excludedExercises = mutableListOf(
+                ExercisesName.DEADLIFT,
+                ExercisesName.CONCENTRATION_CURL
+            )
+
             allTypeDuplicatesExercises.forEach {
                 addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
-                daysOfWeekForTrain.removeFirst()
+                daysOfWeekForTrain.removeAt(0)
                 numberTrainingDays -= 1
             }
+
+            removeExercisesOfRoutine(weeklyRoutines, excludedExercises)
         } else if(numberOfDaysForTraining == 3) {
-            excludedExercises = mutableListOf(
-                ExercisesName.CABLE_PULL_THROUGH,
-                ExercisesName.LEG_EXTENSION_MACHINE,
-                ExercisesName.AB_CRUNCH_MACHINE,
-                ExercisesName.BACK_EXTENSION_MACHINE
+            addRoutineOfLowDays(
+                weeklyRoutines,
+                daysOfWeekForTrain,
+                allTypeDuplicatesExercises,
+                repetitions,
+                restBetweenSeries,
+                1,
+                4,
+                { daysOfWeekForTrain.size != 1 }
             )
-
-            for(numberOfTrainingDay in 4 downTo 0) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
+            /*for(numberOfTrainingDay in 4 downTo 0) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
                 actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeAt(0) else actualTypeExercise
                 addRoutineAccordingType(actualTypeExercise, numberOfTrainingDay, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
                 if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeAt(0)
-            }
-
-            weeklyRoutines = weeklyRoutines.groupBy { it.dayOfWeek }.map { (dayOfWeek, trainingRoutines) ->
-                if(trainingRoutines.size >= 2) {
-                    val nameList = trainingRoutines.map { it.name }.map { it.replace("day", "") }
-                    var name: String = ""
-                    nameList.forEach { name += it }
-                    name = name.replace(Regex("([a-z]) ([A-Z])"), "$1-$2") + "day"
-                    TrainingRoutine(dayOfWeek, name, trainingRoutines.flatMap { it.exercises })
-                } else TrainingRoutine(dayOfWeek, trainingRoutines[0].name, trainingRoutines[0].exercises)
-            }.toMutableList()
-
-            /*allTypeDuplicatesExercises.forEach {
-                addRoutineAccordingType(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
-                if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeFirst()
-                numberTrainingDays -= 1
             }*/
 
-            weeklyRoutines.forEach { routine ->
-                routine.exercises = routine.exercises.filterNot { it.exercise in excludedExercises }
-            }
+            joinListsWithSameDayOfWeek(weeklyRoutines)
+
+            removeExercisesOfRoutine(weeklyRoutines, excludedExercises)
         } else if(numberOfDaysForTraining == 2) {
-            excludedExercises = mutableListOf(
-                ExercisesName.CABLE_PULL_THROUGH,
-                ExercisesName.LEG_EXTENSION_MACHINE,
-                ExercisesName.AB_CRUNCH_MACHINE,
-                ExercisesName.BACK_EXTENSION_MACHINE
-            )
-
-            for(numberOfTrainingDay in 4 downTo 0) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
+            excludedExercises.addAll(listOf(ExercisesName.TRICEP_EXTENSION_MACHINE, ExercisesName.DEADLIFT,
+                ExercisesName.ONE_ARM_DUMBBELL_ROW))
+            /*for(numberOfTrainingDay in 4 downTo 0 step 2) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
                 actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeAt(0) else actualTypeExercise
                 addRoutineAccordingType(actualTypeExercise, numberOfTrainingDay, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
-                if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeAt(0)
-            }
+            }*/
+            addRoutineOfLowDays(
+                weeklyRoutines,
+                daysOfWeekForTrain,
+                mutableListOf(allTypeDuplicatesExercises.first()),
+                repetitions,
+                restBetweenSeries,
+                2,
+                4,
+                { false }
+            )
 
-            weeklyRoutines = weeklyRoutines.groupBy { it.dayOfWeek }.map { (dayOfWeek, trainingRoutines) ->
-                if(trainingRoutines.size >= 2) {
-                    val nameList = trainingRoutines.map { it.name }.map { it.replace("day", "") }
-                    var name: String = ""
-                    nameList.forEach { name += it }
-                    name = name.replace(Regex("([a-z]) ([A-Z])"), "$1-$2") + "day"
-                    TrainingRoutine(dayOfWeek, name, trainingRoutines.flatMap { it.exercises })
-                } else TrainingRoutine(dayOfWeek, trainingRoutines[0].name, trainingRoutines[0].exercises)
-            }.toMutableList()
+            daysOfWeekForTrain.removeAt(0)
 
-            /*allTypeDuplicatesExercises.forEach {
-                addRoutineWithTwoDaysForTraining(it, numberTrainingDays, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
-                if(daysOfWeekForTrain.size != 1) daysOfWeekForTrain.removeFirst()
-                numberTrainingDays -= 2
+            addRoutineOfLowDays(
+                weeklyRoutines,
+                daysOfWeekForTrain,
+                mutableListOf(allTypeDuplicatesExercises.last()),
+                repetitions,
+                restBetweenSeries,
+                2,
+                3,
+                { false }
+            )
+            /*for(numberOfTrainingDay in 3 downTo 0 step 2) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
+                actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeAt(0) else actualTypeExercise
+                addRoutineAccordingType(actualTypeExercise, numberOfTrainingDay, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
             }*/
 
-            weeklyRoutines.forEach { routine ->
-                routine.exercises = routine.exercises.filterNot { it.exercise in excludedExercises }
-            }
+            joinListsWithSameDayOfWeek(weeklyRoutines)
+
+            removeExercisesOfRoutine(weeklyRoutines, excludedExercises)
         } else {
+            excludedExercises.addAll(listOf(ExercisesName.FLAT_BARBELL_BENCH_PRESS, ExercisesName.HAMMER_CURL_WITH_DUMBBELLS,
+                ExercisesName.RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE, ExercisesName.LEG_PRESS_MACHINE))
+
             addRoutineFullBody(if(typeExercisesCalisthenics.isNotEmpty()) typeExercisesCalisthenics[0] else typeExercisesGym[0], weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
+
+            removeExercisesOfRoutine(weeklyRoutines, excludedExercises)
         }
-
-
     }
 
     private suspend fun addRoutine(routines: MutableList<TrainingRoutine>, dayOfWeek: String, exercises: List<ExercisesName>, sets: Int, repetitions: Int, restBetweenSeries: Int, name: String) {
@@ -803,32 +820,32 @@ class UserDatabase: RepositoryUserDatabase {
         when(typeExercise) {
             TypeExercise.MACHINES.nameType -> {
                 when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesPushUp, 3, repetitions, restBetweenSeries, "Push-day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesPullUp, 3, repetitions, restBetweenSeries, "Pull-up day")
+                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesPushUp, 3, repetitions, restBetweenSeries, "Push day")
+                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesPullUp, 3, repetitions, restBetweenSeries, "Pull day")
                     2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesLegs, 3, repetitions, restBetweenSeries, "Legs day")
                     1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesCore, 3, repetitions, restBetweenSeries, "Core day")
                 }
             }
             TypeExercise.WEIGHTLIFTING.nameType -> {
                 when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingPushUp, 3, repetitions, restBetweenSeries, "Push-day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingPullUp, 3, repetitions, restBetweenSeries, "Pull-up day")
+                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingPushUp, 3, repetitions, restBetweenSeries, "Push day")
+                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingPullUp, 3, repetitions, restBetweenSeries, "Pull day")
                     2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingLegs, 3, repetitions, restBetweenSeries, "Legs day")
                     1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingCore, 3, repetitions, restBetweenSeries, "Core day")
                 }
             }
             TypeExercise.BASIC.nameType -> {
                 when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicPushUp, 4, repetitions, restBetweenSeries, "Push-day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicPullUp, 4, repetitions, restBetweenSeries, "Pull-up day")
+                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicPushUp, 4, repetitions, restBetweenSeries, "Push day")
+                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicPullUp, 4, repetitions, restBetweenSeries, "Pull day")
                     2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicLegs, 4, repetitions, restBetweenSeries, "Legs day")
                     1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicCore, 4, repetitions, restBetweenSeries, "Core day")
                 }
             }
             TypeExercise.TENS.nameType -> {
                 when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineTensionPushUp, 4, repetitions, restBetweenSeries, "Push-day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineTensionPullUp, 4, repetitions, restBetweenSeries, "Pull-up day")
+                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineTensionPushUp, 4, repetitions, restBetweenSeries, "Push day")
+                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineTensionPullUp, 4, repetitions, restBetweenSeries, "Pull day")
                     2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicLegs, 4, repetitions, restBetweenSeries, "Legs day")
                     1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicCore, 4, repetitions, restBetweenSeries, "Core day")
                 }
@@ -972,6 +989,38 @@ class UserDatabase: RepositoryUserDatabase {
         val newExercises = exercises1.toMutableList().apply { addAll(exercises2) }
 
         return newExercises.filterNot { it in excludedExercises }
+    }
+
+    private suspend fun joinListsWithSameDayOfWeek(weeklyRoutines: MutableList<TrainingRoutine>) {
+        val newWeeklyRoutine = weeklyRoutines.groupBy { it.dayOfWeek }.map { (dayOfWeek, trainingRoutines) ->
+            if(trainingRoutines.size >= 2) {
+                val nameList = trainingRoutines.map { it.name }.map { it.replace("day", "") }
+                var name: String = ""
+                nameList.forEach { name += it }
+                name = name.replace(Regex("([a-z]) ([A-Z])"), "$1-$2") + "day"
+                TrainingRoutine(dayOfWeek, name, trainingRoutines.flatMap { it.exercises })
+            } else TrainingRoutine(dayOfWeek, trainingRoutines[0].name, trainingRoutines[0].exercises)
+        }.toMutableList()
+
+        weeklyRoutines.clear()
+        weeklyRoutines.addAll(newWeeklyRoutine)
+    }
+
+    private suspend fun removeExercisesOfRoutine(weeklyRoutines: MutableList<TrainingRoutine>, excludedExercises: List<ExercisesName>) {
+        weeklyRoutines.forEach { routine ->
+            routine.exercises = routine.exercises.filterNot { it.exercise in excludedExercises }
+        }
+    }
+
+    private suspend fun addRoutineOfLowDays(weeklyRoutines: MutableList<TrainingRoutine>, daysOfWeekForTrain: MutableList<String>, allTypeDuplicatesExercises: MutableList<String>, repetitions: Int, restBetweenSeries: Int, steps: Int, idMusclesForTraining: Int, isStop: () -> Boolean) {
+        var actualTypeExercise: String = ""
+
+        for(numberOfTrainingDay in idMusclesForTraining downTo 0 step steps) {//El bucle se repite 4 veces porque es el numero de movimimiento que se hace, donde cada movimiento ejercita un conjunto de musculos
+            actualTypeExercise = if(allTypeDuplicatesExercises.isNotEmpty()) allTypeDuplicatesExercises.removeAt(0) else actualTypeExercise
+            addRoutineAccordingType(actualTypeExercise, numberOfTrainingDay, weeklyRoutines, daysOfWeekForTrain.first(), repetitions, restBetweenSeries)
+            if(isStop()) daysOfWeekForTrain.removeAt(0)
+
+        }
     }
    /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
         val storageRef = FirebaseStorage.getInstance().reference

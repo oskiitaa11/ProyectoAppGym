@@ -130,7 +130,8 @@ object AllRoutines {
         ExercisesName.INCLINE_PRESS_MACHINE,
         ExercisesName.SHOULDER_PRESS_MACHINE,
         ExercisesName.LATERAL_RAISE_MACHINE,
-        ExercisesName.TRICEP_EXTENSION_MACHINE
+        ExercisesName.TRICEP_EXTENSION_MACHINE,
+        ExercisesName.TRICEPS_ROPE_EXTENSION_ON_HIGH_PULLEY
     )
 
     val routineMachineExercisesPullUp = listOf(
