@@ -101,24 +101,14 @@ fun RegistrationQuestionsScreen(
             showWaitingDialog = false
             validateAddedUser(
                 thereIsErrorToAddUser,
-                { addTrainingRoutines(getAllQuestionAnswered(allChecked), user.email) },
-                {
-                    showWaitingDialog = true
-                    textForShowInDialog = "Add training routines"
-                },
                 context,
                 setErrorAddUserToNull,
-                onRegistrationScreen
+                onRegistrationScreen,
+                onLoginScreen
             )
         }
     } else if(showWaitingDialog) {
         ShowWaitingDialog(textForShowInDialog)
-    }
-
-    if(isSuccessMakeRoutines != null) {
-        LaunchedEffect(isSuccessMakeRoutines) {
-            if(isSuccessMakeRoutines) onLoginScreen() else onRegistrationScreen()
-        }
     }
 
     Column(
@@ -215,10 +205,11 @@ fun RegistrationQuestionsScreen(
                     addUser(user)
                     showWaitingDialog = true
                     textForShowInDialog = "Adding user"
-                } else if (actualQuestion == allQuestionsScreen.first()) { //Si la respuesta respondida es la primera
+                } else if (actualQuestion.question == "What are your goals?") { //Si la respuesta respondida es la primera
                     chooseQuestionAccordingToAnswerByFirstQuestion(
-                        allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[0]) as Boolean,
-                        allChecked[actualQuestion.question]?.getValue(actualQuestion.responses[1]) as Boolean,
+                        allChecked["Are you more into calisthenics or gym workouts?"]?.getValue("Calisthenics") as Boolean,
+                        allChecked["Are you more into calisthenics or gym workouts?"]?.getValue("Gym") as Boolean,
+                        allChecked["What are your goals?"]?.getValue("Build more muscle") ?: false,
                         allQuestionsScreen
                     )
                 }
@@ -231,14 +222,6 @@ fun RegistrationQuestionsScreen(
         }
 
     }
-
-    /*if(isErrorToAddUser) {
-        Toast.makeText(LocalContext.current, "Registered user", Toast.LENGTH_SHORT).show()
-        onLoginScreen()
-    }
-    else {
-        Toast.makeText(LocalContext.current, "Failure to the register to user", Toast.LENGTH_SHORT).show()
-    }*/
 
 }
 
@@ -406,26 +389,37 @@ fun ShowWaitingDialog(text: String) {
     }
 }
 
-fun chooseQuestionAccordingToAnswerByFirstQuestion(isFirstResponse: Boolean, isSecondResponse: Boolean, allQuestionsScreen: MutableList<Question>) {
-    if(isFirstResponse) {//Si la es la primera respuesta, se inicia el siguiente bloque
-        choseResponseOfQuestion(2, allQuestionsScreen, 1)
-    } else if(isSecondResponse) {
-        choseResponseOfQuestion(1, allQuestionsScreen, 2)
+fun chooseQuestionAccordingToAnswerByFirstQuestion(isCalisthenicsResponse: Boolean, isGymResponse: Boolean, showMachineExercisesResponse: Boolean, allQuestionsScreen: MutableList<Question>) {
+    val excludedTypeExercises = if(showMachineExercisesResponse) emptyList() else listOf("Machine exercises")
+    val gymQuestion: Question
+    val questionForAdd: Question
+
+    if(isCalisthenicsResponse) {//Si la es la primera respuesta, se inicia el siguiente bloque
+        choseResponseOfQuestion("What types of calisthenics exercises do you focus on or want to focus on?", allQuestionsScreen, "What types of gym exercises do you focus on or want to focus on?", 2, emptyList())
+    } else if(isGymResponse) {
+        choseResponseOfQuestion("What types of gym exercises do you focus on or want to focus on?", allQuestionsScreen, "What types of calisthenics exercises do you focus on or want to focus on?", 3, excludedTypeExercises)
     } else { // Si la respuesta es la tercera se añade las dos preguntas si no estan en la lista de preguntas mutable
-        if(!isQuestionInAllQuestions(2, allQuestionsScreen)) allQuestionsScreen.add(2, allQuestions[2])
-        if(!isQuestionInAllQuestions(1, allQuestionsScreen)) allQuestionsScreen.add(1, allQuestions[1])
+        questionForAdd = allQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" } ?: Question(0, "", ResponsesType.RADIOBUTTON)
+        gymQuestion = Question(questionForAdd.id, questionForAdd.question, questionForAdd.responsesTypes, *questionForAdd.responses.filterNot { it in excludedTypeExercises }.toTypedArray())
+
+        if(!isQuestionInAllQuestions(allQuestionsScreen.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" } as Question, allQuestionsScreen)) allQuestionsScreen.add(3, allQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" } ?: Question(0, "", ResponsesType.RADIOBUTTON))
+        if(!isQuestionInAllQuestions(gymQuestion, allQuestionsScreen)) allQuestionsScreen[2] = gymQuestion
     }
 }
 
-fun choseResponseOfQuestion(indexQuestionInOriginalList: Int, allQuestionsScreen: MutableList<Question>, indexQuestionForRemove: Int) {
+fun choseResponseOfQuestion(questionString: String, allQuestionsScreen: MutableList<Question>, questionStringForRemove: String, indexForInsertQuestion: Int, excludedResponses: List<String>) {
+    val questionForAdd = allQuestions.find { it.question == questionString } ?: Question(0, "", ResponsesType.RADIOBUTTON)
+    val newQuestionForAddQuestion = Question(questionForAdd.id, questionForAdd.question, questionForAdd.responsesTypes, *questionForAdd.responses.filterNot { it in excludedResponses }.toTypedArray())
+
     /* Si la respuesta elegida es la primera se coge, se comprueba si la pregunta está en la lista mutable de preguntas
        si no está se añade y se borra la pregunta, segun la otra respuesta elegida  */
-    if(!isQuestionInAllQuestions(indexQuestionInOriginalList, allQuestionsScreen)) allQuestionsScreen.add(indexQuestionInOriginalList, allQuestions[indexQuestionInOriginalList])
-    allQuestionsScreen.removeAt(indexQuestionForRemove)
+    if(!isQuestionInAllQuestions(newQuestionForAddQuestion, allQuestionsScreen)) allQuestionsScreen.add(indexForInsertQuestion, newQuestionForAddQuestion)
+    allQuestionsScreen.removeIf { it.question == questionStringForRemove }
+    joinListsWithSameQuestion(allQuestionsScreen, newQuestionForAddQuestion.responses.toList())
 }
 
-fun isQuestionInAllQuestions(indexQuestionInOriginalList: Int, allQuestionsScreen: List<Question>): Boolean{
-    return allQuestionsScreen.any { it == allQuestions[indexQuestionInOriginalList] }
+fun isQuestionInAllQuestions(question: Question, allQuestionsScreen: List<Question>): Boolean{
+    return allQuestionsScreen.any { it == allQuestions.find { it == question } }
 }
 
 fun getAllQuestionAnswered(allChecked: Map<String, MutableMap<String, Boolean>>): MutableMap<String, List<String>> {
@@ -448,14 +442,23 @@ fun getNecessaryNumberForTrainingDays(allChecked: Map<String, MutableMap<String,
     return necessariesDaysForTraining
 }
 
-fun validateAddedUser(thereIsError: Boolean, addTrainingRoutines: () -> Unit, showWaitingDialog: () -> Unit, context: Context, setThereIsErrorToNull: () -> Unit, onRegistrationScreen: () -> Unit) {
+fun validateAddedUser(thereIsError: Boolean, context: Context, setThereIsErrorToNull: () -> Unit, onRegistrationScreen: () -> Unit, onLoginScreen: () -> Unit) {
     if(thereIsError) {
         showToast("Failure to add a user", context)
-        setThereIsErrorToNull()
         onRegistrationScreen()
     } else {
-        setThereIsErrorToNull()
-        addTrainingRoutines()
-        showWaitingDialog()
+        onLoginScreen()
     }
+    setThereIsErrorToNull()
+}
+private fun joinListsWithSameQuestion(allQuestionsScreen: MutableList<Question>, addedResponses: List<String>) {
+    val newAllQuestionsScreen = allQuestionsScreen.groupBy { it.question }.map { (_, questions) ->
+        if(questions.size >= 2) {
+            if(questions[0].responses.toSet() == addedResponses.toSet()) Question(questions[0].id, questions[0].question, questions[0].responsesTypes, *questions[0].responses)
+            else Question(questions[1].id, questions[1].question, questions[1].responsesTypes, *questions[1].responses)
+        } else Question(questions[0].id, questions[0].question, questions[0].responsesTypes, *questions[0].responses)
+    }.toMutableList()
+
+    allQuestionsScreen.clear()
+    allQuestionsScreen.addAll(newAllQuestionsScreen)
 }

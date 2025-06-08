@@ -213,9 +213,11 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
     ) { uri: Uri? ->
         imageUri = uri
     }*/
-    var currentAvatar by remember { mutableIntStateOf(currentUser.profileAvatar.idAvatar) }
+    var avatarDb = Avatars.toAvatar(currentUser.idProfileAvatar)
+    var currentAvatar by remember { mutableIntStateOf(avatarDb.idAvatarImage) }
     var showSheet by remember { mutableStateOf(false) }
     var widthTextField by remember { mutableIntStateOf(currentUser.name.length * 15) }
+
 
     ApplyAnimationForWhenOnClick(isEdited, scale)
 
@@ -238,7 +240,7 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
         topBar = {
             ShowTopAppBarEditProfileScreen {
                 if(currentUser.name != textFieldValue.text) updateName(textFieldValue.text)
-                if(currentAvatar != currentUser.profileAvatar.idAvatar) updateAvatarProfile(Avatars.fromId(currentAvatar))
+                if(currentAvatar != avatarDb.idAvatarImage) updateAvatarProfile(Avatars.fromId(currentAvatar))
                 backProfileScreen()
             }
         }

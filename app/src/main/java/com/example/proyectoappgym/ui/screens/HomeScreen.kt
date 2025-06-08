@@ -69,6 +69,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.entity.Avatars
 import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
 import com.example.proyectoappgym.entity.ExerciseLevel
@@ -112,16 +113,17 @@ fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (Reali
     val state = rememberLazyListState()
     //Se asigna la siguiente rutina de entrenamiento, es decir la que tiene un numero mayor que el numero del dia actual
     var nextTrainingRoutine: TrainingRoutine = getNextTrainingRoutine(user.trainingRoutines)
+    var idAvatarImage = Avatars.toAvatar(user.idProfileAvatar).idAvatarImage
 
     Scaffold(
-        topBar = { ShowTopAppBarHome(user.name, user.profileAvatar.idAvatar, onProfileScreen) },
+        topBar = { ShowTopAppBarHome(user.name, idAvatarImage, onProfileScreen) },
     ) { innerpadding ->
         Column(modifier = Modifier.fillMaxSize().padding(
             top = innerpadding.calculateTopPadding(),
             end = innerpadding.calculateRightPadding(LayoutDirection.Rtl),
             start = innerpadding.calculateLeftPadding(LayoutDirection.Ltr)
         ).background(colorResource(R.color.lightBlack)))  {
-            Text("Your next training:", color = Color.White, fontStyle = FontStyle.Italic, modifier = Modifier.padding(start = 10.dp))
+            Text("Your next training: ${nextTrainingRoutine.name}", color = Color.White, fontStyle = FontStyle.Italic, modifier = Modifier.padding(start = 10.dp))
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider(color = Color.White)
             LazyColumn(state = state) {

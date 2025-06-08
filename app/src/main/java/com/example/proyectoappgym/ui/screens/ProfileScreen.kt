@@ -42,6 +42,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.entity.Avatars
 import com.example.proyectoappgym.entity.User
 import com.example.proyectoappgym.ui.viewmodels.ProfileViewmodel
 import kotlinx.serialization.Serializable
@@ -66,12 +67,14 @@ fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettin
         val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         if(currentUser.username.isNotEmpty())
-            ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen) { profileViewmodel.createRoutine() }
+            ProfileScreen(currentUser, onEditProfileScreen, onSettingsScreen)
     }
 }
 
 @Composable
-fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit, createRoutine: () -> Unit) {
+fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen: () -> Unit) {
+    var idAvatarImage = Avatars.toAvatar(user.idProfileAvatar).idAvatarImage
+
     Scaffold(topBar = { ShowTopAppBarProfile() }) { innerpadding ->
         Column(
             verticalArrangement = Arrangement.Top,
@@ -80,7 +83,7 @@ fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen:
         ) {
             Spacer(modifier = Modifier.height(20.dp))
             Image(
-                painter = painterResource(user.profileAvatar.idAvatar),
+                painter = painterResource(idAvatarImage),
                 contentDescription = "Profile avatar",
                 modifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
                     .height(80.dp)
@@ -96,9 +99,6 @@ fun ProfileScreen(user: User, onEditProfileScreen: () -> Unit, onSettingsScreen:
                 colors = ButtonColors(Color(255f, 255f, 255f, 0.2f), Color.White, Color.DarkGray, Color.DarkGray)
             ) {
                 Text("Edit Profile")
-            }
-            TextButton(createRoutine) {
-                Text("Create")
             }
         }
     }

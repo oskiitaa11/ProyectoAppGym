@@ -16,18 +16,4 @@ class ProfileViewmodel(private val userDatabase: RepositoryUserDatabase): ViewMo
             userDatabase.getCurrentUser().collect { user -> currentUser.value = user ?: User() }
         }
     }
-
-    fun createRoutine() {
-        viewModelScope.launch {
-            userDatabase.createRoutine(
-                mapOf(
-                    "Are you more into calisthenics or gym workouts?" to listOf("Gym", "Calisthenics"),
-                    "What types of gym exercises do you focus on or want to focus on?" to listOf("Weightlifting exercises",),
-                    "What types of calisthenics exercises do you focus on or want to focus on?" to listOf(),
-                    "What are your goals?" to listOf("Gain more strength", "Increase endurance", "Build more muscle"),
-                    "Which days of the week can/do you want to train?" to listOf("Monday")
-                )
-            )
-        }
-    }
 }

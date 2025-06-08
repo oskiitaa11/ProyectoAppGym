@@ -66,10 +66,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.db.db_questions.QuestionsRegistration
 import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
-import com.example.proyectoappgym.ui.screens.ShowNextQuestionForFirstQuestion
+import com.example.proyectoappgym.entity.TypeExercise
+import com.example.proyectoappgym.ui.screens.ShowNextQuestion
 import com.example.proyectoappgym.ui.viewmodels.EditProfileViewmodel
 import com.example.proyectoappgym.ui.viewmodels.QuestionForModifierViewmodel
 import com.google.android.play.integrity.internal.a
@@ -113,15 +115,8 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
                 ?: emptyList()
         val isEqualFirstQuestion =
             questionForModifier == "Are you more into calisthenics or gym workouts?"
-        val gymQuestion = if (isEqualFirstQuestion)
-            questionForModifierViewmodel.allQuestions.find { "What types of gym exercises do you focus on or want to focus on?" == it.question }
-        else null
-        val calisthenicQuestion = if (isEqualFirstQuestion)
-            questionForModifierViewmodel.allQuestions.find { "What types of calisthenics exercises do you focus on or want to focus on?" == it.question }
-        else null
         val selectedInitialResponse =
             if (isEqualFirstQuestion) questionForModifierRoute.selectedResponses[0] else null
-        val oldAnsweredQuestions = currentUser.allQuestionsAnswered
 
         if (currentUser.name.isNotEmpty())
             QuestionForModifierScreen(
@@ -131,17 +126,11 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
                 selectedInitialResponse,
                 responsesType,
                 backToEditProfile,
-                gymQuestion,
-                calisthenicQuestion,
+                QuestionsRegistration.allQuestions,
                 currentUser.allQuestionsAnswered,
                 hasChangeRoutine,
-                { newAnsweredQuestions, question, newResponses ->
-                    questionForModifierViewmodel.changeWeeklyRoutine(
-                        oldAnsweredQuestions,
-                        newAnsweredQuestions,
-                        question,
-                        newResponses
-                    )
+                { newAnsweredQuestions ->
+                    questionForModifierViewmodel.changeWeeklyRoutine(newAnsweredQuestions)
                 },
                 { question, newResponses ->
                     questionForModifierViewmodel.updateResponsesOfQuestion(question, newResponses)
@@ -161,11 +150,10 @@ fun QuestionForModifierScreen(
     selectedInitialResponse: String?,
     responsesType: ResponsesType,
     backToEditProfile: () -> Unit,
-    gymQuestion: Question?,
-    calisthenicQuestion: Question?,
+    allInitialQuestions: List<Question>,
     actualAnsweredQuestions: Map<String, List<String>>,
     hasChangeRoutines: Boolean?,
-    changeWeeklyRoutine: (Map<String, List<String>>, question: String, newResponses: List<String>) -> Unit,
+    changeWeeklyRoutine: (Map<String, List<String>>) -> Unit,
     changeCorrectedResponse: (String, List<String>) -> Unit,
     removeResponsesOfQuestion: (String) -> Unit
 ) {
@@ -186,7 +174,7 @@ fun QuestionForModifierScreen(
         if (allStringResponses.toSet() != selectedResponsesDb.toSet()) {
             if (allStringResponses.isNotEmpty())
                 changeCorrectedResponse(questionForModifier, allStringResponses)
-                changeWeeklyRoutine(actualAnsweredQuestions.toMutableMap().apply { set(questionForModifier, allStringResponses) }, questionForModifier, allStringResponses)
+                changeWeeklyRoutine(actualAnsweredQuestions.toMutableMap().apply { set(questionForModifier, allStringResponses) })
         }
         backToEditProfile()
     }
@@ -201,6 +189,13 @@ fun QuestionForModifierScreen(
         showDialogForQuestion = false
     }
     var selectedResponse = ""
+    var questionInDialog: Question? = null
+    var functionAccordingQuestion: (String, List<String>) -> Unit = { question, selectedResponses ->  }
+    var numberTypeExercises = (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
+    var numberDaysOfWeek = actualAnsweredQuestions["Which days of the week can/do you want to train?"]?.size ?: 0
+    var showDialogForQuestionDaysOfWeek by remember { mutableStateOf(false) }
+    var questionDialog = remember { "" }
+    var newSelectedResponsesDialog = remember { emptyList<String>() }
 
     Scaffold(topBar = { ShowTopAppBarUpdateQuestion(backToEditProfile) }) { innerpadding ->
         Column(
@@ -220,7 +215,7 @@ fun QuestionForModifierScreen(
             )
             Spacer(modifier = Modifier.height(20.dp))
             LazyVerticalGrid(
-                columns = GridCells.Fixed(if (allResponsesDb.size > 4) 2 else 1),
+                columns = GridCells.Fixed(if(allResponsesDb.size > 4) 2 else 1),
                 verticalArrangement = Arrangement.Center,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -244,12 +239,43 @@ fun QuestionForModifierScreen(
             }
 
             ShowButtonsApply {
-                if (gymQuestion == null && calisthenicQuestion == null) {
-                    updateResponses()
-                } else {
-                    allStringResponses = allResponses.filterValues { it }.keys.toList()
-                    if (allStringResponses.toSet() != selectedResponsesDb.toSet())
-                        if (allStringResponses.isNotEmpty()) showDialogForQuestion = true
+                allStringResponses = allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()
+                questionInDialog = getQuestionForShowInDialog(questionForModifier, allStringResponses, numberDaysOfWeek, numberTypeExercises, selectedResponsesDb, allInitialQuestions)
+                showDialogForQuestion = canShowDialogForNextQuestion(questionForModifier, selectedResponsesDb, allStringResponses, actualAnsweredQuestions)
+                if(showDialogForQuestion) {
+                    functionAccordingQuestion = getFunctionAccordingQuestion(
+                        questionForModifier,
+                        allStringResponses,
+                        selectedResponsesDb,
+                        undoChanges,
+                        removeResponsesOfQuestion,
+                        { question, newSelectedResponses ->
+                            changeCorrectedResponse(questionForModifier, allStringResponses)
+                            changeCorrectedResponse(question, newSelectedResponses)
+                        },
+                        { question, newSelectedResponses ->
+                            actualAnsweredQuestions.toMutableMap().apply {
+                                set(questionForModifier, allStringResponses)
+                                set(question, newSelectedResponses)
+                            }
+                        },
+                        backToEditProfile,
+                        { question, newSelectedResponses ->
+                            when(question) {
+                                "What types of gym exercises do you focus on or want to focus on?" -> newSelectedResponses.size + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0) > numberDaysOfWeek
+                                "What types of calisthenics exercises do you focus on or want to focus on?" -> newSelectedResponses.size + (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) > numberDaysOfWeek
+                                else -> false
+                            }
+                        },
+                        {
+                            showDialogForQuestion = false
+                            showDialogForQuestionDaysOfWeek = true
+                        },
+                        { question, selectedResponse ->
+                            questionDialog = question
+                            newSelectedResponsesDialog = selectedResponse
+                        }
+                    )
                 }
 
             }
@@ -257,12 +283,13 @@ fun QuestionForModifierScreen(
             if (showDialogForQuestion) {
                 selectedResponse =
                     allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()[0]
-                ShowNextQuestionForFirstQuestion(
+                ShowDialogQuestion(questionInDialog as Question, undoChanges, functionAccordingQuestion)
+                /*ShowNextQuestion(
                     selectedResponse,
                     selectedInitialResponse ?: "",
-                    gymQuestion,
-                    calisthenicQuestion,
-                    { question, selectedResponses ->
+                    questionInDialog,
+                    functionAccordingQuestion,
+                    *//*{ question, selectedResponses ->
                         if (selectedResponses.isEmpty()) undoChanges()
                         else {
                             if (selectedResponse == "Gym") removeResponsesOfQuestion(
@@ -283,18 +310,34 @@ fun QuestionForModifierScreen(
                                     actualAnsweredQuestions.toMutableMap().apply {
                                         set(questionForModifier, allStringResponses)
                                         set(question, selectedResponses)
-                                    },
-                                    question,
-                                    if(selectedResponses[0].isEmpty()) emptyList() else selectedResponses
+                                    }
                                 )
                                 backToEditProfile()
                             }
                         }
 
-                    },
+                    }*//*
                     undoChanges
-                )
-            }
+                )*/
+            } else if(showDialogForQuestionDaysOfWeek) {
+                ShowDialogQuestion(allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } as Question, undoChanges) { questionDaysOfWeek, daysOfWeek ->
+                    var actualNumberTypeExercises = getActualNumberTypeExercises(questionInDialog?.question ?: "", daysOfWeek, actualAnsweredQuestions) +
+                            getActualNumberTypeExercises(questionForModifier, allStringResponses, actualAnsweredQuestions)
+
+                    if(daysOfWeek.isNotEmpty()) {
+                        if(actualNumberTypeExercises > numberDaysOfWeek) {
+                            changeCorrectedResponse(questionInDialog?.question ?: "", newSelectedResponsesDialog)
+                            changeCorrectedResponse(questionForModifier, allStringResponses)
+                            changeCorrectedResponse(questionDaysOfWeek, daysOfWeek)
+                            changeWeeklyRoutine(actualAnsweredQuestions.toMutableMap().apply { 
+                                set(questionDaysOfWeek, daysOfWeek)
+                                set(questionInDialog?.question ?: "", newSelectedResponsesDialog)
+                                set(questionForModifier, allStringResponses)
+                            })
+                        }
+                    } else undoChanges()
+                }
+            } else updateResponses()
         }
     }
 }
@@ -388,15 +431,14 @@ fun getInitialPairsForResponses(
 }
 
 @Composable
-fun ShowNextQuestionForFirstQuestion(
+fun ShowNextQuestion(
     selectedResponse: String,
     selectedInitialResponse: String,
-    gymQuestion: Question?,
-    calisthenicQuestion: Question?,
+    question: Question?,
     updateQuestions: (String, List<String>) -> Unit,
     undoChanges: () -> Unit
 ) {
-    var isSelectedInitialResponse = selectedInitialResponse == "Both"
+    /*var isSelectedInitialResponse = selectedInitialResponse == "Both"
 
     if (isSelectedInitialResponse) {
         updateQuestions(if(selectedResponse == "Gym") gymQuestion?.question ?: "" else calisthenicQuestion?.question ?: "", listOf(""))
@@ -419,15 +461,15 @@ fun ShowNextQuestionForFirstQuestion(
             )
             else ShowDialogQuestion(gymQuestion as Question, updateQuestions, undoChanges)
         }
-    }
+    }*/
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShowDialogQuestion(
     question: Question,
-    updateQuestions: (String, List<String>) -> Unit,
-    undoChanges: () -> Unit
+    undoChanges: () -> Unit,
+    updateQuestions: (String, List<String>) -> Unit
 ) {
     var selectedResponses = remember { mutableStateListOf<String>() }
 
@@ -482,3 +524,92 @@ fun ShowResponsesDialog(
         }
     }
 }
+
+fun getQuestionForShowInDialog(question: String, newSelectedResponses: List<String>, daysOfWeek: Int, typeExercises: Int, selectedResponsesDb: List<String>, allInitialQuestions: List<Question>): Question? =
+
+    when (question) {
+        "Are you more into calisthenics or gym workouts?" -> {
+            if(newSelectedResponses[0] == "Gym") allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" }
+            else if(newSelectedResponses[0] == "Calisthenics") allInitialQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" }
+            else
+                if(selectedResponsesDb[0] == "Calisthenics") allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" }
+                else allInitialQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" }
+        }
+        "What are your goals?" -> if(newSelectedResponses.any { it == "Build more muscle" }) allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" } else null
+        "What types of calisthenics exercises do you focus on or want to focus on?", "What types of gym exercises do you focus on or want to focus on?" -> if(typeExercises > daysOfWeek) allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } else null
+        else -> null
+    }
+
+
+
+fun getFunctionAccordingQuestion(questionForModifier: String, newResponses: List<String>, selectedResponsesDb: List<String>, undoChanges: () -> Unit, removeResponsesOfQuestion: (String) -> Unit, changeCorrectedResponse: (String, List<String>) -> Unit, changeWeeklyRoutine: (String, List<String>) -> Unit, backToEditProfile: () -> Unit, typeExercisesIsMoreThanDaysOfWeek: (String, List<String>) -> Boolean, showDialogForDaysOfWeek: () -> Unit, saveQuestionAndNewResponses: (String, List<String>) -> Unit): (String, List<String>) -> Unit {
+
+    return when(questionForModifier) {
+        "Are you more into calisthenics or gym workouts?" -> { question, selectedResponses ->
+            var typeExercisesIsMoreThanDaysOfWeek = typeExercisesIsMoreThanDaysOfWeek(question, selectedResponses)
+
+            if (selectedResponses.isEmpty()) undoChanges()
+            else {
+                if (selectedResponsesDb[0] == "Gym") removeResponsesOfQuestion(
+                    "What types of calisthenics exercises do you focus on or want to focus on?"
+                )
+                else if (selectedResponsesDb[0] == "Calisthenics") removeResponsesOfQuestion(
+                    "What types of gym exercises do you focus on or want to focus on?"
+                )
+
+                if (selectedResponsesDb[0] != "Both") changeCorrectedResponse(
+                    question,
+                    selectedResponses
+                )
+                if (newResponses.isNotEmpty()) {
+                    if(typeExercisesIsMoreThanDaysOfWeek) {
+                        changeCorrectedResponse(question, newResponses)
+                        changeWeeklyRoutine(question, newResponses)
+                        backToEditProfile()
+                    } else {
+                        saveQuestionAndNewResponses(question, selectedResponses)
+                        showDialogForDaysOfWeek()
+                    }
+
+                }
+            }
+        }
+        "What are your goals?" -> { question, selectedResponses ->
+
+        }
+        "Which days of the week can/do you want to train?" -> { question, selectedResponses ->
+
+        }
+        "What types of calisthenics exercises do you focus on or want to focus on?" -> { question, selectedResponses ->
+
+        }
+        "What types of gym exercises do you focus on or want to focus on?" -> { question, selectedResponses ->
+
+        }
+        else -> { question, selectedResponses -> }
+    }
+
+}
+
+fun canShowDialogForNextQuestion(changedQuestion: String, selectedResponsesDb: List<String>, newSelectedResponses: List<String>, allQuestionsDb: Map<String, List<String>>): Boolean {
+
+    return if(selectedResponsesDb.toSet() != newSelectedResponses.toSet()) {
+        if(newSelectedResponses.isNotEmpty()){
+            when(changedQuestion) {
+                "Are you more into calisthenics or gym workouts?" -> selectedResponsesDb[0] != "Both"
+                "What are your goals?" -> newSelectedResponses.any { it == "Build more muscle" }
+                "What types of calisthenics exercises do you focus on or want to focus on?" -> newSelectedResponses.size + (allQuestionsDb["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) > (allQuestionsDb["Which days of the week can/do you want to train?"]?.count() ?: 0)
+                "What types of gym exercises do you focus on or want to focus on?" -> newSelectedResponses.size + (allQuestionsDb["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) > (allQuestionsDb["Which days of the week can/do you want to train?"]?.count() ?: 0)
+                else -> false
+            }
+        } else false
+    } else false
+
+}
+
+fun getActualNumberTypeExercises(question: String, selectedResponses: List<String>, actualAnsweredQuestions: Map<String, List<String>>): Int =
+   when(question) {
+       "What types of gym exercises do you focus on or want to focus on?" -> selectedResponses.size + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
+       "What types of calisthenics exercises do you focus on or want to focus on?" -> selectedResponses.size + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
+       else -> 0
+   }

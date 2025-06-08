@@ -15,7 +15,7 @@ data class User(
     var allQuestionsAnswered: Map<String, List<String>> = mapOf(),
     @SerializedName("profileAvatar")
     @Expose
-    var profileAvatar: Avatars = Avatars.AVATAR1,
+    var idProfileAvatar: Int = 1,
     var trainingRoutines: List<TrainingRoutine> = emptyList<TrainingRoutine>()
 ) {
     constructor(): this("", "", "", "", "", Gender.NONE)

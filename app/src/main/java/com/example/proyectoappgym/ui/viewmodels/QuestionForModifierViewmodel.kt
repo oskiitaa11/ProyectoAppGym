@@ -36,19 +36,12 @@ class QuestionForModifierViewmodel(private val userDatabase: RepositoryUserDatab
     }
 
     fun changeWeeklyRoutine(
-        oldAnsweredQuestion: Map<String, List<String>>,
         newAnsweredQuestion: Map<String, List<String>>,
-        question: String,
-        newResponses: List<String>,
     ) {
         viewModelScope.launch {
             isChangeRoutine.update {
                 userDatabase.changeWeeklyRoutine(
-                    oldAnsweredQuestion,
                     newAnsweredQuestion,
-                    currentUser.value.trainingRoutines,
-                    question,
-                    newResponses
                 )
             }
         }

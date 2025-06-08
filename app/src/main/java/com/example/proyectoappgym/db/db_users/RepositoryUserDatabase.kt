@@ -23,10 +23,9 @@ interface RepositoryUserDatabase {
     suspend fun updateAvatarProfile(avatar: Avatars)
     suspend fun updateResponses(question: String, newResponses: List<String>)
     suspend fun removeResponsesOfQuestion(question: String)
-    suspend fun saveUserTrainingRoutinesGpt(answeredQuestions: Map<String, List<String>>, emailUser: String): Boolean
-    suspend fun createRoutine(newAnsweredQuestion: Map<String, List<String>>)
+    suspend fun createRoutine(newAnsweredQuestion: Map<String, List<String>>): List<TrainingRoutine>
     suspend fun emailExist(email: String): Boolean?
     suspend fun userExist(username: String): Boolean?
     suspend fun authWithGoogle(idToken: String): Boolean
-    suspend fun changeWeeklyRoutine(oldAnsweredQuestions: Map<String, List<String>>, newAnsweredQuestion: Map<String, List<String>>, actualRoutines: List<TrainingRoutine>, question: String, newResponses: List<String>): Boolean
+    suspend fun changeWeeklyRoutine(newAnsweredQuestion: Map<String, List<String>>): Boolean
 }

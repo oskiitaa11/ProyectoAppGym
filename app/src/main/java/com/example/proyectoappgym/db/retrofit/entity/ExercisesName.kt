@@ -44,7 +44,7 @@ enum class ExercisesName(val exercise: Exercise) {
     RUSSIAN_TWISTS(AllExercises.exercisesCalisthenicBasics[14]),
     MOUNTAIN_CLIMBERS(AllExercises.exercisesCalisthenicBasics[15]),
     TOE_TOUCHES(AllExercises.exercisesCalisthenicBasics[16]),
-    FLAT_BARBELL_BENCH_PRESS(AllExercises.weightlifting[0]),
+    BENCH_PRESS(AllExercises.weightlifting[0]),
     INCLINE_BENCH_PRESS_WITH_BARBELL_OR_DUMBBELLS(AllExercises.weightlifting[1]),
     DIPS_WEIGHTED(AllExercises.weightlifting[2]),
     FLAT_BENCH_DUMBBELL_FLYES(AllExercises.weightlifting[3]),

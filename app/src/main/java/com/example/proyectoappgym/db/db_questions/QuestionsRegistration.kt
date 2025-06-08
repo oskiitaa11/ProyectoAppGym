@@ -11,6 +11,11 @@ object QuestionsRegistration: RepositoryQuestions {
             responses = listOf("Calisthenics", "Gym", "Both").toTypedArray()
         ),
         Question(
+            question = "What are your goals?",
+            responsesTypes = ResponsesType.CHECKBOX,
+            responses = listOf("Gain more strength", "Increase endurance", "Build more muscle").toTypedArray()
+        ),
+        Question(
             question = "What types of gym exercises do you focus on or want to focus on?",
             responsesTypes = ResponsesType.CHECKBOX,
             responses = listOf("Machine exercises", "Weightlifting exercises").toTypedArray()
@@ -19,11 +24,6 @@ object QuestionsRegistration: RepositoryQuestions {
             question = "What types of calisthenics exercises do you focus on or want to focus on?",
             responsesTypes = ResponsesType.CHECKBOX,
             responses = listOf("Tension exercises", "Basic exercises").toTypedArray()
-        ),
-        Question(
-            question = "What are your goals?",
-            responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Gain more strength", "Increase endurance", "Build more muscle").toTypedArray()
         ),
         Question(
             question = "Are you following any diet?",
