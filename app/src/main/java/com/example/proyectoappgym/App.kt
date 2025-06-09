@@ -37,6 +37,7 @@ class App: Application() {
         FirebaseApp.initializeApp(this)
         userDatabase.initializerApp()
         GlobalScope.launch {
+            logoutUser()
             changeUidLoggedUser()
             userDatabase.updateUidLoggedUser(datastore.data.first()[preferenceKey])
             if(isLoggedUser.value as Boolean) userDatabase.updateCurrentUser()

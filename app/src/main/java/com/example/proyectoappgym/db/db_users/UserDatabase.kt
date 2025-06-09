@@ -6,12 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.mutableStateListOf
 import com.example.proyectoappgym.db.db_routines.AllExercises
 import com.example.proyectoappgym.db.db_routines.AllRoutines
-import com.example.proyectoappgym.db.retrofit.entity.ChatMessage
-import com.example.proyectoappgym.db.retrofit.entity.ChatRequest
-import com.example.proyectoappgym.db.retrofit.entity.ChatResponse
-import com.example.proyectoappgym.db.retrofit.entity.ExercisesName
-import com.example.proyectoappgym.db.retrofit.entity.OpenAiApi
-import com.example.proyectoappgym.db.retrofit.entity.Routines
+import com.example.proyectoappgym.entity.ExercisesName
 import com.example.proyectoappgym.entity.Avatars
 import com.example.proyectoappgym.entity.DayOfWeek
 import com.example.proyectoappgym.entity.Exercise
@@ -64,20 +59,7 @@ class UserDatabase: RepositoryUserDatabase {
     private lateinit var auth: FirebaseAuth
     private var uidLoggedUser: String? = null
     val currentUser: MutableStateFlow<User?> = MutableStateFlow(null)
-    private val okHttpClient = OkHttpClient.Builder()
-        .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(60, TimeUnit.SECONDS)
-        .writeTimeout(60, TimeUnit.SECONDS)
-        .build()
-    private val retrofit: Retrofit = Retrofit.Builder()
-        .baseUrl("https://api.openai.com/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(okHttpClient)
-        .build()
-    private val api: OpenAiApi = retrofit.create(OpenAiApi::class.java)
-    private val apiKey = "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"
     private val allRoutines = AllRoutines
-    private val allExercises = AllExercises
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -474,39 +456,15 @@ class UserDatabase: RepositoryUserDatabase {
         when(typeExercise) {
             TypeExercise.MACHINES -> {
                 addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.machineExercises[groupMuscles] ?: emptyList(), 3, repetitions, restBetweenSeries, groupMuscles.nameDay)
-                /*when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesPushUp, 3, repetitions, restBetweenSeries, "Push day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesPullUp, 3, repetitions, restBetweenSeries, "Pull day")
-                    2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesLegs, 3, repetitions, restBetweenSeries, "Legs day")
-                    1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineMachineExercisesCore, 3, repetitions, restBetweenSeries, "Core day")
-                }*/
             }
             TypeExercise.WEIGHTLIFTING -> {
                 addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.weightliftingExercises[groupMuscles] ?: emptyList(), 3, repetitions, restBetweenSeries, groupMuscles.nameDay)
-                /*when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingPushUp, 3, repetitions, restBetweenSeries, "Push day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingPullUp, 3, repetitions, restBetweenSeries, "Pull day")
-                    2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingLegs, 3, repetitions, restBetweenSeries, "Legs day")
-                    1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineWeightliftingCore, 3, repetitions, restBetweenSeries, "Core day")
-                }*/
             }
             TypeExercise.BASIC -> {
                 addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.basicExercises[groupMuscles] ?: emptyList(), 3, 20, restBetweenSeries, groupMuscles.nameDay)
-                /*when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicPushUp, 4, repetitions, restBetweenSeries, "Push day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicPullUp, 4, repetitions, restBetweenSeries, "Pull day")
-                    2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicLegs, 4, repetitions, restBetweenSeries, "Legs day")
-                    1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicCore, 4, repetitions, restBetweenSeries, "Core day")
-                }*/
             }
             TypeExercise.TENS -> {
                 addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.tensionExercises[groupMuscles] ?: emptyList(), 3, repetitions, restBetweenSeries, groupMuscles.nameDay)
-                /*when(numberOfDaysForTraining) {
-                    4 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineTensionPushUp, 4, repetitions, restBetweenSeries, "Push day")
-                    3 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineTensionPullUp, 4, repetitions, restBetweenSeries, "Pull day")
-                    2 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicLegs, 4, repetitions, restBetweenSeries, "Legs day")
-                    1 -> addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.routineBasicCore, 4, repetitions, restBetweenSeries, "Core day")
-                }*/
             }
             TypeExercise.CARDIO -> addRoutine(weeklyRoutines, dayOfWeekForTrain,  listOf(ExercisesName.RUNNING), 3, repetitions, restBetweenSeries, groupMuscles.nameDay)
         }

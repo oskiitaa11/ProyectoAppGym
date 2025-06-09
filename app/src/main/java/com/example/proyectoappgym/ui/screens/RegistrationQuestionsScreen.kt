@@ -75,7 +75,6 @@ fun RegistrationQuestionsScreen(
     setErrorAddUserToNull: () -> Unit,
     onLoginScreen: () -> Unit,
     onRegistrationScreen: () -> Unit,
-    addTrainingRoutines: (Map<String, List<String>>, String) -> Unit
 ) {
     //Asigno una lista de la clase Pairs(lista de clave-valor) para introducirla despues en el metodo mutableStateMapOf()
     var progress by remember { mutableIntStateOf(0) }

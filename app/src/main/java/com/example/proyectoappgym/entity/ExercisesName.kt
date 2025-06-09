@@ -1,8 +1,6 @@
-package com.example.proyectoappgym.db.retrofit.entity
+package com.example.proyectoappgym.entity
 
-import androidx.compose.material3.AlertDialog
 import com.example.proyectoappgym.db.db_routines.AllExercises
-import com.example.proyectoappgym.entity.Exercise
 
 enum class ExercisesName(val exercise: Exercise) {
     CHEST_PRESS_MACHINE(AllExercises.machinesRoutines[0]),

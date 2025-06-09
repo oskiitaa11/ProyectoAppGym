@@ -67,7 +67,6 @@ import androidx.navigation.toRoute
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.db.db_questions.QuestionsRegistration
-import com.example.proyectoappgym.db.retrofit.entity.Routines
 import com.example.proyectoappgym.entity.Question
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.TypeExercise

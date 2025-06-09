@@ -1,3 +1,0 @@
-package com.example.proyectoappgym.db.retrofit.entity
-
-data class ChatResponse(val choices: List<Choice>)

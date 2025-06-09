@@ -19,6 +19,4 @@ data class Exercise(
     val idCoverImage: Int,
     val stepsForDoIt: String,
     val typeTensExercise: TypeTensExercise? = null,
-) {
-    constructor(): this("", "", ExerciseLevel.BEGINNER, TypeExercise.BASIC, emptyList(), emptyList(), "", 0, 0, "")
-}
+)
