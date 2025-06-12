@@ -253,13 +253,7 @@ class UserDatabase: RepositoryUserDatabase {
         newAnsweredQuestion: Map<String, List<String>>
     ): Boolean {
         var newRoutine = createRoutine(newAnsweredQuestion)
-        /*var trainingRoutines = actualRoutines
-        var mapWithDifferences = makeMapWithDifferencesOfTwoMaps(oldAnsweredQuestions, newAnsweredQuestion)
-        var removedExercisesType = getRemovedExercisesType(oldAnsweredQuestions, newAnsweredQuestion)
-        var addedExerciseType = getAddedExerciseType(oldAnsweredQuestions, newAnsweredQuestion)
 
-        var c = oldAnsweredQuestions
-        var i = newAnsweredQuestion*/
         return suspendCoroutine<Boolean> { continuation ->
             db.collection("Users").document(uidLoggedUser ?: "").update("trainingRoutines", newRoutine).addOnSuccessListener { result ->
                 continuation.resume(true)
