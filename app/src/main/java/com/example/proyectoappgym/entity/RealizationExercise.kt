@@ -9,4 +9,6 @@ data class RealizationExercise(
     val series: Int,
     val repetitions: Int,
     val restBetweenSeries: Int
-)
+) {
+    constructor(): this(ExercisesName.RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE, 0, 0, 0)
+}

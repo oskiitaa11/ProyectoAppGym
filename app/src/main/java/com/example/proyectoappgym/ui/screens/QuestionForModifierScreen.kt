@@ -39,6 +39,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ComposableOpenTarget
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.currentComposer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -165,7 +166,7 @@ fun QuestionForModifierScreen(
         )
     } //Variable donde se guardan las respuesta y si estan seleccionadas
     var isMultipleResponse = responsesType == ResponsesType.CHECKBOX
-    var showDialogForQuestion by remember { mutableStateOf(false) } //Variable para mostrar dialogo
+    var showDialogForQuestion: Boolean? by remember { mutableStateOf(null) } //Variable para mostrar dialogo
     var allStringResponses = emptyList<String>() //Variable para guardar las respuestas en cadena
     val updateResponses: () -> Unit = {//Funcion para actualizar las respuestas en la base de datos
         allStringResponses = allResponses.filterValues { it }.keys.toList()
@@ -192,7 +193,7 @@ fun QuestionForModifierScreen(
     var functionAccordingQuestion: (String, List<String>) -> Unit = { question, selectedResponses ->  }
     var numberTypeExercises = (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
     var numberDaysOfWeek = actualAnsweredQuestions["Which days of the week can/do you want to train?"]?.size ?: 0
-    var showDialogForQuestionDaysOfWeek by remember { mutableStateOf(false) }
+    var showDialogForQuestionDaysOfWeek: Boolean? by remember { mutableStateOf(null) }
     var questionDialog = remember { "" }
     var newSelectedResponsesDialog = remember { emptyList<String>() }
 
@@ -241,7 +242,7 @@ fun QuestionForModifierScreen(
                 allStringResponses = allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()
                 questionInDialog = getQuestionForShowInDialog(questionForModifier, allStringResponses, numberDaysOfWeek, numberTypeExercises, selectedResponsesDb, allInitialQuestions)
                 showDialogForQuestion = canShowDialogForNextQuestion(questionForModifier, selectedResponsesDb, allStringResponses, actualAnsweredQuestions)
-                if(showDialogForQuestion) {
+                if(showDialogForQuestion == true) {
                     functionAccordingQuestion = getFunctionAccordingQuestion(
                         questionForModifier,
                         allStringResponses,
@@ -259,12 +260,9 @@ fun QuestionForModifierScreen(
                             }
                         },
                         backToEditProfile,
-                        { question, newSelectedResponses ->
-                            when(question) {
-                                "What types of gym exercises do you focus on or want to focus on?" -> newSelectedResponses.size + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0) > numberDaysOfWeek
-                                "What types of calisthenics exercises do you focus on or want to focus on?" -> newSelectedResponses.size + (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) > numberDaysOfWeek
-                                else -> false
-                            }
+                        { question, responsesGym, responsesCalisthenics ->
+                            (responsesGym?.size ?: (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0)) +
+                                    (responsesCalisthenics?.size ?: (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)) > numberDaysOfWeek
                         },
                         {
                             showDialogForQuestion = false
@@ -279,16 +277,25 @@ fun QuestionForModifierScreen(
 
             }
 
-            if (showDialogForQuestion) {
-                selectedResponse =
-                    allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()[0]
-                ShowDialogQuestion(questionInDialog as Question, undoChanges, functionAccordingQuestion)
-                /*ShowNextQuestion(
-                    selectedResponse,
-                    selectedInitialResponse ?: "",
-                    questionInDialog,
-                    functionAccordingQuestion,
-                    *//*{ question, selectedResponses ->
+            if(showDialogForQuestion != null) {
+                if (showDialogForQuestion == true) {
+                    selectedResponse = allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()[0]
+                    ShowDialogQuestion(
+                        questionInDialog as Question,
+                        {
+                            undoChanges()
+                            showDialogForQuestion = null
+                        }
+                    ) { question, responses ->
+                        functionAccordingQuestion(question, responses)
+                        showDialogForQuestion = null
+                    }
+                    /*ShowNextQuestion(
+                        selectedResponse,
+                        selectedInitialResponse ?: "",
+                        questionInDialog,
+                        functionAccordingQuestion,
+                        *//*{ question, selectedResponses ->
                         if (selectedResponses.isEmpty()) undoChanges()
                         else {
                             if (selectedResponse == "Gym") removeResponsesOfQuestion(
@@ -318,25 +325,31 @@ fun QuestionForModifierScreen(
                     }*//*
                     undoChanges
                 )*/
-            } else if(showDialogForQuestionDaysOfWeek) {
-                ShowDialogQuestion(allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } as Question, undoChanges) { questionDaysOfWeek, daysOfWeek ->
-                    var actualNumberTypeExercises = getActualNumberTypeExercises(questionInDialog?.question ?: "", daysOfWeek, actualAnsweredQuestions) +
-                            getActualNumberTypeExercises(questionForModifier, allStringResponses, actualAnsweredQuestions)
 
-                    if(daysOfWeek.isNotEmpty()) {
-                        if(actualNumberTypeExercises > numberDaysOfWeek) {
-                            changeCorrectedResponse(questionInDialog?.question ?: "", newSelectedResponsesDialog)
-                            changeCorrectedResponse(questionForModifier, allStringResponses)
-                            changeCorrectedResponse(questionDaysOfWeek, daysOfWeek)
-                            changeWeeklyRoutine(actualAnsweredQuestions.toMutableMap().apply { 
-                                set(questionDaysOfWeek, daysOfWeek)
-                                set(questionInDialog?.question ?: "", newSelectedResponsesDialog)
-                                set(questionForModifier, allStringResponses)
-                            })
-                        }
-                    } else undoChanges()
+                } else if(showDialogForQuestionDaysOfWeek == true) {
+                    ShowDialogQuestion(allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } as Question, undoChanges) { questionDaysOfWeek, daysOfWeek ->
+                        var actualNumberTypeExercises = getActualNumberTypeExercises(questionInDialog?.question ?: "", daysOfWeek, actualAnsweredQuestions) +
+                                getActualNumberTypeExercises(questionForModifier, allStringResponses, actualAnsweredQuestions)
+
+                        if(daysOfWeek.isNotEmpty()) {
+                            if(actualNumberTypeExercises > numberDaysOfWeek) {
+                                changeCorrectedResponse(questionInDialog?.question ?: "", newSelectedResponsesDialog)
+                                changeCorrectedResponse(questionForModifier, allStringResponses)
+                                changeCorrectedResponse(questionDaysOfWeek, daysOfWeek)
+                                changeWeeklyRoutine(actualAnsweredQuestions.toMutableMap().apply {
+                                    set(questionDaysOfWeek, daysOfWeek)
+                                    set(questionInDialog?.question ?: "", newSelectedResponsesDialog)
+                                    set(questionForModifier, allStringResponses)
+                                })
+                            }
+                        } else undoChanges()
+                    }
+                } else {
+                    updateResponses()
                 }
-            } else updateResponses()
+            }
+
+
         }
     }
 }
@@ -406,7 +419,7 @@ fun ShowButtonsApply(updateCorrectedResponse: () -> Unit) {
         horizontalArrangement = Arrangement.Center
     ) {
         TextButton(
-            updateCorrectedResponse,
+            onClick = updateCorrectedResponse,
             shape = ShapeDefaults.Medium,
             colors = ButtonDefaults.textButtonColors(containerColor = colorResource(R.color.lightGreen)),
             modifier = Modifier.width(200.dp),
@@ -524,50 +537,65 @@ fun ShowResponsesDialog(
     }
 }
 
-fun getQuestionForShowInDialog(question: String, newSelectedResponses: List<String>, daysOfWeek: Int, typeExercises: Int, selectedResponsesDb: List<String>, allInitialQuestions: List<Question>): Question? =
+fun getQuestionForShowInDialog(question: String, newSelectedResponses: List<String>, daysOfWeek: Int, typeExercises: Int, selectedResponsesDb: List<String>, allInitialQuestions: List<Question>): Question? {
+    var c: Question?
 
     when (question) {
         "Are you more into calisthenics or gym workouts?" -> {
-            if(newSelectedResponses[0] == "Gym") allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" }
-            else if(newSelectedResponses[0] == "Calisthenics") allInitialQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" }
+            if (newSelectedResponses[0] == "Gym") c = allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" }
+            else if (newSelectedResponses[0] == "Calisthenics") c = allInitialQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" }
             else
-                if(selectedResponsesDb[0] == "Calisthenics") allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" }
-                else allInitialQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" }
+                if (selectedResponsesDb[0] == "Calisthenics") c = allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" }
+                else c = allInitialQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" }
         }
-        "What are your goals?" -> if(newSelectedResponses.any { it == "Build more muscle" }) allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" } else null
-        "What types of calisthenics exercises do you focus on or want to focus on?", "What types of gym exercises do you focus on or want to focus on?" -> if(typeExercises > daysOfWeek) allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } else null
-        else -> null
+
+        "What are your goals?" -> if (newSelectedResponses.any { it == "Build more muscle" }) c = allInitialQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" } else c = null
+        "What types of calisthenics exercises do you focus on or want to focus on?", "What types of gym exercises do you focus on or want to focus on?" -> if (typeExercises > daysOfWeek) c = allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } else c = null
+        else -> c = null
     }
+    return c
+}
 
 
 
-fun getFunctionAccordingQuestion(questionForModifier: String, newResponses: List<String>, selectedResponsesDb: List<String>, undoChanges: () -> Unit, removeResponsesOfQuestion: (String) -> Unit, changeCorrectedResponse: (String, List<String>) -> Unit, changeWeeklyRoutine: (String, List<String>) -> Unit, backToEditProfile: () -> Unit, typeExercisesIsMoreThanDaysOfWeek: (String, List<String>) -> Boolean, showDialogForDaysOfWeek: () -> Unit, saveQuestionAndNewResponses: (String, List<String>) -> Unit): (String, List<String>) -> Unit {
+fun getFunctionAccordingQuestion(questionForModifier: String, newResponses: List<String>, selectedResponsesDb: List<String>, undoChanges: () -> Unit, removeResponsesOfQuestion: (String) -> Unit, changeCorrectedResponse: (String, List<String>) -> Unit, changeWeeklyRoutine: (String, List<String>) -> Unit, backToEditProfile: () -> Unit, typeExercisesIsMoreThanDaysOfWeek: (String, List<String>?, List<String>?) -> Boolean, showDialogForDaysOfWeek: () -> Unit, saveQuestionAndNewResponses: (String, List<String>) -> Unit): (String, List<String>) -> Unit {
 
     return when(questionForModifier) {
         "Are you more into calisthenics or gym workouts?" -> { question, selectedResponses ->
-            var typeExercisesIsMoreThanDaysOfWeek = typeExercisesIsMoreThanDaysOfWeek(question, selectedResponses)
+            var typeExercisesIsMoreThanDaysOfWeek: Boolean
+            var gymResponses: List<String>? = if(selectedResponses.contains("Tension exercises") || selectedResponses.contains("Basic exercises")) selectedResponses else null
+            var calisthenicsResponses: List<String>? = if(selectedResponses.contains("Weightlifting exercises") || selectedResponses.contains("Machine exercises")) selectedResponses else null
 
             if (selectedResponses.isEmpty()) undoChanges()
             else {
-                if (selectedResponsesDb[0] == "Gym") removeResponsesOfQuestion(
-                    "What types of calisthenics exercises do you focus on or want to focus on?"
-                )
-                else if (selectedResponsesDb[0] == "Calisthenics") removeResponsesOfQuestion(
-                    "What types of gym exercises do you focus on or want to focus on?"
-                )
+                if (selectedResponsesDb[0] == "Gym" && newResponses[0] != "Both") {
+                    gymResponses = emptyList()
+                    calisthenicsResponses = selectedResponses
+                    removeResponsesOfQuestion(
+                        "What types of calisthenics exercises do you focus on or want to focus on?"
+                    )
+                }
+                else if (selectedResponsesDb[0] == "Calisthenics" && newResponses[0] != "Both"){
+                    calisthenicsResponses = emptyList()
+                    gymResponses = selectedResponses
+                    removeResponsesOfQuestion(
+                        "What types of gym exercises do you focus on or want to focus on?"
+                    )
+                }
 
-                if (selectedResponsesDb[0] != "Both") changeCorrectedResponse(
+                /*if (selectedResponsesDb[0] != "Both") changeCorrectedResponse(
                     question,
                     selectedResponses
-                )
-                if (newResponses.isNotEmpty()) {
+                )*/
+                if (selectedResponses.isNotEmpty()) {
+                    typeExercisesIsMoreThanDaysOfWeek = typeExercisesIsMoreThanDaysOfWeek(question, gymResponses, calisthenicsResponses)
                     if(typeExercisesIsMoreThanDaysOfWeek) {
+                        saveQuestionAndNewResponses(question, selectedResponses)
+                        showDialogForDaysOfWeek()
+                    } else {
                         changeCorrectedResponse(question, newResponses)
                         changeWeeklyRoutine(question, newResponses)
                         backToEditProfile()
-                    } else {
-                        saveQuestionAndNewResponses(question, selectedResponses)
-                        showDialogForDaysOfWeek()
                     }
 
                 }
