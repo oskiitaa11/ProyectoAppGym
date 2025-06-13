@@ -116,6 +116,7 @@ fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit
             questionForModifier == "Are you more into calisthenics or gym workouts?"
         val selectedInitialResponse =
             if (isEqualFirstQuestion) questionForModifierRoute.selectedResponses[0] else null
+        val errorTextDialog = ""
 
         if (currentUser.name.isNotEmpty())
             QuestionForModifierScreen(
@@ -200,8 +201,9 @@ fun QuestionForModifierScreen(
     var numberTypeExercises = (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
     var numberDaysOfWeek = actualAnsweredQuestions["Which days of the week can/do you want to train?"]?.size ?: 0
     var showDialogForQuestionDaysOfWeek: Boolean? by remember { mutableStateOf(null) }
-    var questionDialog = remember { "" }
-    var newSelectedResponsesDialog = remember { emptyList<String>() }
+    var actualDaysOfWeek = actualAnsweredQuestions["Which days of the week can/do you want to train?"] ?: emptyList()
+    var selectedDaysOfWeek = remember { mutableStateListOf(*(actualAnsweredQuestions["Which days of the week can/do you want to train?"] ?: emptyList()).toTypedArray()) }
+    var errorTextDialog: String? = null
 
     Scaffold(topBar = { ShowTopAppBarUpdateQuestion(backToEditProfile) }) { innerpadding ->
         Column(
@@ -290,19 +292,20 @@ fun QuestionForModifierScreen(
                             showDialogForQuestionDaysOfWeek = true
                         },
                         { question, selectedResponse ->
-                            questionDialog = question
-                            newSelectedResponsesDialog = selectedResponse
+                            newAnsweredQuestions[question] = selectedResponse
                         }
                     )
                 }
 
             }
 
-            if(showDialogForQuestion != null) {
+            if(showDialogForQuestion != null || showDialogForQuestionDaysOfWeek != null) {
                 if (showDialogForQuestion == true) {
                     selectedResponse = allResponses.filter { (_, isSelected) -> isSelected }.keys.toList()[0]
                     ShowDialogQuestion(
                         questionInDialog as Question,
+                        null,
+                        null,
                         {
                             undoChanges()
                             showDialogForQuestion = null
@@ -313,22 +316,26 @@ fun QuestionForModifierScreen(
                     }
 
                 } else if(showDialogForQuestionDaysOfWeek == true) {
-                    ShowDialogQuestion(allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } as Question, undoChanges) { questionDaysOfWeek, daysOfWeek ->
-                        var actualNumberTypeExercises = getActualNumberTypeExercises(questionInDialog?.question ?: "", daysOfWeek, actualAnsweredQuestions) +
-                                getActualNumberTypeExercises(questionForModifier, allStringResponses, actualAnsweredQuestions)
+                    ShowDialogQuestion(allInitialQuestions.find { it.question == "Which days of the week can/do you want to train?" } as Question, actualDaysOfWeek, errorTextDialog, undoChanges) { questionDaysOfWeek, daysOfWeek ->
+                        var actualNumberTypeExercises = getActualNumberTypeExercises(newAnsweredQuestions)
 
                         if(daysOfWeek.isNotEmpty()) {
-                            if(actualNumberTypeExercises > numberDaysOfWeek) {
-                                changeCorrectedResponse(questionInDialog?.question ?: "", newSelectedResponsesDialog)
+                            if(actualNumberTypeExercises <= numberDaysOfWeek) {
+                                errorTextDialog = null
+                                var c = newAnsweredQuestions[questionInDialog?.question ?: ""] ?: emptyList<String>()
+                                changeCorrectedResponse(questionInDialog?.question ?: "", c)
                                 changeCorrectedResponse(questionForModifier, allStringResponses)
                                 changeCorrectedResponse(questionDaysOfWeek, daysOfWeek)
-                                changeWeeklyRoutine(actualAnsweredQuestions.toMutableMap().apply {
+                                changeWeeklyRoutine(newAnsweredQuestions.toMutableMap().apply {
                                     set(questionDaysOfWeek, daysOfWeek)
-                                    set(questionInDialog?.question ?: "", newSelectedResponsesDialog)
                                     set(questionForModifier, allStringResponses)
                                 })
+                                backToEditProfile()
+                            } else {
+                                errorTextDialog = "choose at least 4 days of training"
                             }
                         } else undoChanges()
+                        showDialogForQuestionDaysOfWeek = null
                     }
                 } else {
                     updateResponses()
@@ -433,10 +440,14 @@ fun getInitialPairsForResponses(
 @Composable
 fun ShowDialogQuestion(
     question: Question,
+    actualSelectedResponses: List<String>,
+    errorText: String?,
+    addResponse: (String) -> Unit,
+    removeResponse: (String) -> Unit,
     undoChanges: () -> Unit,
     updateQuestions: (String, List<String>) -> Unit
 ) {
-    var selectedResponses = remember { mutableStateListOf<String>() }
+
 
     AlertDialog(
         onDismissRequest = undoChanges,
@@ -446,7 +457,7 @@ fun ShowDialogQuestion(
                 horizontalArrangement = Arrangement.Center
             ) {
                 TextButton(
-                    { updateQuestions(question.question, selectedResponses) },
+                    { updateQuestions(question.question, actualSelectedResponses) },
                     colors = ButtonDefaults.textButtonColors(
                         containerColor = colorResource(R.color.lightGreen),
                         contentColor = Color.White
@@ -461,10 +472,11 @@ fun ShowDialogQuestion(
         text = {
             ShowResponsesDialog(
                 question,
-                { response -> response in selectedResponses },
-                { response -> selectedResponses.add(response) },
-                { response -> selectedResponses.remove(response) }
+                { response -> response in actualSelectedResponses },
+                addResponse,
+                removeResponse
             )
+            if(errorText != null) Text(errorText, color = Color.Red, fontSize = 10.sp)
         },
         containerColor = Color.White,
         titleContentColor = colorResource(R.color.lightBlack)
@@ -478,13 +490,16 @@ fun ShowResponsesDialog(
     addResponse: (String) -> Unit,
     removeResponse: (String) -> Unit
 ) {
-    Column(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(if(question.responses.size > 4) 2 else 1),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalArrangement = Arrangement.Center
     ) {
         question.responses.forEach { response ->
-            ShowResponse(response, isSelectedResponse(response)) { response, isSelected ->
-                if (isSelected) addResponse(response) else removeResponse(response)
+            item {
+                ShowResponse(response, isSelectedResponse(response)) { response, isSelected ->
+                    if (isSelected) addResponse(response) else removeResponse(response)
+                }
             }
         }
     }
@@ -592,12 +607,10 @@ fun canShowDialogForNextQuestion(changedQuestion: String, selectedResponsesDb: L
 
 }
 
-fun getActualNumberTypeExercises(question: String, selectedResponses: List<String>, actualAnsweredQuestions: Map<String, List<String>>): Int =
-   when(question) {
-       "What types of gym exercises do you focus on or want to focus on?" -> selectedResponses.size + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
-       "What types of calisthenics exercises do you focus on or want to focus on?" -> selectedResponses.size + (actualAnsweredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
-       else -> 0
-   }
+fun getActualNumberTypeExercises(newAnsweredQuestion: Map<String, List<String>>): Int {
+    return (newAnsweredQuestion["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) +
+            (newAnsweredQuestion["What types of calisthenics exercises do you focus on or want to focus on?"]?.size ?: 0)
+}
 
 fun getQuestionForRemove(question: String, newSelectedResponses: List<String>, daysOfWeek: Int, typeExercises: Int, selectedResponsesDb: List<String>, allInitialQuestions: List<Question>): Question? {
     var c: Question? = null

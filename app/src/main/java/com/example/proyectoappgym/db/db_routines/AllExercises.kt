@@ -1308,7 +1308,7 @@ object AllExercises {
     val tensRoutine = listOf(
         Exercise(
             name = "Combos Tension",
-            nameVideo = "combos_tension",
+            nameVideo = "",
             description = "Tens exercise combos without getting off the parallel bar",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
@@ -1320,12 +1320,12 @@ object AllExercises {
         3. Then, continue with forward exercises—ending with the one you can’t complete.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.ALL,
-            idCoverImage = 0,//R.drawable.combos_tension,
+            idCoverImage = R.drawable.combos_tension,
             idImageMuscles = 0
         ),
         Exercise(
             name = "Press Plank",
-            nameVideo = "press_plank",
+            nameVideo = "",
             description = "Do press plank using a resistance band",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
@@ -1337,12 +1337,12 @@ object AllExercises {
         3. Then, lower your legs back down to return to the plank position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = 0,//R.drawable.press_plank,
+            idCoverImage = R.drawable.press_plank,
             idImageMuscles = 0
         ),
         Exercise(
             name = "Push-up Plank",
-            nameVideo = "push_up_plank",
+            nameVideo = "",
             description = "Do press plank using a resistance band",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
@@ -1354,12 +1354,12 @@ object AllExercises {
         3. Then, return to the plank position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = 0, //R.drawable.push_up_plank,
+            idCoverImage = R.drawable.push_up_plank,
             idImageMuscles = 0
         ),
         Exercise(
             name = "Maltese Plank push-up",
-            nameVideo = "maltese_plank_push_up",
+            nameVideo = "",
             description = "Perform a plank with a wider arm position, incorporating scapular retraction and protraction.",
             exerciseLevel = ExerciseLevel.ELITE,
             type = TypeExercise.TENS,
@@ -1372,12 +1372,12 @@ object AllExercises {
         4. Then, return to scapular protraction.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = 0,//R.drawable.maltese_plank_push_up,
+            idCoverImage = R.drawable.maltese_push_up_plank,
             idImageMuscles = 0
         ),
         Exercise(
             name = "Handstand push-up",
-            nameVideo = "handstand_push_up",
+            nameVideo = "",
             description = "Perform a handstand and do push ups.",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
@@ -1389,12 +1389,12 @@ object AllExercises {
         3. Raise your body forward with your arms outstretched.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.PLANK,
-            idCoverImage = 0,//R.drawable.handstand_push_up,
+            idCoverImage = R.drawable.handstand_push_up,
             idImageMuscles = 0
         ),
         Exercise(
             name = "Press front-lever",
-            nameVideo = "press_front_lever",
+            nameVideo = "",
             description = "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
@@ -1406,12 +1406,12 @@ object AllExercises {
         3. Then, lower the legs down to the front lever position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = 0,//R.drawable.press_front_lever,
+            idCoverImage = R.drawable.press_front_lever,
             idImageMuscles = 0
         ),
         Exercise(
             name = "Pull-up front-lever",
-            nameVideo = "pull_up_front_lever",
+            nameVideo = "",
             description = "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
@@ -1423,12 +1423,12 @@ object AllExercises {
         3. Then, lower the legs down to the front lever position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = 0,//R.drawable.pull_up_front_lever,
+            idCoverImage = R.drawable.pull_up_front_lever,
             idImageMuscles = 0
         ),
         Exercise(
             name = "Maltese front lever press",
-            nameVideo = "maltese_front_lever_press",
+            nameVideo = "",
             description = "Perform front lever press, with a wider arm position. Use a resistance band",
             exerciseLevel = ExerciseLevel.ELITE,
             type = TypeExercise.TENS,
@@ -1441,7 +1441,7 @@ object AllExercises {
         4. Then, lower the legs down to front lever position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = 0,//R.drawable.maltese_front_lever_press,
+            idCoverImage = R.drawable.maltese_press_front_lever,
             idImageMuscles = 0
         ),
         Exercise(
@@ -1458,7 +1458,7 @@ object AllExercises {
         3. Holding up 3s and lower body down to pull-up position.
     """.trimIndent(),
             typeTensExercise = TypeTensExercise.FRONT_LEVEL,
-            idCoverImage = 0,//R.drawable.pull_up_holding_up,
+            idCoverImage = R.drawable.pull_up_holding_up,
             idImageMuscles = 0
         ),
     )
@@ -1477,7 +1477,7 @@ object AllExercises {
         1. Running at a normal pace.
         2. Try do some 5 kms minimum.
     """.trimIndent(),
-            idCoverImage = R.drawable.running,//R.drawable.pull_up_holding_up,
+            idCoverImage = R.drawable.running,
             idImageMuscles = R.drawable.muscles_running
         )
     )

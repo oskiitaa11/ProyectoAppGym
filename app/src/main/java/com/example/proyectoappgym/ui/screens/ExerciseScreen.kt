@@ -141,7 +141,7 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
                 Text(realizationExercise.exercise.exercise.type.nameType, color = Color.White)
             }
             Spacer(modifier = Modifier.height(20.dp))
-            ShowInvolvedMuscles(realizationExercise.exercise.exercise.idImageMuscles, realizationExercise.exercise.exercise.trainedPrimaryMuscles, realizationExercise.exercise.exercise.trainedSecondaryMuscles)
+            if(realizationExercise.exercise.exercise.idImageMuscles != 0) ShowInvolvedMuscles(realizationExercise.exercise.exercise.idImageMuscles, realizationExercise.exercise.exercise.trainedPrimaryMuscles, realizationExercise.exercise.exercise.trainedSecondaryMuscles)
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
