@@ -100,10 +100,10 @@ fun NavGraphBuilder.exerciseDestination(goBackToHome: () -> Unit) {
 fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () -> Unit) {
     val state = rememberScrollState()
     val context = LocalContext.current
-    val uri = "android.resource://${context.packageName}/raw/${realizationExercise.exercise.exercise.nameVideo}".toUri()
+    val uri = "android.resource://${context.packageName}/raw/${realizationExercise.exercise.nameVideo}".toUri()
 
     Scaffold(
-        topBar = { ShowTopAppBarExerciseScreen(realizationExercise.exercise.exercise.name, goBackToHome) }
+        topBar = { ShowTopAppBarExerciseScreen(realizationExercise.exercise.name, goBackToHome) }
     ) { innerpadding ->
         Column(
             verticalArrangement = Arrangement.Top,
@@ -121,7 +121,7 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
             ) {
                 Text("Lvl: ", color = Color.White)
                 Image(
-                    painter = painterResource(realizationExercise.exercise.exercise.exerciseLevel.idIconLvl),
+                    painter = painterResource(realizationExercise.exercise.exerciseLevel.idIconLvl),
                     contentDescription = "Icon Lvl",
                     modifier = Modifier.size(30.dp).padding(bottom = 8.dp)
                 )
@@ -131,17 +131,17 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
             ListItem(
                 headlineContent = { Text("How to do it?", fontStyle = FontStyle.Italic, modifier = Modifier.padding(bottom = 5.dp)) },
                 leadingContent = { Icon(painter = painterResource(R.drawable.ic_ordinal_list), contentDescription = "Steps icon", tint = Color.White) },
-                supportingContent = { Text(realizationExercise.exercise.exercise.stepsForDoIt) },
+                supportingContent = { Text(realizationExercise.exercise.stepsForDoIt) },
                 colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = Color.White, leadingIconColor = Color.White, supportingColor = Color.White),
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text("Type of exercise", fontStyle = FontStyle.Italic, fontSize = 15.sp, color = Color.White, modifier = Modifier.padding(start = 55.dp))
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 55.dp)) {
-                Image(painter = painterResource(realizationExercise.exercise.exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
-                Text(realizationExercise.exercise.exercise.type.nameType, color = Color.White)
+                Image(painter = painterResource(realizationExercise.exercise.type.idIcon), contentDescription = "Icon type", modifier = Modifier.size(64.dp).padding(end = 10.dp))
+                Text(realizationExercise.exercise.type.nameType, color = Color.White)
             }
             Spacer(modifier = Modifier.height(20.dp))
-            if(realizationExercise.exercise.exercise.idImageMuscles != 0) ShowInvolvedMuscles(realizationExercise.exercise.exercise.idImageMuscles, realizationExercise.exercise.exercise.trainedPrimaryMuscles, realizationExercise.exercise.exercise.trainedSecondaryMuscles)
+            if(realizationExercise.exercise.idImageMuscles != 0) ShowInvolvedMuscles(realizationExercise.exercise.idImageMuscles, realizationExercise.exercise.trainedPrimaryMuscles)
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
@@ -206,9 +206,8 @@ fun VideoPlayer(uri: Uri) {
 }
 
 @Composable
-fun ShowInvolvedMuscles(idImageMuscles: Int, primaryMuscles: List<Muscles>, secondaryMuscles: List<Muscles>) {
+fun ShowInvolvedMuscles(idImageMuscles: Int, primaryMuscles: List<Muscles>) {
     val primaryMusclesString = primaryMuscles.map { it.nameMuscle }.toString().replace("[", "").replace("]", "")
-    val secondaryMusclesString = secondaryMuscles.map { it.nameMuscle }.toString().replace("[", "").replace("]", "")
 
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(start = 15.dp, bottom = 10.dp)) {
         Image(painter = painterResource(R.drawable.icon_muscles), contentDescription = "Icon Muscles", modifier = Modifier.size(25.dp))
@@ -224,11 +223,6 @@ fun ShowInvolvedMuscles(idImageMuscles: Int, primaryMuscles: List<Muscles>, seco
             Text(primaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp, color = Color.White)
 
             Spacer(modifier = Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(" ", modifier = Modifier.background(Color(215, 159, 143)).size(7.dp))
-                Text("Secondary muscles:", fontSize = 8.sp, lineHeight = 12.sp, modifier = Modifier.padding(start = 5.dp), color = Color.White)
-            }
-            Text(secondaryMusclesString, fontSize = 8.sp, lineHeight = 12.sp, color = Color.White)
         }
     }
 

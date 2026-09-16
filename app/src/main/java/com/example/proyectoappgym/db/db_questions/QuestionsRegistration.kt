@@ -8,27 +8,27 @@ object QuestionsRegistration: RepositoryQuestions {
         Question(
             question = "Are you more into calisthenics or gym workouts?",
             responsesTypes = ResponsesType.RADIOBUTTON,
-            responses = listOf("Calisthenics", "Gym", "Both").toTypedArray()
+            _responses = listOf("Calisthenics", "Gym workouts", "Both").toTypedArray()
         ),
         Question(
             question = "What are your goals?",
             responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Gain more strength", "Increase endurance", "Build more muscle").toTypedArray()
+            _responses = listOf("Gain more strength", "Build more muscle").toTypedArray()
         ),
         Question(
-            question = "What types of gym exercises do you focus on or want to focus on?",
-            responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Machine exercises", "Weightlifting exercises").toTypedArray()
+            question = "Do you work out at home or at the gym?",
+            responsesTypes = ResponsesType.RADIOBUTTON,
+            _responses = listOf("With my equipments at home", "At the gym").toTypedArray()
         ),
         Question(
-            question = "What types of calisthenics exercises do you focus on or want to focus on?",
-            responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf("Tension exercises", "Basic exercises").toTypedArray()
+            question = "Where do you train calisthenics?",
+            responsesTypes = ResponsesType.RADIOBUTTON,
+            _responses = listOf("At home", "At the calisthenic park").toTypedArray()
         ),
         Question(
             question = "Are you following any diet?",
             responsesTypes = ResponsesType.RADIOBUTTON,
-            responses = listOf(
+            _responses = listOf(
                 "Yes, to gain muscle mass",
                 "Yes, to lose body fat",
                 "Yes, to maintain",
@@ -38,16 +38,16 @@ object QuestionsRegistration: RepositoryQuestions {
         Question(
             question = "How long have you been training?",
             responsesTypes = ResponsesType.RADIOBUTTON,
-            responses = listOf(
+            _responses = listOf(
                 "I just started with MyFitnessApp",
                 "I've been training for a few months",
                 "I've been training for a year or more"
             ).toTypedArray()
         ),
         Question(
-            question = "Which days of the week can/do you want to train?",
+            question = "Which days of the week can you train?",
             responsesTypes = ResponsesType.CHECKBOX,
-            responses = listOf(
+            _responses = listOf(
                 "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
             ).toTypedArray()
         )

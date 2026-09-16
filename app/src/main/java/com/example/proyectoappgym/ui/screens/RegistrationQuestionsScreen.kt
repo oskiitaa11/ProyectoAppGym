@@ -3,6 +3,7 @@ package com.example.proyectoappgym.ui.screens
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
+import android.telephony.SignalStrength
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -50,6 +51,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.isDebugInspectorInfoEnabled
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -57,10 +59,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.db.db_questions.QuestionsRegistration.allQuestions
+import com.example.proyectoappgym.db.db_routines.AllExercises
+import com.example.proyectoappgym.db.db_routines.AllRoutines
 import com.example.proyectoappgym.entity.DayOfWeek
+import com.example.proyectoappgym.entity.Exercise
+import com.example.proyectoappgym.entity.ExerciseLevel
+import com.example.proyectoappgym.entity.ExercisesName
+import com.example.proyectoappgym.entity.GroupMuscles
+import com.example.proyectoappgym.entity.Muscles
 import com.example.proyectoappgym.entity.Question
+import com.example.proyectoappgym.entity.RealizationExercise
 import com.example.proyectoappgym.entity.ResponsesType
 import com.example.proyectoappgym.entity.TrainingRoutine
+import com.example.proyectoappgym.entity.TypeExercise
+import com.example.proyectoappgym.entity.TypeTensExercise
 import com.example.proyectoappgym.entity.User
 import org.checkerframework.checker.units.qual.s
 
@@ -70,7 +82,6 @@ fun RegistrationQuestionsScreen(
     user: User,
     allQuestions: List<Question>,
     thereIsErrorToAddUser: Boolean?,
-    isSuccessMakeRoutines: Boolean?,
     addUser: (User) -> Unit,
     setErrorAddUserToNull: () -> Unit,
     onLoginScreen: () -> Unit,
@@ -110,6 +121,8 @@ fun RegistrationQuestionsScreen(
         ShowWaitingDialog(textForShowInDialog)
     }
 
+    var isResponseBuildMoreMuscleWithGym by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -142,7 +155,7 @@ fun RegistrationQuestionsScreen(
         )
 
         Crossfade(
-            targetState = if(progress > allQuestionsScreen.size - 1) progress - 1 else progress ,
+            targetState = if(progress > allQuestionsScreen.size - 1) progress - 1 else progress,
             animationSpec = tween(durationMillis = 800),
             label = "Questions"
         ) { targetState ->
@@ -154,10 +167,13 @@ fun RegistrationQuestionsScreen(
                 modifier = Modifier.padding(horizontal = 30.dp).padding(top = 45.dp)
             ) {
 
+                if (isResponseBuildMoreMuscleWithGym && actualQuestion.question == "What types of gym exercises do you focus on or want to focus on?")
+                    allChecked.getValue(actualQuestion.question).replace("Weightlifting exercises", true)
+
                 /*Si ha llegado a la utlima pregunta que muestra una funcion distinta,
                para poder mostrar todos las respuestas de esta*/
                 if (actualQuestion != allQuestionsScreen.last()) {
-                    ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
+                    ShowQuestion(actualQuestion, allChecked.getValue(actualQuestion.question), isResponseBuildMoreMuscleWithGym)
                 } else {
                     ShowLastQuestion(actualQuestion, allChecked.getValue(actualQuestion.question))
                 }
@@ -184,19 +200,18 @@ fun RegistrationQuestionsScreen(
             ) {
                 if (showError) showError = false
                 if (progress > 0) progress--
+                isResponseBuildMoreMuscleWithGym = false
             }
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24
             ) {
-                if (actualQuestion == allQuestionsScreen.last()) {
+                /*if (actualQuestion == allQuestionsScreen.last()) {
                     showError = (allChecked[actualQuestion.question]?.filterValues { it }
-                        ?.count() as Int) < getNecessaryNumberForTrainingDays(allChecked.filterKeys { question -> allQuestionsScreen.any { question == it.question } }) {
-                        necessariesDaysForTraining = it
-                    }
+                        ?.count() as Int) < getNecessaryNumberForTrainingDays(allChecked.filterKeys { question -> allQuestionsScreen.any { question == it.question } }, { necessariesDaysForTraining = it })
                 } else {
                     showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
-                }
-
+                }*/
+                showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                 /*Si no hay ninguna respuesta a true se asigna true a showError,
                 siempre que sea la ultima pregunta*/
                 if (actualQuestion == allQuestionsScreen.last() && !showError) {
@@ -204,13 +219,26 @@ fun RegistrationQuestionsScreen(
                     addUser(user)
                     showWaitingDialog = true
                     textForShowInDialog = "Adding user"
+                } else if(actualQuestion.id == 1) {
+                    if(allChecked["Are you more into calisthenics or gym workouts?"]?.get("Calisthenics") == true || allChecked["Are you more into calisthenics or gym workouts?"]?.get("Both") == true){
+                        allQuestionsScreen.find { it.question == "What are your goals?" }?.addResponse("Improving in tension exercises")
+                        allChecked["What are your goals?"]?.put("Improving in tension exercises", false)
+                    }
+                    else {
+                        allQuestionsScreen.find { it.question == "What are your goals?" }?.removeResponse("Improving in tension exercises")
+                        allChecked["What are your goals?"]?.remove("Improving in tension exercises")
+                    }
+
                 } else if (actualQuestion.question == "What are your goals?") { //Si la respuesta respondida es la primera
                     chooseQuestionAccordingToAnswerByFirstQuestion(
                         allChecked["Are you more into calisthenics or gym workouts?"]?.getValue("Calisthenics") as Boolean,
-                        allChecked["Are you more into calisthenics or gym workouts?"]?.getValue("Gym") as Boolean,
-                        allChecked["What are your goals?"]?.getValue("Build more muscle") ?: false,
+                        allChecked["Are you more into calisthenics or gym workouts?"]?.getValue("Gym workouts") as Boolean,
+                        allChecked["What are your goals?"]?.getValue("Build more muscle") == true,
                         allQuestionsScreen
                     )
+
+                    disableResponseAccordingToResponse(allChecked["What are your goals?"]?.filter { (_, isSelected) -> isSelected }?.keys?.toList()
+                        ?: emptyList()) { isResponseBuildMoreMuscleWithGym = true }
                 }
 
                 if (!showError) progress++
@@ -248,7 +276,7 @@ fun getInitialQuestionsMap(allQuestions: List<Question>): List<Pair<String, Snap
 }
 
 @Composable
-fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<String, Boolean>){
+fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<String, Boolean>, isResponseBuildMoreMuscleWithGym: Boolean){
     Text(
         question.question,
         color = Color.White,
@@ -271,7 +299,8 @@ fun ShowQuestion(question: Question, allCheckedActualQuestions: MutableMap<Strin
                     }
                 allCheckedActualQuestions[response] = !allCheckedActualQuestions[response]!!
             },
-            question.responsesTypes
+            question.responsesTypes,
+            isResponseBuildMoreMuscleWithGym
         )
     }
 }
@@ -298,7 +327,7 @@ fun ShowLastQuestion(question: Question, allCheckedActualQuestions: MutableMap<S
             modifier = Modifier.fillMaxWidth(0.5f),
             verticalArrangement = Arrangement.Top
         ) {
-            responsesFirstColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes) }
+            responsesFirstColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes, false) }
         }
 
         Column (
@@ -306,26 +335,37 @@ fun ShowLastQuestion(question: Question, allCheckedActualQuestions: MutableMap<S
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            responsesSecondColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes) }
+            responsesSecondColumn.forEach { ShowRowCheckbox(it, allCheckedActualQuestions[it] as Boolean, { allCheckedActualQuestions[it] = !allCheckedActualQuestions[it]!! }, question.responsesTypes, false) }
         }
     }
 
 }
 
 @Composable
-fun ShowRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> Unit, responseType: ResponsesType){
+fun ShowRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> Unit, responseType: ResponsesType, isResponseBuildMoreMuscleWithGym: Boolean){
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 20.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.CenterVertically
     ) {
         if(responseType == ResponsesType.CHECKBOX) {
-            Checkbox(
-                checked = isChecked,
-                onCheckedChange = { changeChecked() },
-                colors = CheckboxColors(Color.White, Color.Transparent, colorResource(R.color.lightGreen), Color.Transparent, Color.LightGray, Color.LightGray, Color.LightGray, Color.White, Color.White, Color.LightGray, Color.LightGray, Color.LightGray),
-                modifier = Modifier.size(40.dp)
-            )
+            if (response == "Weightlifting exercises" && isResponseBuildMoreMuscleWithGym) {
+                Checkbox(
+                    checked = true,
+                    onCheckedChange = {  },
+                    colors = CheckboxColors(Color.White.copy(0.7f), Color.Transparent, colorResource(R.color.lightGreen), Color.Transparent, Color.LightGray, Color.LightGray, Color.LightGray, Color.White, Color.White, Color.LightGray, Color.LightGray, Color.LightGray),
+                    modifier = Modifier.size(40.dp)
+                )
+            } else {
+                Checkbox(
+                    checked = isChecked,
+                    onCheckedChange = { changeChecked() },
+                    colors = CheckboxColors(Color.White, Color.Transparent, colorResource(R.color.lightGreen), Color.Transparent, Color.LightGray, Color.LightGray, Color.LightGray, Color.White, Color.White, Color.LightGray, Color.LightGray, Color.LightGray),
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+
+
         } else {
             RadioButton(
                 selected = isChecked,
@@ -334,7 +374,11 @@ fun ShowRowCheckbox(response: String, isChecked: Boolean, changeChecked: () -> U
                 modifier = Modifier.size(40.dp)
             )
         }
-        Text(response, color = Color.White)
+
+        if (response == "Weightlifting exercises" && isResponseBuildMoreMuscleWithGym)
+            Text(response, color = Color.White.copy(0.7f))
+        else
+            Text(response, color = Color.White)
     }
 }
 
@@ -391,27 +435,36 @@ fun ShowWaitingDialog(text: String) {
 fun chooseQuestionAccordingToAnswerByFirstQuestion(isCalisthenicsResponse: Boolean, isGymResponse: Boolean, showMachineExercisesResponse: Boolean, allQuestionsScreen: MutableList<Question>) {
     val excludedTypeExercises = if(showMachineExercisesResponse) emptyList() else listOf("Machine exercises")
     val gymQuestion: Question
-    val questionForAdd: Question
+    val questionForDuplicate: Question
+    val calisthenicsQuestion: Question
 
-    if(isCalisthenicsResponse) {//Si la es la primera respuesta, se inicia el siguiente bloque
-        choseResponseOfQuestion("What types of calisthenics exercises do you focus on or want to focus on?", allQuestionsScreen, "What types of gym exercises do you focus on or want to focus on?", 2, emptyList())
+    if(isCalisthenicsResponse) {
+        addAndRemoveQuestions("Where do you train calisthenics?", allQuestionsScreen, "Do you work out at home or at the gym?", 2, emptyList())
     } else if(isGymResponse) {
-        choseResponseOfQuestion("What types of gym exercises do you focus on or want to focus on?", allQuestionsScreen, "What types of calisthenics exercises do you focus on or want to focus on?", 3, excludedTypeExercises)
+        addAndRemoveQuestions("Do you work out at home or at the gym?", allQuestionsScreen, "Where do you train calisthenics?", 3, excludedTypeExercises)
+        allQuestionsScreen.find { it.question == "What are your goals?" }?.removeResponse("Improving in tension exercises")
     } else { // Si la respuesta es la tercera se añade las dos preguntas si no estan en la lista de preguntas mutable
-        questionForAdd = allQuestions.find { it.question == "What types of gym exercises do you focus on or want to focus on?" } ?: Question(0, "", ResponsesType.RADIOBUTTON)
-        gymQuestion = Question(questionForAdd.id, questionForAdd.question, questionForAdd.responsesTypes, *questionForAdd.responses.filterNot { it in excludedTypeExercises }.toTypedArray())
+        questionForDuplicate = allQuestions.find { it.question == "Do you work out at home or at the gym?" } ?: Question(0, "", ResponsesType.RADIOBUTTON)
+        gymQuestion = Question(questionForDuplicate.id, questionForDuplicate.question, questionForDuplicate.responsesTypes, *questionForDuplicate.responses.filterNot { it in excludedTypeExercises }.toTypedArray())
+        calisthenicsQuestion = allQuestionsScreen.find { it.question == "Where do you train calisthenics?" }
+            ?.copy() ?: Question(0, "", ResponsesType.RADIOBUTTON)
 
-        if(!isQuestionInAllQuestions(allQuestionsScreen.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" } as Question, allQuestionsScreen)) allQuestionsScreen.add(3, allQuestions.find { it.question == "What types of calisthenics exercises do you focus on or want to focus on?" } ?: Question(0, "", ResponsesType.RADIOBUTTON))
+        if(!isQuestionInAllQuestions(calisthenicsQuestion, allQuestionsScreen))
+            allQuestionsScreen.add(3, calisthenicsQuestion)
         if(!isQuestionInAllQuestions(gymQuestion, allQuestionsScreen)) allQuestionsScreen[2] = gymQuestion
     }
 }
 
-fun choseResponseOfQuestion(questionString: String, allQuestionsScreen: MutableList<Question>, questionStringForRemove: String, indexForInsertQuestion: Int, excludedResponses: List<String>) {
+fun disableResponseAccordingToResponse(checkedResponses: List<String>, disableResponse: () -> Unit) {
+    if(checkedResponses.contains("Gain more strength")) disableResponse()
+}
+
+fun addAndRemoveQuestions(questionString: String, allQuestionsScreen: MutableList<Question>, questionStringForRemove: String, indexForInsertQuestion: Int, excludedResponses: List<String>) {
     val questionForAdd = allQuestions.find { it.question == questionString } ?: Question(0, "", ResponsesType.RADIOBUTTON)
     val newQuestionForAddQuestion = Question(questionForAdd.id, questionForAdd.question, questionForAdd.responsesTypes, *questionForAdd.responses.filterNot { it in excludedResponses }.toTypedArray())
 
-    /* Si la respuesta elegida es la primera se coge, se comprueba si la pregunta está en la lista mutable de preguntas
-       si no está se añade y se borra la pregunta, segun la otra respuesta elegida  */
+    /* Si la respuesta elegida es la primera, se coge, se comprueba si la pregunta está en la lista mutable de preguntas.
+       Si no está se añade y se borra la pregunta, segun la otra respuesta elegida  */
     if(!isQuestionInAllQuestions(newQuestionForAddQuestion, allQuestionsScreen)) allQuestionsScreen.add(indexForInsertQuestion, newQuestionForAddQuestion)
     allQuestionsScreen.removeIf { it.question == questionStringForRemove }
     joinListsWithSameQuestion(allQuestionsScreen, newQuestionForAddQuestion.responses.toList())
@@ -433,14 +486,6 @@ fun getAllQuestionAnswered(allChecked: Map<String, MutableMap<String, Boolean>>)
     return allQuestionsAnswered
 }
 
-fun getNecessaryNumberForTrainingDays(allChecked: Map<String, MutableMap<String, Boolean>>, setNecessariesDaysForTraining: (Int) -> Unit): Int {
-    val necessariesDaysForTraining = (allChecked["What types of gym exercises do you focus on or want to focus on?"]?.filterValues { it }?.count() ?: 0) +
-            (allChecked["What types of calisthenics exercises do you focus on or want to focus on?"]?.filterValues { it }?.count() ?: 0)
-
-    setNecessariesDaysForTraining(necessariesDaysForTraining)
-    return necessariesDaysForTraining
-}
-
 fun validateAddedUser(thereIsError: Boolean, context: Context, setThereIsErrorToNull: () -> Unit, onRegistrationScreen: () -> Unit, onLoginScreen: () -> Unit) {
     if(thereIsError) {
         showToast("Failure to add a user", context)
@@ -450,6 +495,7 @@ fun validateAddedUser(thereIsError: Boolean, context: Context, setThereIsErrorTo
     }
     setThereIsErrorToNull()
 }
+
 private fun joinListsWithSameQuestion(allQuestionsScreen: MutableList<Question>, addedResponses: List<String>) {
     val newAllQuestionsScreen = allQuestionsScreen.groupBy { it.question }.map { (_, questions) ->
         if(questions.size >= 2) {

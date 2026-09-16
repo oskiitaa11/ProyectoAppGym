@@ -59,7 +59,6 @@ class UserDatabase: RepositoryUserDatabase {
     private lateinit var auth: FirebaseAuth
     private var uidLoggedUser: String? = null
     val currentUser: MutableStateFlow<User?> = MutableStateFlow(null)
-    private val allRoutines = AllRoutines
 
     fun initializerApp() {
         auth = Firebase.auth
@@ -85,10 +84,10 @@ class UserDatabase: RepositoryUserDatabase {
                }
         }
 
-        if(userFirebase != null){
+        /*if(userFirebase != null){
             routines = createRoutine(user.allQuestionsAnswered)
-            user.trainingRoutines = routines
-        }
+            user.addTrainingRoutines(routines)
+        }*/
 
         return suspendCoroutine { continuation ->
             if(userFirebase != null) {
@@ -113,6 +112,10 @@ class UserDatabase: RepositoryUserDatabase {
                     continuation.resume(task.isSuccessful)
                 }
         }
+    }
+
+    override suspend fun changeWeeklyRoutine(newAnsweredQuestion: Map<String, List<String>>): Boolean {
+        TODO("Not yet implemented")
     }
 
     override suspend fun signIn(email: String, password: String): Int {
@@ -214,6 +217,10 @@ class UserDatabase: RepositoryUserDatabase {
         }
     }
 
+    override suspend fun createRoutine(newAnsweredQuestion: Map<String, List<String>>): List<TrainingRoutine> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun updateCurrentUser() {
 
         if(uidLoggedUser != null) {
@@ -248,11 +255,11 @@ class UserDatabase: RepositoryUserDatabase {
         return uidLoggedUser
     }
 
-    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-    override suspend fun changeWeeklyRoutine(
+//    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    /*override suspend fun changeWeeklyRoutine(
         newAnsweredQuestion: Map<String, List<String>>
     ): Boolean {
-        var newRoutine = createRoutine(newAnsweredQuestion)
+//        var newRoutine = createRoutine(newAnsweredQuestion)
 
         return suspendCoroutine<Boolean> { continuation ->
             db.collection("Users").document(uidLoggedUser ?: "").update("trainingRoutines", newRoutine).addOnSuccessListener { result ->
@@ -261,10 +268,10 @@ class UserDatabase: RepositoryUserDatabase {
                 continuation.resume(false)
             }
         }
-    }
+    }*/
 
-    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
-    override suspend fun createRoutine(answeredQuestions: Map<String, List<String>>): List<TrainingRoutine> {
+//    @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
+    /*override suspend fun createRoutine(answeredQuestions: Map<String, List<String>>): List<TrainingRoutine> {
         var numberOfDaysForTraining = answeredQuestions["Which days of the week can/do you want to train?"]?.count() ?: 0
         val numberOfTypeExercises = (answeredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.count() ?: 0) + (answeredQuestions["What types of calisthenics exercises do you focus on or want to focus on?"]?.count() ?: 0)
         val typeExercisesGym = answeredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
@@ -299,10 +306,10 @@ class UserDatabase: RepositoryUserDatabase {
             ExercisesName.BARBELL_CURL,
             ExercisesName.CONCENTRATION_CURL
         )
+        var trainingRoutinesTension: List<TrainingRoutine>
 
         if(numberOfDaysForTraining == 5) {
             excludedExercises = mutableListOf(
-                ExercisesName.DEADLIFT,
                 ExercisesName.CONCENTRATION_CURL,
                 ExercisesName.FRONT_RAISES_WITH_DUMBBELLS_OR_BARBELL,
                 ExercisesName.FLAT_BENCH_DUMBBELL_FLYES
@@ -320,7 +327,6 @@ class UserDatabase: RepositoryUserDatabase {
 
         } else if(numberOfDaysForTraining == 4) {
             excludedExercises = mutableListOf(
-                ExercisesName.DEADLIFT,
                 ExercisesName.CONCENTRATION_CURL,
                 ExercisesName.FRONT_RAISES_WITH_DUMBBELLS_OR_BARBELL,
                 ExercisesName.FLAT_BENCH_DUMBBELL_FLYES
@@ -383,6 +389,9 @@ class UserDatabase: RepositoryUserDatabase {
             removeExercisesOfRoutine(weeklyRoutines, excludedExercises)
         }
 
+        trainingRoutinesTension = weeklyRoutines.filter { it.exercises.any { it.exercise.exercise.type == TypeExercise.TENS } }
+        trainingRoutinesTension.forEach { addCombosTension(weeklyRoutines, it) }
+
         return weeklyRoutines.toList()
     }
 
@@ -390,6 +399,12 @@ class UserDatabase: RepositoryUserDatabase {
        val realizationExercises = exercises.map { RealizationExercise(it, sets, repetitions, restBetweenSeries ) }
 
         routines.add(TrainingRoutine(DayOfWeek.fromString(dayOfWeek), name, realizationExercises))
+    }
+
+    private suspend fun addCombosTension(weeklyRoutines: MutableList<TrainingRoutine>, trainingRoutineTension: TrainingRoutine) {
+        var indexTrainingRoutineTension: Int = weeklyRoutines.indexOf(trainingRoutineTension)
+        trainingRoutineTension.exercises = trainingRoutineTension.exercises.toMutableList().apply { add(0, RealizationExercise(ExercisesName.COMBOS_TENSION, 0, 0, 2)) }
+        weeklyRoutines[indexTrainingRoutineTension] = trainingRoutineTension
     }
 
     private suspend fun getAllTypeExercises(allTypeExercisesForTrain: List<String>, numberOfDaysForTraining: Int, numberOfTypeExercises: Int): List<String> {
@@ -446,7 +461,7 @@ class UserDatabase: RepositoryUserDatabase {
 
     }
 
-    private suspend fun addRoutineAccordingType(typeExercise: TypeExercise, groupMuscles: GroupMuscles, weeklyRoutines: MutableList<TrainingRoutine>, dayOfWeekForTrain: String, repetitions: Int, restBetweenSeries: Int) {
+    *//*private suspend fun addRoutineAccordingType(typeExercise: TypeExercise, groupMuscles: GroupMuscles, weeklyRoutines: MutableList<TrainingRoutine>, dayOfWeekForTrain: String, repetitions: Int, restBetweenSeries: Int) {
         when(typeExercise) {
             TypeExercise.MACHINES -> {
                 addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.machineExercises[groupMuscles] ?: emptyList(), 3, repetitions, restBetweenSeries, groupMuscles.nameDay)
@@ -458,13 +473,13 @@ class UserDatabase: RepositoryUserDatabase {
                 addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.basicExercises[groupMuscles] ?: emptyList(), 3, 20, restBetweenSeries, groupMuscles.nameDay)
             }
             TypeExercise.TENS -> {
-                addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.tensionExercises[groupMuscles] ?: emptyList(), 3, repetitions, restBetweenSeries, groupMuscles.nameDay)
+                addRoutine(weeklyRoutines, dayOfWeekForTrain, allRoutines.tensionExercises[groupMuscles] ?: emptyList(), 3, 5, 2, groupMuscles.nameDay)
             }
             TypeExercise.CARDIO -> addRoutine(weeklyRoutines, dayOfWeekForTrain,  listOf(ExercisesName.RUNNING), 3, repetitions, restBetweenSeries, groupMuscles.nameDay)
         }
-    }
+    }*//*
 
-    private suspend fun addRoutineFullBody(typeExercise: String, weeklyRoutines: MutableList<TrainingRoutine>, dayOfWeekForTrain: String, repetitions: Int, restBetweenSeries: Int) {
+    *//*private suspend fun addRoutineFullBody(typeExercise: String, weeklyRoutines: MutableList<TrainingRoutine>, dayOfWeekForTrain: String, repetitions: Int, restBetweenSeries: Int) {
         val routineAllExercises: List<ExercisesName>
         
         
@@ -487,7 +502,7 @@ class UserDatabase: RepositoryUserDatabase {
         }
 
         addRoutine(weeklyRoutines, dayOfWeekForTrain, routineAllExercises, 3, repetitions, restBetweenSeries, "Full-body day")
-    }
+    }*//*
 
     private suspend fun joinListsWithSameDayOfWeek(weeklyRoutines: MutableList<TrainingRoutine>) {
         val newWeeklyRoutine = weeklyRoutines.groupBy { it.dayOfWeek }.map { (dayOfWeek, trainingRoutines) ->
@@ -519,23 +534,7 @@ class UserDatabase: RepositoryUserDatabase {
             if(isStop()) daysOfWeekForTrain.removeAt(0)
 
         }
-    }
-   /* override suspend fun updateProfileAvatar(uri: Uri, currentUser: User) {
-        val storageRef = FirebaseStorage.getInstance().reference
-        val imageRef = storageRef.child("profile_images/$uidLoggedUser.jpg")
-
-        suspendCoroutine<Unit> {
-            imageRef.putFile(uri)
-            imageRef.downloadUrl.addOnSuccessListener {
-                currentUser.profileAvatar = it.toString()
-                val o = currentUser.profileAvatar
-            }.addOnFailureListener {
-                val o = it.message
-            }
-        }
     }*/
+
 }
-
-
-
 

@@ -102,6 +102,7 @@ fun NavGraphBuilder.homeDestination(onExerciseScreen: (RealizationExercise) -> U
         }
         val currentUser by homeViewmodel.currentUser.collectAsStateWithLifecycle()
 
+        print(currentUser.username)
         if(currentUser.username.isNotEmpty())
             HomeScreen(currentUser, onProfileScreen, onExerciseScreen)
     }
@@ -112,7 +113,7 @@ fun NavGraphBuilder.homeDestination(onExerciseScreen: (RealizationExercise) -> U
 fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (RealizationExercise) -> Unit) {
     val state = rememberLazyListState()
     //Se asigna la siguiente rutina de entrenamiento, es decir la que tiene un numero mayor que el numero del dia actual
-    var nextTrainingRoutine: TrainingRoutine = getNextTrainingRoutine(user.trainingRoutines)
+    var nextTrainingRoutine: TrainingRoutine? = if(user.trainingRoutines.isNotEmpty())getNextTrainingRoutine(user.trainingRoutines) else null
     var idAvatarImage = Avatars.toAvatar(user.idProfileAvatar).idAvatarImage
 
     Scaffold(
@@ -123,14 +124,16 @@ fun HomeScreen(user: User, onProfileScreen: () -> Unit, onExerciseScreen: (Reali
             end = innerpadding.calculateRightPadding(LayoutDirection.Rtl),
             start = innerpadding.calculateLeftPadding(LayoutDirection.Ltr)
         ).background(colorResource(R.color.lightBlack)))  {
-            Text("Your next training: ${nextTrainingRoutine.name}", color = Color.White, fontStyle = FontStyle.Italic, modifier = Modifier.padding(start = 10.dp))
-            Spacer(modifier = Modifier.height(10.dp))
-            HorizontalDivider(color = Color.White)
-            LazyColumn(state = state) {
-                itemsIndexed(items = nextTrainingRoutine.exercises) { _, realizationExercise ->
-                    ShowExercise(realizationExercise, onExerciseScreen)
+            if(nextTrainingRoutine != null )
+                Text("${nextTrainingRoutine.name} - ${nextTrainingRoutine.dayOfWeek?.stringValue}", color = Color.White, fontStyle = FontStyle.Italic, modifier = Modifier.padding(start = 10.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+                HorizontalDivider(color = Color.White)
+                LazyColumn(state = state) {
+                    if(nextTrainingRoutine != null)
+                        itemsIndexed(items = nextTrainingRoutine.exercises) { _, realizationExercise ->
+                            ShowExercise(realizationExercise, onExerciseScreen)
+                        }
                 }
-            }
         }
     }
 }
@@ -141,9 +144,9 @@ fun ShowExercise(realizationExercise: RealizationExercise, onExerciseScreen: (Re
     val interactionSource = remember { MutableInteractionSource() }
 
     ListItem(
-        headlineContent = { Text(realizationExercise.exercise.exercise.name, fontSize = 12.sp) },
-        leadingContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.idCoverImage), contentDescription = "Cover Image", contentScale = ContentScale.Crop, modifier = Modifier.size(80.dp)) },
-        overlineContent = { Image(painter = painterResource(realizationExercise.exercise.exercise.exerciseLevel.idIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
+        headlineContent = { Text(realizationExercise.exercise.name, fontSize = 12.sp) },
+        leadingContent = { Image(painter = painterResource(realizationExercise.exercise.idCoverImage), contentDescription = "Cover Image", contentScale = ContentScale.Crop, modifier = Modifier.size(80.dp)) },
+        overlineContent = { Image(painter = painterResource(realizationExercise.exercise.exerciseLevel.idIconLvl), contentDescription = "Lvl exercise", modifier = Modifier.size(30.dp).padding(bottom = 10.dp)) },
         supportingContent = { Text("${realizationExercise.series} sets of ${realizationExercise.repetitions} repetitions") },
         modifier = Modifier.fillMaxWidth().clickable(interactionSource = interactionSource, indication = LocalIndication.current) { onExerciseScreen(realizationExercise) },
         colors = ListItemDefaults.colors(containerColor = colorResource(R.color.lightBlack), headlineColor = Color.White, overlineColor = Color.White.copy(alpha = 0.7f), supportingColor = Color.White.copy(alpha = 0.5f))
@@ -179,11 +182,13 @@ fun ShowTopAppBarHome(name: String, idAvatar: Int, onProfileScreen: () -> Unit) 
 
 fun getNextTrainingRoutine(trainingRoutines: List<TrainingRoutine>): TrainingRoutine {
     val actualDay = LocalDate.now().dayOfWeek.value
-    val bestIdDay = trainingRoutines.maxOf { it.dayOfWeek.idDay }
+    val bestIdDay = trainingRoutines.maxOf { it.dayOfWeek?.idDay?.toDouble() ?: 0.00 }.toInt()
     //Si no hay rutina siguiente en la semana, se empieza por la primera que encuentre en la semana siguiente y sino se busca la primera con el id mayor que el dia actual
-    var nextTrainingRoutine: TrainingRoutine = (if(actualDay > bestIdDay) trainingRoutines.find { actualDay >= it.dayOfWeek.idDay }
-    else if(actualDay == bestIdDay) trainingRoutines.find { actualDay == it.dayOfWeek.idDay }
-    else trainingRoutines.find { actualDay <= it.dayOfWeek.idDay }) ?: TrainingRoutine()
+    var nextTrainingRoutine: TrainingRoutine = (if(actualDay > bestIdDay) trainingRoutines.find {
+        actualDay >= (it.dayOfWeek?.idDay ?: 0)
+    }
+    else if(actualDay == bestIdDay) trainingRoutines.find { actualDay == it.dayOfWeek?.idDay }
+    else trainingRoutines.find { actualDay <= (it.dayOfWeek?.idDay ?: 0) }) ?: TrainingRoutine()
 
-    return nextTrainingRoutine
+    return trainingRoutines.filter { it.dayOfWeek == DayOfWeek.MONDAY }[0]//nextTrainingRoutine
 }

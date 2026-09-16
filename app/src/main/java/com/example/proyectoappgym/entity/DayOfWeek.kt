@@ -11,5 +11,9 @@ enum class DayOfWeek(val stringValue: String, val idDay: Int) {
         fun fromString(dayOfWeek: String): DayOfWeek {
             return entries.find { it.stringValue.lowercase() == dayOfWeek.lowercase() } ?: MONDAY
         }
+
+        fun fromId(idDay: Int): DayOfWeek {
+            return entries.find { it.idDay == idDay } ?: MONDAY
+        }
     }
 }

@@ -16,7 +16,14 @@ data class User(
     @SerializedName("profileAvatar")
     @Expose
     var idProfileAvatar: Int = 1,
-    var trainingRoutines: List<TrainingRoutine> = emptyList<TrainingRoutine>()
+    private var _trainingRoutines: List<TrainingRoutine> = emptyList<TrainingRoutine>()
 ) {
     constructor(): this("", "", "", "", "", Gender.NONE)
+
+    val trainingRoutines: List<TrainingRoutine>
+        get() = _trainingRoutines
+
+    fun addTrainingRoutines(newTrainingRoutines: List<TrainingRoutine>) {
+        _trainingRoutines = newTrainingRoutines
+    }
 }

@@ -8,7 +8,9 @@ import com.example.proyectoappgym.entity.TypeExercise
 import com.example.proyectoappgym.entity.TypeTensExercise
 
 object AllExercises {
-    val machinesRoutines = listOf(
+
+}
+    /*val machinesRoutines = listOf(
         Exercise(
             name = "Chest Press Machine",
             nameVideo = "chest_press_machine",
@@ -16,7 +18,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.TRICEPS),
             stepsForDoIt = """
         1. Sit on the machine and adjust the seat so that the handles are at chest height.
         2. Place your hands on the handles with a firm grip.
@@ -28,32 +29,12 @@ object AllExercises {
             idImageMuscles = R.drawable.muscles_chest_press_machine
         ),
         Exercise(
-            name = "Peck Deck Machine",
-            nameVideo = "peck_deck_machine",
-            description = "Excellent for working the inner part of the pectorals and focusing on muscle contraction.",
-            exerciseLevel = ExerciseLevel.INTERMEDIATE,
-            type = TypeExercise.MACHINES,
-            trainedPrimaryMuscles = listOf(Muscles.PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.TRICEPS),
-            stepsForDoIt = """
-        1. Sit on the machine with your back straight and adjust the seat height.
-        2. Place your forearms on the pads or your hands on the handles, depending on the model.
-        3. Bring your arms together toward the center of your chest, contracting your pectorals.
-        4. Pause for a second at the peak contraction.
-        5. Slowly return to the starting position.
-        6. Repeat the exercise according to your scheduled repetitions.
-    """.trimIndent(),
-            idCoverImage = R.drawable.peck_deck_machine,
-            idImageMuscles = R.drawable.muscles_peck_deck_machine
-        ),
-        Exercise(
             name = "Incline Chest Press",
             nameVideo = "incline_chest_press",
             description = "Works the upper part of the pectoral muscle.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.UPPER_PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.TRICEPS),
             stepsForDoIt = """
         1. Adjust the seat so that the handles align with the upper part of your chest.
         2. Sit with your back supported by the seat.
@@ -72,15 +53,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.LATISSIMUS_DORSI),
-            trainedSecondaryMuscles = listOf(
-                Muscles.BRACHIALIS,
-                Muscles.BRACHIORADIALIS,
-                Muscles.DELTOIDS,
-                Muscles.INFRASPINATUS,
-                Muscles.TERES_MAJOR,
-                Muscles.TERES_MINOR,
-                Muscles.TRAPEZIUS
-            ),
             stepsForDoIt = """
         1. Sit down and adjust the pad over your thighs.
         2. Grip the bar with a wide and firm grip.
@@ -103,11 +75,6 @@ object AllExercises {
                 Muscles.TERES_MAJOR,
                 Muscles.TERES_MINOR,
                 Muscles.INFRASPINATUS
-            ),
-            trainedSecondaryMuscles = listOf(
-                Muscles.BRACHIALIS,
-                Muscles.BRACHIORADIALIS,
-                Muscles.DELTOIDS
             ),
             stepsForDoIt = """
         1. Sit down with your feet planted on the platform.
@@ -132,12 +99,6 @@ object AllExercises {
                 Muscles.TERES_MINOR,
                 Muscles.TRAPEZIUS
             ),
-            trainedSecondaryMuscles = listOf(
-                Muscles.DELTOIDS,
-                Muscles.LATISSIMUS_DORSI,
-                Muscles.TERES_MAJOR,
-                Muscles.TRICEPS
-            ),
             stepsForDoIt = """
         1. Sit on the machine and adjust the backrest and arm height.
         2. Grip the handles with your arms extended upward.
@@ -155,7 +116,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.GLUTEUS, Muscles.HAMSTRINGS),
-            trainedSecondaryMuscles = listOf(Muscles.GLUTEUS, Muscles.QUADRICEPS),
             stepsForDoIt = """
         1. Sit on the machine and place your feet on the platform shoulder-width apart.
         2. Release the safety locks if necessary.
@@ -173,7 +133,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS),
-            trainedSecondaryMuscles = emptyList(),
             stepsForDoIt = """
         1. Sit on the leg extension machine.
         2. Adjust the pads so they rest just above your ankles.
@@ -192,7 +151,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.HAMSTRINGS),
-            trainedSecondaryMuscles = listOf(Muscles.GASTROCNEMIUS, Muscles.CALVES),
             stepsForDoIt = """
     1. Lie face down on the leg curl machine.
     2. Place your legs under the padded rollers.
@@ -211,7 +169,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.ADDUCTORS),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
     1. Sit on the machine and adjust the pads to your desired position.
     2. Place your legs inside or outside the pads depending on the targeted muscles.
@@ -232,7 +189,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.GLUTEUS),
-            trainedSecondaryMuscles = listOf(Muscles.HAMSTRINGS, Muscles.LOWER_BACK),
             stepsForDoIt = """
     1. Set up the cable machine: Attach a rope handle to the lowest pulley setting. Choose a 
         moderate weight that allows for full control without compromising form.
@@ -255,7 +211,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.FRONT_DELTOID),
-            trainedSecondaryMuscles = listOf(Muscles.TRICEPS, Muscles.MIDDLE_DELTOID),
             stepsForDoIt = """
     1. Sit on the machine and adjust the seat so the handles are at shoulder height.
     2. Grip the handles firmly.
@@ -279,11 +234,6 @@ object AllExercises {
                 Muscles.TERES_MINOR,
                 Muscles.TRAPEZIUS
             ),
-            trainedSecondaryMuscles = listOf(
-                Muscles.BRACHIALIS,
-                Muscles.BRACHIORADIALIS,
-                Muscles.DELTOIDS
-            ),
             stepsForDoIt = """
             1. Adjust the machine seat so that the chest pad rests comfortably against your chest and the handles are at shoulder level.
             2. Sit down on the seat and place your feet on the footrests, keeping your knees slightly bent.
@@ -302,12 +252,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.MIDDLE_DELTOID),
-            trainedSecondaryMuscles = listOf(
-                Muscles.BRACHIALIS,
-                Muscles.BRACHIORADIALIS,
-                Muscles.DELTOIDS,
-                Muscles.LOWER_PECTORAL
-            ),
             stepsForDoIt = """
     1. Adjust the seat so the handles are at shoulder height.
     2. Sit with your back straight against the pad.
@@ -325,7 +269,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.BICEPS),
-            trainedSecondaryMuscles = listOf(Muscles.BRACHIALIS),
             stepsForDoIt = """
     1. Adjust the seat so your arms align with the machine's pivot point.
     2. Sit down and rest your arms on the padded support.
@@ -343,7 +286,7 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.TRICEPS),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
+
             stepsForDoIt = """
     1. Adjust the seat so your elbows are aligned with the machine's axis.
     2. Sit down and grab the handles with your palms facing down.
@@ -361,7 +304,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.BRACHIALIS),
-            trainedSecondaryMuscles = listOf(Muscles.BRACHIORADIALIS, Muscles.BICEPS),
             stepsForDoIt = """
     1. Adjust the seat so your armpits rest just above the bench pad.
     2. Fully extend your arms on the sloped pad.
@@ -374,30 +316,11 @@ object AllExercises {
             idImageMuscles = R.drawable.muscles_preacher_curl_machine
         ),
         Exercise(
-            name = "Ab Crunch Machine",
-            description = "Targets the rectus abdominis.",
-            exerciseLevel = ExerciseLevel.BEGINNER,
-            type = TypeExercise.MACHINES,
-            trainedPrimaryMuscles = listOf(Muscles.ABS),
-            trainedSecondaryMuscles = listOf(Muscles.OBLIQUES),
-            stepsForDoIt = """
-    1. Adjust the seat and pads to fit your body properly.
-    2. Sit down and place your feet under the footpads.
-    3. Grab the handles and keep your back straight.
-    4. Contract your abs and curl your torso forward.
-    5. Slowly return to the starting position.
-""".trimIndent(),
-            nameVideo = "ab_crunch_machine",
-            idCoverImage = R.drawable.ab_crunches_machines,
-            idImageMuscles = R.drawable.muscles_ab_crunch_machine
-        ),
-        Exercise(
             name = "Oblique Machine",
             description = "Ideal for working the lateral abdominal muscles.",
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.OBLIQUES),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
     1. Adjust the machine to work one side of the body.
     2. Sit and position your arms and torso correctly according to the machine design.
@@ -415,7 +338,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.ABS),
-            trainedSecondaryMuscles = listOf(Muscles.OBLIQUES),
             stepsForDoIt = """
     1. Adjust the cable height and select the appropriate weight.
     2. Kneel down and grab the rope handles above your head.
@@ -433,7 +355,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.LOWER_BACK),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
     1. Adjust the machine so the pads sit just above your ankles.
     2. Place your thighs on the padded support and cross your arms over your chest.
@@ -451,7 +372,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.TRAPEZIUS),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
     1. Adjust the machine to your height.
     2. Grab the handles with your arms at your sides.
@@ -472,8 +392,8 @@ object AllExercises {
             description = "Standard push-ups that target the chest, triceps, and shoulders.",
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
             trainedPrimaryMuscles = listOf(Muscles.PECTORALS, Muscles.TRICEPS, Muscles.DELTOIDS),
-            trainedSecondaryMuscles = listOf(Muscles.LOWER_BACK),
             stepsForDoIt = """
     1. Get into a plank position with your hands under your shoulders.
     2. Lower your body until your chest lightly touches the floor.
@@ -488,12 +408,8 @@ object AllExercises {
             description = "Dips on parallel bars to target the chest and triceps.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
             trainedPrimaryMuscles = listOf(Muscles.PECTORALS),
-            trainedSecondaryMuscles = listOf(
-                Muscles.BRACHIORADIALIS,
-                Muscles.TRICEPS,
-                Muscles.FRONT_DELTOID
-            ),
             stepsForDoIt = """
     1. Position yourself between the parallel bars with your hands on them.
     2. Lower your body until your elbows form a 90-degree angle.
@@ -504,16 +420,28 @@ object AllExercises {
             idImageMuscles = R.drawable.muscles_dips
         ),
         Exercise(
+            name = "Dip on straight bar",
+            description = "Dips on a parallel bar to target the chest and triceps",
+            exerciseLevel = ExerciseLevel.INTERMEDIATE,
+            type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
+            trainedPrimaryMuscles = listOf(Muscles.TRICEPS, Muscles.PECTORALS),
+            stepsForDoIt = """
+    1. Position yourself on a parallel bar with your hands on them.
+    2. Lower your body until the bar touches your chest's lower part.
+    3. Push yourself back up to full arm extension.
+""".trimIndent(),
+            nameVideo = "dips_on_straight_bar",
+            idCoverImage = R.drawable.dip_on_straight_bar,
+            idImageMuscles = R.drawable.muscles_dips
+        ),
+        Exercise(
             name = "Closed-Grip Push-ups",
             description = "Push-ups performed with hands closer together to target the triceps more intensively.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
             trainedPrimaryMuscles = listOf(Muscles.TRICEPS),
-            trainedSecondaryMuscles = listOf(
-                Muscles.FRONT_DELTOID,
-                Muscles.FRONT_DELTOID,
-                Muscles.PECTORALS
-            ),
             stepsForDoIt = """
     1. Get into a standard push-up position but place your hands close together under your chest, forming a triangle or diamond shape with your thumbs and index fingers.
     2. Lower your body by bending your elbows, keeping them close to your torso.
@@ -524,26 +452,37 @@ object AllExercises {
             idCoverImage = R.drawable.closed_grip_push_ups,
             idImageMuscles = R.drawable.muscles_closed_grip_push_ups
         ),
-
+        Exercise(
+            name = "Pike push-ups",
+            description = "Exercise to train the shoulders by doing a push-up toward the ground, with your torso straight and your legs in a L shape",
+            exerciseLevel = ExerciseLevel.INTERMEDIATE,
+            type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
+            trainedPrimaryMuscles = listOf(
+                Muscles.DELTOIDS
+            ),
+            stepsForDoIt = """
+    1. Get into a plank position with your hands under your shoulders, raising your hips as high as possible and placing your legs raised in a L shape.
+    2. Lower your head completely downwards without letting it touch the ground.
+    3. Lower yourself slowly back down to the starting position.
+""".trimIndent(),
+            nameVideo = "pike_push_up",
+            idCoverImage = R.drawable.pike_push_up,
+            idImageMuscles = R.drawable.muscles_shoulder_press_machine
+        ),
         // Upper Body (Pull)
         Exercise(
             name = "Pull-ups",
             description = "Basic exercise to target the back, shoulders, and biceps using a bar.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PULL_UP,
             trainedPrimaryMuscles = listOf(
                 Muscles.LATISSIMUS_DORSI,
                 Muscles.TERES_MAJOR,
                 Muscles.TERES_MINOR,
                 Muscles.TRAPEZIUS,
                 Muscles.BICEPS
-            ),
-            trainedSecondaryMuscles = listOf(
-                Muscles.BRACHIALIS,
-                Muscles.BRACHIORADIALIS,
-                Muscles.DELTOIDS,
-                Muscles.INFRASPINATUS,
-                Muscles.PECTORALS
             ),
             stepsForDoIt = """
     1. Grip the bar with your hands at shoulder width.
@@ -555,19 +494,34 @@ object AllExercises {
             idImageMuscles = R.drawable.muscles_pull_ups
         ),
         Exercise(
+            name = "Archer-Pull-ups-Back",
+            description = "Pull-ups with one arm, but bringing the chest towards one arm and leaving the other one extended",
+            exerciseLevel = ExerciseLevel.INTERMEDIATE,
+            type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PULL_UP,
+            trainedPrimaryMuscles = listOf(
+                Muscles.LATISSIMUS_DORSI,
+                Muscles.TERES_MAJOR,
+                Muscles.TERES_MINOR,
+                Muscles.TRAPEZIUS,
+                Muscles.BICEPS
+            ),
+            stepsForDoIt = """
+    1. Grip the bar with your hands wider than shoulder-width apart.
+    2. Pull your body up until your chin is above the bar.
+    3. Slowly lower yourself.
+""".trimIndent(),
+            nameVideo = "archer_pull_ups_back",
+            idCoverImage = R.drawable.archer_pull_up_back,
+            idImageMuscles = R.drawable.muscles_pull_ups
+        ),
+        Exercise(
             name = "Chin-ups",
             description = "Pull-ups with a supine grip (palms facing you), targeting the biceps more.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PULL_UP,
             trainedPrimaryMuscles = listOf(Muscles.BICEPS, Muscles.LATISSIMUS_DORSI),
-            trainedSecondaryMuscles = listOf(
-                Muscles.TRAPEZIUS,
-                Muscles.BRACHIALIS,
-                Muscles.BRACHIORADIALIS,
-                Muscles.DELTOIDS,
-                Muscles.PECTORALS,
-                Muscles.TERES_MAJOR
-            ),
             stepsForDoIt = """
     1. Grip the bar with your palms facing you.
     2. Pull your body up until your chin is above the bar.
@@ -582,18 +536,12 @@ object AllExercises {
             description = "If you can't do a full pull-up yet, start at the top and lower yourself slowly.",
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PULL_UP,
             trainedPrimaryMuscles = listOf(
                 Muscles.LATISSIMUS_DORSI,
                 Muscles.TERES_MAJOR,
                 Muscles.TERES_MINOR,
                 Muscles.TRAPEZIUS
-            ),
-            trainedSecondaryMuscles = listOf(
-                Muscles.BRACHIALIS,
-                Muscles.BRACHIORADIALIS,
-                Muscles.DELTOIDS,
-                Muscles.INFRASPINATUS,
-                Muscles.PECTORALS
             ),
             stepsForDoIt = """
     1. Jump or climb to the top position of the pull-up bar.
@@ -604,7 +552,24 @@ object AllExercises {
             idCoverImage = R.drawable.negative_pull_ups,
             idImageMuscles = R.drawable.muscles_negative_pull_ups
         ),
-
+        Exercise(
+            name = "Triceps-closed-push-ups",
+            description = "Exercise to train the triceps by doing a elbow flexion",
+            exerciseLevel = ExerciseLevel.INTERMEDIATE,
+            type = TypeExercise.BASIC,
+            typeTensExercise = TypeTensExercise.PULL_UP,
+            trainedPrimaryMuscles = listOf(
+                Muscles.TRICEPS
+            ),
+            stepsForDoIt = """
+    1. Get into a plank position with your hands under your shoulders.
+    2. Lower your body until your chest lightly touches the floor, bending the elbows.
+    3. Lower yourself slowly back down to the starting position.
+""".trimIndent(),
+            nameVideo = "triceps_closed_push_up",
+            idCoverImage = R.drawable.triceps_closed_push_up,
+            idImageMuscles = R.drawable.muscles_closed_grip_push_ups
+        ),
         // Legs
         Exercise(
             name = "Squats",
@@ -612,7 +577,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.GLUTEUS),
-            trainedSecondaryMuscles = listOf(Muscles.CALVES, Muscles.ABS, Muscles.LOWER_BACK),
             stepsForDoIt = """
     1. Stand with your feet shoulder-width apart.
     2. Lower your hips as if sitting in a chair, keeping your back straight.
@@ -628,7 +592,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.GLUTEUS),
-            trainedSecondaryMuscles = emptyList(),
             stepsForDoIt = """
     1. Perform a regular squat.
     2. As you rise, explosively jump upwards.
@@ -644,7 +607,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.GLUTEUS),
-            trainedSecondaryMuscles = emptyList(),
             stepsForDoIt = """
     1. Step forward with one leg.
     2. Lower your back knee toward the ground.
@@ -660,7 +622,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.HAMSTRINGS),
-            trainedSecondaryMuscles = emptyList(),
             stepsForDoIt = """
     1. Position yourself in front of an elevated platform.
     2. Step up with one leg, pushing off with the leg that steps up.
@@ -676,7 +637,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.CALVES),
-            trainedSecondaryMuscles = listOf(Muscles.ABS, Muscles.HAMSTRINGS),
             stepsForDoIt = """
     1. Stand with your feet on an elevated surface (e.g., a step).
     2. Raise your heels as high as possible, contracting your calves.
@@ -694,13 +654,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.ABS),
-            trainedSecondaryMuscles = listOf(
-                Muscles.FRONT_DELTOID,
-                Muscles.GLUTEUS,
-                Muscles.OBLIQUES,
-                Muscles.SARTORIUS,
-                Muscles.TENSOR_FASCIAE_FEMORIS
-            ),
             stepsForDoIt = """
     1. Get into a plank position, resting on your forearms and toes.
     2. Keep your body straight and engage your core.
@@ -716,7 +669,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.UPPER_ABS, Muscles.MIDDLE_ABS),
-            trainedSecondaryMuscles = listOf(Muscles.OBLIQUES),
             stepsForDoIt = """
     1. Lie on your back with your knees bent.
     2. Perform a small lift of your torso, contracting your abs.
@@ -732,13 +684,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.LOWER_ABS),
-            trainedSecondaryMuscles = listOf(
-                Muscles.GLUTEUS,
-                Muscles.ILIOPSOAS,
-                Muscles.QUADRICEPS,
-                Muscles.SARTORIUS,
-                Muscles.TENSOR_FASCIAE_FEMORIS
-            ),
             stepsForDoIt = """
     1. Hang from a bar with your legs straight.
     2. Raise your legs towards your chest while keeping them straight.
@@ -754,7 +699,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.OBLIQUES),
-            trainedSecondaryMuscles = emptyList(),
             stepsForDoIt = """
     1. Sit on the ground with your legs slightly bent.
     2. Lean slightly back and rotate your torso side to side, touching the ground with your hands.
@@ -769,11 +713,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.CARDIO,
             trainedPrimaryMuscles = listOf(Muscles.ABS),
-            trainedSecondaryMuscles = listOf(
-                Muscles.ILIOPSOAS,
-                Muscles.QUADRICEPS,
-                Muscles.TENSOR_FASCIAE_FEMORIS
-            ),
             stepsForDoIt = """
     1. Start in a plank position.
     2. Drive one knee towards your chest, then quickly alternate legs.
@@ -788,7 +727,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.ABS),
-            trainedSecondaryMuscles = listOf(Muscles.OBLIQUES),
             stepsForDoIt = """
     1. Lie on your back with your legs extended towards the ceiling.
     2. Lift your torso and touch your toes with your hands.
@@ -808,7 +746,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.TRICEPS),
             stepsForDoIt = "1. Lie on a flat bench. \n2. Grip the barbell at shoulder width. \n3. Lower it to the chest. \n4. Push it back up.",
             nameVideo = "bench_press",
             idCoverImage = R.drawable.bench_press,
@@ -820,19 +757,17 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.UPPER_PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.TRICEPS),
             stepsForDoIt = "1. Lie on an incline bench. \n2. Grip the barbell or dumbbells. \n3. Lower them to chest level. \n4. Push them back up.",
             nameVideo = "incline_bench_press_with_barbell_or_dumbbells",
             idCoverImage = R.drawable.incline_bench_press_with_barbell_or_dumbbells,
             idImageMuscles = R.drawable.muscles_incline_bench_press_with_barbell_or_dumbbells
         ),
         Exercise(
-            name = "Weighted_Dips",
+            name = "Weighted Dips",
             description = "With the torso leaning forward, it targets the chest more.",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.TRICEPS),
             stepsForDoIt = "1. Hold onto the parallel bars. \n2. Lower your body controlled until your elbows are at 90 degrees. \n3. Push back up.",
             nameVideo = "weighted_dips",
             idCoverImage = R.drawable.weighted_dips,
@@ -844,7 +779,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.BICEPS),
             stepsForDoIt = "1. Lie on a flat bench. \n2. Hold the dumbbells with slightly bent elbows. \n3. Open your arms to the sides. \n4. Bring them together.",
             nameVideo = "flat_bench_dumbbell_flyes",
             idCoverImage = R.drawable.flat_bench_dumbbell_flyes,
@@ -856,7 +790,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.UPPER_PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID, Muscles.BICEPS),
             stepsForDoIt = "1. Lie on an incline bench. \n2. Perform the flyes with dumbbells. \n3. Focus on the upper chest.",
             nameVideo = "incline_dumbbell_flyes",
             idCoverImage = R.drawable.incline_dumbbell_flyes,
@@ -865,24 +798,11 @@ object AllExercises {
 
         // Back Exercises
         Exercise(
-            name = "Deadlift",
-            description = "Fundamental for working the lower back, glutes, and legs.",
-            exerciseLevel = ExerciseLevel.INTERMEDIATE,
-            type = TypeExercise.WEIGHTLIFTING,
-            trainedPrimaryMuscles = listOf(Muscles.LOWER_BACK, Muscles.GLUTEUS, Muscles.HAMSTRINGS),
-            trainedSecondaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.SOLEUS),
-            stepsForDoIt = "1. Place your feet at hip width. \n2. Grip the barbell with your hands by your legs. \n3. Lower the bar while keeping your back straight. \n4. Lift it back up.",
-            nameVideo = "deadlift",
-            idCoverImage = R.drawable.deadlift,
-            idImageMuscles = R.drawable.muscles_deadlift
-        ),
-        Exercise(
             name = "Weighted Pull-Ups",
             description = "A classic exercise mainly working the back, though it also involves other muscles, using a weighted.",
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.BASIC,
             trainedPrimaryMuscles = listOf(Muscles.LATISSIMUS_DORSI, Muscles.BICEPS),
-            trainedSecondaryMuscles = listOf(Muscles.BRACHIORADIALIS, Muscles.DELTOIDS),
             stepsForDoIt = "1. Grab the bar with your hands at shoulder width. \n2. Pull your body up until your chin passes the bar. \n3. Lower back down.",
             nameVideo = "weighted_pull_ups",
             idCoverImage = R.drawable.weighted_pull_ups,
@@ -898,7 +818,6 @@ object AllExercises {
                 Muscles.TRAPEZIUS,
                 Muscles.RHOMBOIDS
             ),
-            trainedSecondaryMuscles = listOf(Muscles.BRACHIALIS, Muscles.BRACHIORADIALIS),
             stepsForDoIt = "1. Bend forward, keeping your back straight. \n2. Grip the barbell at shoulder width. \n3. Row it towards your abdomen.",
             nameVideo = "barbell_row",
             idCoverImage = R.drawable.barbell_row,
@@ -910,7 +829,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.LATISSIMUS_DORSI, Muscles.TRAPEZIUS),
-            trainedSecondaryMuscles = listOf(Muscles.BICEPS),
             stepsForDoIt = "1. Place one knee and hand on a bench. \n2. Grip a dumbbell with the other hand. \n3. Row the elbow back, focusing on the contraction of the back.",
             nameVideo = "one_arm_dumbbell_row",
             idCoverImage = R.drawable.one_arm_dumbbell_row,
@@ -922,7 +840,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.LATISSIMUS_DORSI, Muscles.PECTORALS),
-            trainedSecondaryMuscles = listOf(Muscles.TRICEPS),
             stepsForDoIt = "1. Lie on a bench. \n2. Hold the dumbbell with both hands. \n3. Lower it behind your head. \n4. Bring it back up.",
             nameVideo = "dumbbell_pullover",
             idCoverImage = R.drawable.dumbbell_pullover,
@@ -934,7 +851,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.LATISSIMUS_DORSI),
-            trainedSecondaryMuscles = listOf(Muscles.BICEPS),
             stepsForDoIt = "1. Grip the lat pulldown bar with a wide grip. \n2. Pull the bar down to chest level.",
             nameVideo = "lat_pulldown_machine",
             idCoverImage = R.drawable.lat_pulldown_machine,
@@ -948,7 +864,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.GLUTEUS, Muscles.HAMSTRINGS),
-            trainedSecondaryMuscles = listOf(Muscles.CALVES),
             stepsForDoIt = "1. Place the barbell on your traps. \n2. Squat down keeping your back straight until your thighs are parallel to the floor. \n3. Push back up.",
             nameVideo = "barbell_squats",
             idCoverImage = R.drawable.barbell_squats,
@@ -960,23 +875,10 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.GLUTEUS),
-            trainedSecondaryMuscles = listOf(Muscles.HAMSTRINGS),
             stepsForDoIt = "1. Sit in the leg press machine. \n2. Place your feet on the platform. \n3. Push upward extending your legs.",
             nameVideo = "leg_press_machine",
             idCoverImage = R.drawable.leg_press_machine,
             idImageMuscles = R.drawable.muscles_leg_press_machine
-        ),
-        Exercise(
-            name = "Romanian Deadlift",
-            description = "Targets the hamstrings and glutes.",
-            exerciseLevel = ExerciseLevel.INTERMEDIATE,
-            type = TypeExercise.WEIGHTLIFTING,
-            trainedPrimaryMuscles = listOf(Muscles.HAMSTRINGS, Muscles.GLUTEUS),
-            trainedSecondaryMuscles = emptyList(),
-            stepsForDoIt = "1. With the barbell in front of your legs, bend forward while keeping your legs almost straight. \n2. Lower the barbell below your knees. \n3. Lift it back up.",
-            nameVideo = "romanian_deadlift",
-            idCoverImage = R.drawable.romanian_deadlift,
-            idImageMuscles = R.drawable.muscles_romanian_deadlift
         ),
         Exercise(
             name = "Dumbbell Lunges",
@@ -984,7 +886,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.GLUTEUS, Muscles.HAMSTRINGS),
-            trainedSecondaryMuscles = listOf(Muscles.CALVES),
             stepsForDoIt = "1. Take a long step forward. \n2. Lower your front leg to 90 degrees. \n3. Push back up.",
             nameVideo = "dumbbell_lunges",
             idCoverImage = R.drawable.dumbbell_lunges,
@@ -996,11 +897,26 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.CALVES),
-            trainedSecondaryMuscles = emptyList(),
             stepsForDoIt = "1. Stand on a platform or bench. \n2. Raise your heels as high as possible. \n3. Lower back down in a controlled manner.",
             nameVideo = "standing_or_seated_calf_raises",
             idCoverImage = R.drawable.standing_or_seated_calf_raises,
             idImageMuscles = R.drawable.muscles_standing_or_seated_calf_raises
+        ),
+        Exercise(
+            name = "Step up with Dumbbells",
+            nameVideo = "step_up_with_dumbells",
+            description = "This exercise works the almost all the muscles in the legs.",
+            exerciseLevel = ExerciseLevel.INTERMEDIATE,
+            type = TypeExercise.WEIGHTLIFTING,
+            trainedPrimaryMuscles = listOf(Muscles.HAMSTRINGS, Muscles.QUADRICEPS, Muscles.GLUTEUS,
+                Muscles.CALVES),
+            stepsForDoIt = """
+    1. Stand in front of a low bench or step with a dumbbell in each hand and your arms extended out to your sides.
+    2. Place one foot on the step and raise your body without pushing off until both feet are on the step.
+    3. Step down and alternate legs.
+""".trimIndent(),
+            idCoverImage = R.drawable.step_up_with_dumbbells,
+            idImageMuscles = R.drawable.step_ups
         ),
         Exercise(
             name = "Military Press with Barbell or Dumbbells",
@@ -1009,7 +925,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.FRONT_DELTOID),
-            trainedSecondaryMuscles = listOf(Muscles.TRICEPS, Muscles.UPPER_PECTORALS, Muscles.MIDDLE_DELTOID),
             stepsForDoIt = """
     1. Hold the barbell or dumbbells at shoulder height.
     2. Press the dumbbells or barbell overhead until your arms are fully extended.
@@ -1025,7 +940,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.MIDDLE_DELTOID),
-            trainedSecondaryMuscles = listOf(Muscles.FRONT_DELTOID),
             stepsForDoIt = """
     1. Hold a dumbbell in each hand with your arms slightly bent.
     2. Raise the dumbbells to the sides until your arms are parallel to the ground.
@@ -1041,7 +955,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.FRONT_DELTOID),
-            trainedSecondaryMuscles = listOf(Muscles.UPPER_PECTORALS, Muscles.MIDDLE_DELTOID),
             stepsForDoIt = """
     1. Hold a dumbbell in each hand or the barbell with an overhand grip.
     2. Raise the dumbbells or barbell to the front until your arms are parallel to the ground.
@@ -1057,7 +970,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.POSTERIOR_DELTOID, Muscles.MIDDLE_DELTOID),
-            trainedSecondaryMuscles = listOf(Muscles.TRAPEZIUS, Muscles.TERES_MINOR),
             stepsForDoIt = """
     1. Bend forward at the waist while keeping your back straight.
     2. Hold a dumbbell in each hand with your arms extended down.
@@ -1074,7 +986,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.BICEPS),
-            trainedSecondaryMuscles = listOf(Muscles.BRACHIALIS, Muscles.BRACHIORADIALIS),
             stepsForDoIt = """
     1. Hold the barbell with an underhand grip (palms facing up).
     2. Keep the bar close to your body and curl it toward your shoulders.
@@ -1090,7 +1001,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.BICEPS),
-            trainedSecondaryMuscles = listOf(Muscles.BRACHIALIS, Muscles.BRACHIORADIALIS),
             stepsForDoIt = """
     1. Hold a dumbbell in each hand with your elbows close to your body.
     2. Curl the dumbbells toward your shoulders.
@@ -1106,7 +1016,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.BRACHIORADIALIS),
-            trainedSecondaryMuscles = listOf(Muscles.BICEPS),
             stepsForDoIt = """
     1. Hold the dumbbells with palms facing each other.
     2. Curl the dumbbells toward your shoulders, keeping your elbows close to your body.
@@ -1122,7 +1031,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.BRACHIALIS),
-            trainedSecondaryMuscles = listOf(Muscles.BICEPS, Muscles.BRACHIORADIALIS),
             stepsForDoIt = """
     1. Sit on a bench and rest your elbow on your thigh.
     2. Curl the dumbbell toward your shoulder, focusing the effort on the biceps.
@@ -1138,7 +1046,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.MACHINES,
             trainedPrimaryMuscles = listOf(Muscles.BRACHIALIS),
-            trainedSecondaryMuscles = listOf(Muscles.BICEPS, Muscles.BRACHIORADIALIS),
             stepsForDoIt = """
     1. Rest your arms on the preacher curl pad.
     2. Hold the bar or dumbbells with palms facing up.
@@ -1149,33 +1056,12 @@ object AllExercises {
             idImageMuscles = R.drawable.muscles_preacher_curl
         ),
         Exercise(
-            name = "Bench Dips",
-            nameVideo = "bench_dips",
-            description = "A great exercise for the triceps.",
-            exerciseLevel = ExerciseLevel.INTERMEDIATE,
-            type = TypeExercise.BASIC,
-            trainedPrimaryMuscles = listOf(Muscles.TRICEPS),
-            trainedSecondaryMuscles = listOf(
-                Muscles.FRONT_DELTOID,
-                Muscles.LATISSIMUS_DORSI,
-                Muscles.UPPER_PECTORALS
-            ),
-            stepsForDoIt = """
-    1. Place your hands on the benches and your heels on the ground.
-    2. Lower your torso in a controlled manner by bending your elbows to about 90 degrees.
-    3. Push back up to the starting position, fully extending your arms.
-""".trimIndent(),
-            idCoverImage = R.drawable.bench_dips,
-            idImageMuscles = R.drawable.muscles_bench_dips
-        ),
-        Exercise(
             name = "Overhead Triceps Extension with Dumbbell",
             nameVideo = "overhead_triceps_extension_with_dumbbell",
             description = "To target the long head of the triceps.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.TRICEPS),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
     1. Hold a dumbbell with both hands and extend your arms overhead.
     2. Lower the dumbbell behind your head in a controlled manner.
@@ -1191,7 +1077,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.TRICEPS),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
     1. Hold the barbell or dumbbells with an overhand grip, keeping your hands close together.
     2. Lower the weight toward your forehead in a controlled manner.
@@ -1201,29 +1086,12 @@ object AllExercises {
             idImageMuscles = R.drawable.muscles_french_press_with_barbell_or_dumbbells
         ),
         Exercise(
-            name = "Triceps Extension Machine",
-            nameVideo = "triceps_extension_machine",
-            description = "To isolate the triceps more effectively.",
-            exerciseLevel = ExerciseLevel.BEGINNER,
-            type = TypeExercise.MACHINES,
-            trainedPrimaryMuscles = listOf(Muscles.TRICEPS),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
-            stepsForDoIt = """
-    1. Grip the rope on the high pulley with palms facing down.
-    2. Push the rope downward by extending your elbows.
-    3. Return to the starting position in a controlled manner.
-""".trimIndent(),
-            idCoverImage = R.drawable.triceps_extensions_machine,
-            idImageMuscles = R.drawable.muscles_triceps_extension_machine
-        ),
-        Exercise(
             name = "Triceps Kickback with Dumbbell",
             nameVideo = "triceps_kickback_with_dumbbell",
             description = "Isolating the triceps at the back of the arm.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.TRICEPS),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
     1. Lean forward while keeping your back straight.
     2. Hold a dumbbell with one hand, with your elbow bent.
@@ -1240,7 +1108,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.BEGINNER,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.MIDDLE_ABS, Muscles.UPPER_ABS),
-            trainedSecondaryMuscles = listOf(Muscles.OBLIQUES, Muscles.LOWER_ABS),
             stepsForDoIt = """
     1. Lie on a bench and hold the weight on your chest.
     2. Perform a crunch by lifting your torso towards your knees.
@@ -1256,7 +1123,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.LOWER_ABS, Muscles.ILIOPSOAS),
-            trainedSecondaryMuscles = listOf(Muscles.QUADRICEPS, Muscles.MIDDLE_ABS),
             stepsForDoIt = """
     1. Lie on a bench or on the floor, holding a weight between your feet.
     2. Raise your legs until they form a 90-degree angle.
@@ -1272,7 +1138,6 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.OBLIQUES),
-            trainedSecondaryMuscles = listOf(Muscles.ILIOPSOAS, Muscles.QUADRICEPS),
             stepsForDoIt = """
     1. Sit with your legs elevated and your torso upright.
     2. Twist your torso from side to side while holding the weight with both hands.
@@ -1286,15 +1151,8 @@ object AllExercises {
             nameVideo = "weighted_plank",
             description = "To strengthen the core in general.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
-            type = TypeExercise.BASIC,
+            type = TypeExercise.WEIGHTLIFTING,
             trainedPrimaryMuscles = listOf(Muscles.ABS),
-            trainedSecondaryMuscles = listOf(
-                Muscles.FRONT_DELTOID,
-                Muscles.GLUTEUS,
-                Muscles.OBLIQUES,
-                Muscles.SARTORIUS,
-                Muscles.TENSOR_FASCIAE_FEMORIS
-            ),
             stepsForDoIt = """
     1. Get into a plank position with your elbows under your shoulders.
     2. Place a weight on your back if desired for added intensity.
@@ -1313,13 +1171,12 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Get into a parallel bar or pull-up bar.
         2. Perform an exercise without getting down from the bar.
         3. Then, continue with forward exercises—ending with the one you can’t complete.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.ALL,
+            typeTensExercise = TypeTensExercise.COMBOS,
             idCoverImage = R.drawable.combos_tension,
             idImageMuscles = 0
         ),
@@ -1330,13 +1187,12 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Get into the plank position.
         2. Raise your legs to transition into a handstand.
         3. Then, lower your legs back down to return to the plank position.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.PLANK,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
             idCoverImage = R.drawable.press_plank,
             idImageMuscles = 0
         ),
@@ -1347,13 +1203,12 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Get into the plank position.
         2. Lower your body while maintaining scapular protraction.
         3. Then, return to the plank position.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.PLANK,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
             idCoverImage = R.drawable.push_up_plank,
             idImageMuscles = 0
         ),
@@ -1364,14 +1219,13 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ELITE,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Leave about 4 foot-lengths of space between the parallel bars.
         2. Get into the plank position.
         3. Lower your body while performing scapular retraction.
         4. Then, return to scapular protraction.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.PLANK,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
             idCoverImage = R.drawable.maltese_push_up_plank,
             idImageMuscles = 0
         ),
@@ -1382,13 +1236,12 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Get into a handstand (lean against a wall if needed).
         2. Lower your body forward until it touches the floor.
         3. Raise your body forward with your arms outstretched.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.PLANK,
+            typeTensExercise = TypeTensExercise.PUSH_UP,
             idCoverImage = R.drawable.handstand_push_up,
             idImageMuscles = 0
         ),
@@ -1399,13 +1252,12 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Get into the front-lever position.
         2. Raise your legs while maintaining scapular retraction.
         3. Then, lower the legs down to the front lever position.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.FRONT_LEVEL,
+            typeTensExercise = TypeTensExercise.PULL_UP,
             idCoverImage = R.drawable.press_front_lever,
             idImageMuscles = 0
         ),
@@ -1416,13 +1268,12 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ADVANCED,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Get into the front-lever position.
         2. Raise your legs while performing scapular retraction.
         3. Then, lower the legs down to the front lever position.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.FRONT_LEVEL,
+            typeTensExercise = TypeTensExercise.PULL_UP,
             idCoverImage = R.drawable.pull_up_front_lever,
             idImageMuscles = 0
         ),
@@ -1433,14 +1284,13 @@ object AllExercises {
             exerciseLevel = ExerciseLevel.ELITE,
             type = TypeExercise.TENS,
             trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Leave about 4 foot-lengths of space between the hands in the parallel bars.
         2. Get into the front lever position.
         3. Raise your legs while performing scapular retraction.
         4. Then, lower the legs down to front lever position.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.FRONT_LEVEL,
+            typeTensExercise = TypeTensExercise.PULL_UP,
             idCoverImage = R.drawable.maltese_press_front_lever,
             idImageMuscles = 0
         ),
@@ -1449,15 +1299,13 @@ object AllExercises {
             nameVideo = "pull_up_holding_up",
             description = "Perform a pull-ups, but holding up. Use a resistance band if necessary",
             exerciseLevel = ExerciseLevel.ADVANCED,
-            type = TypeExercise.TENS,
-            trainedPrimaryMuscles = emptyList<Muscles>(),
-            trainedSecondaryMuscles = emptyList<Muscles>(),
+            type = TypeExercise.TENS,            trainedPrimaryMuscles = emptyList<Muscles>(),
             stepsForDoIt = """
         1. Get into the pull-up position.
         2. Upper your body with the chin over the bar.
         3. Holding up 3s and lower body down to pull-up position.
     """.trimIndent(),
-            typeTensExercise = TypeTensExercise.FRONT_LEVEL,
+            typeTensExercise = TypeTensExercise.PULL_UP,
             idCoverImage = R.drawable.pull_up_holding_up,
             idImageMuscles = 0
         ),
@@ -1472,7 +1320,6 @@ object AllExercises {
             type = TypeExercise.CARDIO,
             trainedPrimaryMuscles = listOf(Muscles.GASTROCNEMIUS, Muscles.GLUTEUS, Muscles.HAMSTRINGS,
                 Muscles.QUADRICEPS, Muscles.SOLEUS),
-            trainedSecondaryMuscles = listOf(Muscles.OBLIQUES, Muscles.ABS),
             stepsForDoIt = """
         1. Running at a normal pace.
         2. Try do some 5 kms minimum.
@@ -1482,4 +1329,4 @@ object AllExercises {
         )
     )
     //TensExercise("Pull-up hold: pull until your chin is above the bar, hold for 3 seconds, then lower. Do it without a band if possible", TypeTensExercise.FRONT_LEVEL))
-}
+}*/

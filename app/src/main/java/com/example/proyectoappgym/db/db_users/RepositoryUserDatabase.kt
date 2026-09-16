@@ -10,6 +10,7 @@ import com.google.android.gms.common.api.internal.ApiKey
 import com.google.firebase.firestore.DocumentReference
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import okhttp3.Response
 
 interface RepositoryUserDatabase {
     suspend fun addUser(user: User): Boolean

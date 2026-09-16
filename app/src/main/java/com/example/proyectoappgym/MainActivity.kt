@@ -160,7 +160,7 @@ fun NavScreensWithingLoginScreen() {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
-            if(showBottomBar ?: false)
+            if(showBottomBar == true)
                 BottomBar(currentDestination, navController)
         }
     ) { innerpadding ->
@@ -192,7 +192,7 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
 
     NavHost(
         navController = navController,
-        startDestination = LoginRoute,
+        startDestination = RegistrationQuestionsRoute("", "", "", "", "", Gender.M),
         modifier = Modifier.fillMaxSize(),
         popExitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
         popEnterTransition = { slideInHorizontally(animationSpec = tween(800)) },
@@ -209,7 +209,6 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
                 )
             }
             val intCompletedSignIn by loginViewmodel.intCompletedSignIn.collectAsStateWithLifecycle()
-            val isSuccessfulWithAuthGoogle by loginViewmodel.isSuccessfulGoogleAuth.collectAsStateWithLifecycle()
 
             LoginScreen(
                 { navController.navigate(RegistrationRoute) },
@@ -263,13 +262,11 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
                 user = User(username, password, email, name.ifEmpty { username }, birthdate, gender)
             }
             val thereIsErrorToAddUser by registrationQuestionsViewmodel.thereIsErrorToAddUser.distinctUntilChanged { old, new -> new == null }.collectAsStateWithLifecycle(null)
-            val isSuccessMakeRoutines by registrationQuestionsViewmodel.isSuccessMakeRoutines.collectAsStateWithLifecycle()
 
             RegistrationQuestionsScreen(
                 user,
                 allQuestions,
                 thereIsErrorToAddUser,
-                isSuccessMakeRoutines,
                 { userForAdd -> registrationQuestionsViewmodel.addUser(userForAdd) },
                 { registrationQuestionsViewmodel.setThereIsErrorToNull() },
                 { navController.navigate(LoginRoute) },

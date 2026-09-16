@@ -13,7 +13,6 @@ data class Exercise(
     val exerciseLevel: ExerciseLevel,
     val type: TypeExercise,
     val trainedPrimaryMuscles: List<Muscles>,
-    val trainedSecondaryMuscles: List<Muscles>,
     val nameVideo: String,
     val idImageMuscles: Int,
     val idCoverImage: Int,
