@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
-import com.example.proyectoappgym.entity.Gender
+import com.example.proyectoappgym.entity.users.Gender
 import java.time.Year
 import java.util.Locale
 

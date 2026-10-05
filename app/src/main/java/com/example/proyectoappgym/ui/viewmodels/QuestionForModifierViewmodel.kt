@@ -3,46 +3,47 @@ package com.example.proyectoappgym.ui.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoappgym.db.db_questions.RepositoryQuestions
-import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
-import com.example.proyectoappgym.entity.Question
-import com.example.proyectoappgym.entity.User
-import kotlinx.coroutines.Dispatchers
+import com.example.proyectoappgym.db.db_users.UserRepository
+import com.example.proyectoappgym.entity.users.User
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class QuestionForModifierViewmodel(private val userDatabase: RepositoryUserDatabase, val repositoryQuestions: RepositoryQuestions): ViewModel() {
+@HiltViewModel
+class QuestionForModifierViewmodel @Inject constructor(private val userRepository: UserRepository, val repositoryQuestions: RepositoryQuestions): ViewModel() {
     var currentUser = MutableStateFlow(User())
     var allQuestions = repositoryQuestions.allQuestions()
     var isChangeRoutine: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     init {
         viewModelScope.launch {
-            currentUser = userDatabase.getCurrentUser() as MutableStateFlow<User>
+            currentUser = userRepository.getCurrentUser() as MutableStateFlow<User>
         }
     }
 
-    fun updateResponsesOfQuestion(question: String, newResponses: List<String>) {
+    /*fun updateResponsesOfQuestion(question: String, newResponses: List<String>) {
         viewModelScope.launch {
-            userDatabase.updateResponses(question, newResponses)
+            userRepository.updateResponses(question, newResponses)
         }
     }
 
     fun removeResponsesOfQuestion(question: String) {
         viewModelScope.launch {
-            userDatabase.removeResponsesOfQuestion(question)
+            userRepository.removeResponsesOfQuestion(question)
         }
-    }
+    }*/
 
-    fun changeWeeklyRoutine(
+    /*fun changeWeeklyRoutine(
         newAnsweredQuestion: Map<String, List<String>>,
     ) {
         viewModelScope.launch {
             isChangeRoutine.update {
-                userDatabase.changeWeeklyRoutine(
+                userRepository.changeWeeklyRoutine(
                     newAnsweredQuestion,
                 )
             }
         }
-    }
+    }*/
 }

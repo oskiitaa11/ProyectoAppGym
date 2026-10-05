@@ -2,25 +2,27 @@ package com.example.proyectoappgym.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
+import com.example.proyectoappgym.db.db_auth.AuthRepository
+import com.example.proyectoappgym.db.db_users.UserRepository
+import com.example.proyectoappgym.entity.users.User
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import retrofit2.Retrofit
+import javax.inject.Inject
 
-
-class LoginViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
+@HiltViewModel
+class LoginViewmodel @Inject constructor(private val authRepository: AuthRepository): ViewModel() {
     var intCompletedSignIn: MutableStateFlow<Int> = MutableStateFlow(0)
-    var isSuccessfulGoogleAuth: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    val interceptor =
 
-    fun signIn(username: String, password: String) {
+    fun signIn(password: String, email: String) {
         viewModelScope.launch {
-           intCompletedSignIn.update { userDatabase.signIn(username, password) }
-        }
-    }
+            val authUser = mapOf<String, Any>("password" to password as Object, "email" to email)
+            val tokenResponse = authRepository.signIn(authUser)
 
-    fun authWithGoogle(idToken: String) {
-        viewModelScope.launch {
-            isSuccessfulGoogleAuth.update { userDatabase.authWithGoogle(idToken) }
+           //intCompletedSignIn.update { authRepository.signIn(username, password).value }
         }
     }
 

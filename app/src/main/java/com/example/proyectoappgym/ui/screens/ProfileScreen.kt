@@ -42,8 +42,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
-import com.example.proyectoappgym.entity.Avatars
-import com.example.proyectoappgym.entity.User
+import com.example.proyectoappgym.entity.users.Avatars
+import com.example.proyectoappgym.entity.users.User
 import com.example.proyectoappgym.ui.viewmodels.ProfileViewmodel
 import kotlinx.serialization.Serializable
 

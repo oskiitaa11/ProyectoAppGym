@@ -2,18 +2,20 @@ package com.example.proyectoappgym.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoappgym.db.db_questions.QuestionsRegistration.allQuestions
 import com.example.proyectoappgym.db.db_questions.RepositoryQuestions
-import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
-import com.example.proyectoappgym.entity.Avatars
-import com.example.proyectoappgym.entity.Question
-import com.example.proyectoappgym.entity.User
+import com.example.proyectoappgym.db.db_users.UserApiService
+import com.example.proyectoappgym.db.db_users.UserRepository
+import com.example.proyectoappgym.entity.data.DataUserRequest
+import com.example.proyectoappgym.entity.users.Avatars
+import com.example.proyectoappgym.entity.users.User
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase, val repositoryQuestions: RepositoryQuestions): ViewModel() {
+@HiltViewModel
+class EditProfileViewmodel @Inject constructor(private val userRepository: UserRepository, val repositoryQuestions: RepositoryQuestions): ViewModel() {
     var currentUser = MutableStateFlow(User())
     //var allQuestions = MutableStateFlow(emptyList<Question>())
     var allQuestions = repositoryQuestions.allQuestions()
@@ -21,21 +23,26 @@ class EditProfileViewmodel(private val userDatabase: RepositoryUserDatabase, val
 
     init {
         viewModelScope.launch {
-            userDatabase.getCurrentUser().collect { user -> currentUser.value = user ?: User() }
+            userRepository.getCurrentUser().collect { user -> currentUser.value = user ?: User() }
         }
     }
-
-    fun updateName(newName: String) {
+    
+    fun updateCurrentUser(dataUserRequest: DataUserRequest) {
         viewModelScope.launch {
-            userDatabase.updateNameCurrentUser(newName)
+            userRepository.updateCurrentUser(dataUserRequest).collect { user -> currentUser.value = user }
+        }
+    }
+    /*fun updateName(newName: String) {
+        viewModelScope.launch {
+            userApiService.updateNameCurrentUser(newName)
         }
     }
 
     fun updateAvatarProfile(newAvatar: Avatars) {
         viewModelScope.launch {
-            userDatabase.updateAvatarProfile(newAvatar)
+            userApiService.updateAvatarProfile(newAvatar)
         }
-    }
+    }*/
 
     fun updateShowDialog() {
         showDialog.update { !showDialog.value }

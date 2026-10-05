@@ -1,12 +1,6 @@
 package com.example.proyectoappgym.db.db_routines
 
-import com.example.proyectoappgym.entity.ExercisesDefault
-import com.example.proyectoappgym.entity.ExercisesName
-import com.example.proyectoappgym.entity.GroupMuscles
-import com.example.proyectoappgym.entity.RealizationExercise
-import com.example.proyectoappgym.entity.TrainingRoutine
-import com.example.proyectoappgym.entity.TypeTensExercise
-import com.example.proyectoappgym.ui.screens.ExerciseScreen
+import com.example.proyectoappgym.entity.realizationexercises.ExercisesName
 
 object AllRoutines {
 

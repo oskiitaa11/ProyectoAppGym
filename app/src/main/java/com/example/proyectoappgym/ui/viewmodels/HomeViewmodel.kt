@@ -1,25 +1,23 @@
 package com.example.proyectoappgym.ui.viewmodels
 
-import android.R.attr.apiKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
-import com.example.proyectoappgym.entity.Question
+import com.example.proyectoappgym.db.db_users.UserApiService
+import com.example.proyectoappgym.db.db_users.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import com.example.proyectoappgym.entity.User
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.update
+import com.example.proyectoappgym.entity.users.User
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewmodel(private val userDatabase: RepositoryUserDatabase): ViewModel() {
+@HiltViewModel
+class HomeViewmodel @Inject constructor(private val userRepository: UserRepository): ViewModel() {
     var currentUser = MutableStateFlow(User())
-    var stringRoutines = MutableStateFlow("")
 
     init {
         viewModelScope.launch {
-            userDatabase.getCurrentUser().collect { user -> currentUser.value = user ?: User() }
+            userRepository.getCurrentUser().collect { user -> currentUser.value = user ?: User() }
         }
     }
-
 
 }

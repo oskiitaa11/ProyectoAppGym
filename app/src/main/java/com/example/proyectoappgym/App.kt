@@ -1,32 +1,26 @@
 package com.example.proyectoappgym
 
 import android.app.Application
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.proyectoappgym.db.db_questions.QuestionsRegistration
 import com.example.proyectoappgym.db.db_questions.RepositoryQuestions
-import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
-import com.example.proyectoappgym.db.db_users.UserDatabase
-import com.example.proyectoappgym.entity.User
-import com.google.api.Context
+import com.example.proyectoappgym.db.db_users.UserRepository
 import com.google.firebase.FirebaseApp
-import com.google.firebase.auth.FirebaseUser
-import kotlinx.coroutines.DelicateCoroutinesApi
+import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@HiltAndroidApp
 class App: Application() {
     val repositoryQuestions: RepositoryQuestions by lazy { QuestionsRegistration }
-    val userDatabase by lazy { UserDatabase() }
+    val userDatabase by lazy { UserRepository() }
     private val datastore: DataStore<Preferences> by preferencesDataStore(name = "user_token")
     val isLoggedUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
@@ -35,7 +29,7 @@ class App: Application() {
         val preferenceKey = stringPreferencesKey("user_token")
 
         FirebaseApp.initializeApp(this)
-        userDatabase.initializerApp()
+        //userDatabase.initializerApp()
         GlobalScope.launch {
             changeUidLoggedUser()
             userDatabase.updateUidLoggedUser(datastore.data.first()[preferenceKey])
@@ -60,7 +54,7 @@ class App: Application() {
         GlobalScope.launch {
             addLoggedUser(idToken)
             changeUidLoggedUser()
-            userDatabase.updateCurrentUserAfterLogin()
+            //userDatabase.updateCurrentUserAfterLogin()
         }
     }
 

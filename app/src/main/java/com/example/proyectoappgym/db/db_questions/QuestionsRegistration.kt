@@ -1,7 +1,7 @@
 package com.example.proyectoappgym.db.db_questions
 
-import com.example.proyectoappgym.entity.Question
-import com.example.proyectoappgym.entity.ResponsesType
+import com.example.proyectoappgym.entity.questions.Question
+import com.example.proyectoappgym.entity.questions.ResponsesType
 
 object QuestionsRegistration: RepositoryQuestions {
     val allQuestions = listOf(

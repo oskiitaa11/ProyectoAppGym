@@ -1,7 +1,6 @@
 package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,12 +30,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,15 +46,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
-import com.example.proyectoappgym.entity.DayOfWeek
-import com.example.proyectoappgym.entity.Exercise
-import com.example.proyectoappgym.entity.RealizationExercise
-import com.example.proyectoappgym.entity.TrainingRoutine
+import com.example.proyectoappgym.entity.realizationexercises.RealizationExercise
 import com.example.proyectoappgym.ui.viewmodels.ExerciseViewmodel
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.Serializable
-import java.nio.file.WatchEvent
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -68,7 +58,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.example.proyectoappgym.entity.Muscles
+import com.example.proyectoappgym.entity.realizationexercises.Muscles
 
 @Serializable
 data class ExerciseRoute(val exerciseString: String)

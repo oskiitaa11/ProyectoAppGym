@@ -56,8 +56,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.example.proyectoappgym.entity.Gender
-import com.example.proyectoappgym.entity.User
+import com.example.proyectoappgym.entity.users.Gender
+import com.example.proyectoappgym.entity.users.User
 import com.example.proyectoappgym.entity.BottomBarItem
 import com.example.proyectoappgym.ui.graphs.HomeGraphRoute
 import com.example.proyectoappgym.ui.screens.HomeRoute

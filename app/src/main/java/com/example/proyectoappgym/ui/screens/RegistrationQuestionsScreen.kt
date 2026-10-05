@@ -1,9 +1,7 @@
 package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.Context
-import android.telephony.SignalStrength
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -17,10 +15,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
@@ -28,7 +24,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonColors
 import androidx.compose.material3.ShapeDefaults
@@ -42,16 +37,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.isDebugInspectorInfoEnabled
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -59,22 +51,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.proyectoappgym.R
 import com.example.proyectoappgym.db.db_questions.QuestionsRegistration.allQuestions
-import com.example.proyectoappgym.db.db_routines.AllExercises
-import com.example.proyectoappgym.db.db_routines.AllRoutines
-import com.example.proyectoappgym.entity.DayOfWeek
-import com.example.proyectoappgym.entity.Exercise
-import com.example.proyectoappgym.entity.ExerciseLevel
-import com.example.proyectoappgym.entity.ExercisesName
-import com.example.proyectoappgym.entity.GroupMuscles
-import com.example.proyectoappgym.entity.Muscles
-import com.example.proyectoappgym.entity.Question
-import com.example.proyectoappgym.entity.RealizationExercise
-import com.example.proyectoappgym.entity.ResponsesType
-import com.example.proyectoappgym.entity.TrainingRoutine
-import com.example.proyectoappgym.entity.TypeExercise
-import com.example.proyectoappgym.entity.TypeTensExercise
-import com.example.proyectoappgym.entity.User
-import org.checkerframework.checker.units.qual.s
+import com.example.proyectoappgym.entity.trainingroutines.DayOfWeek
+import com.example.proyectoappgym.entity.questions.Question
+import com.example.proyectoappgym.entity.questions.ResponsesType
+import com.example.proyectoappgym.entity.users.User
 
 @SuppressLint("UnrememberedMutableState", "RememberReturnType")
 @Composable
@@ -205,12 +185,6 @@ fun RegistrationQuestionsScreen(
             ShowButtonForNextOrPreviousQuestion(
                 "Next", R.drawable.ic_arrow_forward_ios_24
             ) {
-                /*if (actualQuestion == allQuestionsScreen.last()) {
-                    showError = (allChecked[actualQuestion.question]?.filterValues { it }
-                        ?.count() as Int) < getNecessaryNumberForTrainingDays(allChecked.filterKeys { question -> allQuestionsScreen.any { question == it.question } }, { necessariesDaysForTraining = it })
-                } else {
-                    showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
-                }*/
                 showError = allChecked[actualQuestion.question]?.all { !it.value } as Boolean
                 /*Si no hay ninguna respuesta a true se asigna true a showError,
                 siempre que sea la ultima pregunta*/

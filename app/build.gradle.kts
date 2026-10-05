@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
     id("kotlin-parcelize")
     id("com.google.gms.google-services")
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -91,7 +93,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose.v270)
     //noinspection UseTomlInstead
-    implementation("androidx.activity:activity-compose:1.11.0-rc01")
+    implementation("androidx.activity:activity-compose:1.13.0")
     implementation(libs.material3)
     implementation(libs.material)
     implementation(libs.androidx.core.splashscreen)
@@ -99,4 +101,9 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.coil.gif)
+    runtimeOnly(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.okhttp)
+    ksp(libs.androidx.room.compiler.v250)
+    ksp(libs.hilt.compiler)
+    implementation(libs.hilt.android)
 }

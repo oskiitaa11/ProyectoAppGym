@@ -1,35 +1,35 @@
 package com.example.proyectoappgym.ui.viewmodels
 
 import android.annotation.SuppressLint
-import androidx.compose.ui.text.font.Typeface
 import androidx.compose.ui.util.fastFilteredMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.proyectoappgym.db.db_auth.AuthRepository
 import com.example.proyectoappgym.db.db_questions.RepositoryQuestions
-import com.example.proyectoappgym.db.db_routines.AllExercises
 import com.example.proyectoappgym.db.db_routines.AllRoutines
-import com.example.proyectoappgym.db.db_users.RepositoryUserDatabase
-import com.example.proyectoappgym.entity.DayOfWeek
-import com.example.proyectoappgym.entity.Exercise
-import com.example.proyectoappgym.entity.ExercisesName
-import com.example.proyectoappgym.entity.GroupMuscles
-import com.example.proyectoappgym.entity.Muscles
-import com.example.proyectoappgym.entity.Question
-import com.example.proyectoappgym.entity.RealizationExercise
-import com.example.proyectoappgym.entity.TrainingRoutine
-import com.example.proyectoappgym.entity.TypeExercise
-import com.example.proyectoappgym.entity.TypeTensExercise
-import com.example.proyectoappgym.entity.User
-import com.google.android.play.core.integrity.d
-import com.google.android.play.integrity.internal.a
+import com.example.proyectoappgym.db.db_users.UserRepository
+import com.example.proyectoappgym.entity.trainingroutines.DayOfWeek
+import com.example.proyectoappgym.entity.realizationexercises.Exercise
+import com.example.proyectoappgym.entity.realizationexercises.ExercisesName
+import com.example.proyectoappgym.entity.realizationexercises.GroupMuscles
+import com.example.proyectoappgym.entity.realizationexercises.Muscles
+import com.example.proyectoappgym.entity.questions.Question
+import com.example.proyectoappgym.entity.realizationexercises.RealizationExercise
+import com.example.proyectoappgym.entity.trainingroutines.TrainingRoutine
+import com.example.proyectoappgym.entity.realizationexercises.TypeExercise
+import com.example.proyectoappgym.entity.realizationexercises.TypeTensExercise
+import com.example.proyectoappgym.entity.users.User
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.checkerframework.checker.index.qual.IndexFor
+import javax.inject.Inject
 import kotlin.collections.all
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.forEach
+import kotlin.collections.mapOf
+import kotlin.collections.mutableMapOf
 
 private const val MAX_DAYS_TO_TRAIN = 4
 private const val MIN_DAYS_TO_TRAIN = 2
@@ -43,7 +43,8 @@ private const val N_REPETITIONS_FOR_NO_PULL_UPS = 20
 private const val SETS = 3
 private const val REST_TIME = 2
 
-class RegistrationQuestionsViewmodel(private val repositoryQuestions: RepositoryQuestions, private val userDatabase: RepositoryUserDatabase): ViewModel() {
+@HiltViewModel
+class RegistrationQuestionsViewmodel @Inject constructor(private val repositoryQuestions: RepositoryQuestions, private val userRepository: UserRepository, private val authRepository: AuthRepository): ViewModel() {
     var allQuestions: List<Question> = repositoryQuestions.allQuestions()
     var thereIsErrorToAddUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
@@ -54,7 +55,7 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         user.addTrainingRoutines(trainingRoutines)
 
         viewModelScope.launch {
-            thereIsErrorToAddUser.update { !userDatabase.addUser(user) }
+            authRepository.signUp(user)
         }
     }
 
@@ -170,6 +171,7 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         return possibleDaysOfWeek
     }
 
+    @SuppressLint("SuspiciousIndentation")
     private fun getConsecutiveDayForGym(possibleDaysOfWeek: List<DayOfWeek>, typesExerciseCount: Int): List<DayOfWeek> {
         var possibleIdDaysOfWeek = possibleDaysOfWeek.map { it.idDay }.toMutableList()
         var isDayForTraining = false
@@ -226,12 +228,9 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
             mutableMapOf<DayOfWeek, MutableMap<TypeExercise, MutableList<Muscles>>>()
         var exercisesForActualTraining = mutableListOf<Exercise>()
         var trainingName = ""
-        var realizationExercisesInLoop: List<RealizationExercise>
-        var allExercisesToWorkOut = mutableListOf<Exercise>()
         var musclesToTrain = mutableMapOf<TypeExercise, MutableList<Muscles>>()
         var isBeginner = responseInThisQuestion("How long have you been training?", "I just started with MyFitnessApp", allAnsweredQuestions)
         var exercisesForCalisthenics = mapOf<DayOfWeek, List<Exercise>>()
-        var exercisesToAddActualTraining: MutableList<Exercise>
         var musclesToWorkoutAtHome = mutableMapOf<DayOfWeek, List<Muscles>>()
         var excludedWeightliftingExercises: List<Exercise>
 
@@ -245,26 +244,7 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
             musclesForDay.forEach {
                 musclesToWorkoutAtHome.put(it.key, it.value.remove(TypeExercise.WEIGHTLIFTING_AT_HOME)?.toList() ?: emptyList())
             }
-
-            musclesForDay.forEach { (dayOfWeek, musclesForType) ->
-                musclesForType.forEach { (typeExercise, muscles) ->
-                    allExercisesToWorkOut = ExercisesName.entries.fastFilteredMap({ it.exercise.type == typeExercise }, { it.exercise }).toMutableList()
-                    allExercisesToWorkOut.removeIf{ it.name == ExercisesName.WEIGHTED_DIP.exercise.name || it.name == ExercisesName.PULL_UPS_WEIGHTED.exercise.name }
-                    if (workoutAtHomeToBuildMuscle) allExercisesToWorkOut.remove(ExercisesName.DUMBBELL_SHRUGS.exercise)
-                    if (isDayForPullAndPush(muscles)) allExercisesToWorkOut.reverse()
-                    exercisesToAddActualTraining = getExercisesForMuscles(
-                        allExercisesToWorkOut,
-                        muscles
-                    )
-                    exercisesForActualTraining.addAll(
-                        exercisesToAddActualTraining
-                    )
-                }
-                exercisesForActualTraining += exercisesForCalisthenics[dayOfWeek] ?: emptyList()
-                realizationExercisesInLoop = getRealizationExercises(exercisesForActualTraining, false)
-                exercisesForActualTraining.clear()
-                trainingRoutines.add(TrainingRoutine(dayOfWeek, "", realizationExercisesInLoop))
-            }
+            addExercisesToTrainingRoutines(musclesForDay, workoutAtHomeToBuildMuscle, exercisesForCalisthenics) { trainingRoutines.add(it) }
 
             if (isWeightlifting) addExercisesPullUpAndDip(trainingRoutines, isBeginner)
 
@@ -371,6 +351,33 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         return musclesToTrain
     }
 
+    private fun addExercisesToTrainingRoutines(musclesForDay: MutableMap<DayOfWeek, MutableMap<TypeExercise, MutableList<Muscles>>>, workoutAtHomeToBuildMuscle: Boolean, exercisesForCalisthenics:Map<DayOfWeek, List<Exercise>>, addTrainingRoutine: (TrainingRoutine) -> Unit){
+        var exercisesForActualTraining = mutableListOf<Exercise>()
+        var realizationExercisesInLoop: List<RealizationExercise>
+        var allExercisesToWorkOut = mutableListOf<Exercise>()
+        var exercisesToAddActualTraining: MutableList<Exercise>
+
+        musclesForDay.forEach { (dayOfWeek, musclesForType) ->
+            musclesForType.forEach { (typeExercise, muscles) ->
+                allExercisesToWorkOut = ExercisesName.entries.fastFilteredMap({ it.exercise.type == typeExercise }, { it.exercise }).toMutableList()
+                allExercisesToWorkOut.removeIf{ it.name == ExercisesName.WEIGHTED_DIP.exercise.name || it.name == ExercisesName.PULL_UPS_WEIGHTED.exercise.name }
+                if (workoutAtHomeToBuildMuscle) allExercisesToWorkOut.remove(ExercisesName.DUMBBELL_SHRUGS.exercise)
+                if (isDayForPullAndPush(muscles)) allExercisesToWorkOut.reverse()
+                exercisesToAddActualTraining = getExercisesForMuscles(
+                    allExercisesToWorkOut,
+                    muscles
+                )
+                exercisesForActualTraining.addAll(
+                    exercisesToAddActualTraining
+                )
+            }
+            exercisesForActualTraining += exercisesForCalisthenics[dayOfWeek] ?: emptyList()
+            realizationExercisesInLoop = getRealizationExercises(exercisesForActualTraining, false)
+            exercisesForActualTraining.clear()
+            addTrainingRoutine(TrainingRoutine(dayOfWeek, "", realizationExercisesInLoop))
+        }
+    }
+
     private fun addTrainingRoutineForWeightliftingHome(musclesAtHomeForDay: MutableMap<DayOfWeek, List<Muscles>>, exercisesInRoutine: List<Exercise>, addExercises: (List<RealizationExercise>, DayOfWeek) -> Unit) {
         var allExercises = ExercisesName.entries.fastFilteredMap({ it.exercise.type == TypeExercise.WEIGHTLIFTING && it.exercise !in exercisesInRoutine }, { it.exercise })
         var exercisesToAdd = emptyList<Exercise>()
@@ -411,31 +418,19 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         var trainingRoutineToAddExercisesLegs: TrainingRoutine? = null
         var trainingRoutineToAddExercisesCore: TrainingRoutine? = null
         var trainingRoutineToAddExercisesCoreAndLegs: TrainingRoutine? = null
-        var predominantMuscleGroup: GroupMuscles?
-        var exercisesInRoutine: List<Exercise>
 
         when (dayOfWeekSize) {
             2 -> {
 
                 if (!isTensCalisthenics) {
-                    trainingRoutineToAddExercisesCore = trainingRoutines.first {
-                        exercisesInRoutine = it.exercises.map { it.exercise }
-                        predominantMuscleGroup = getGroupFromLargestNumberOfPushOrPull(exercisesInRoutine)
-                        if(predominantMuscleGroup != null) predominantMuscleGroup == GroupMuscles.PULL_UP
-                        else it.exercises.any { it.exercise.typeTensExercise == TypeTensExercise.PULL_UP }
-                    }
+                    trainingRoutineToAddExercisesCore = findTrainingRoutineFromGroupMuscles(GroupMuscles.PULL_UP, trainingRoutines)
 
                     addRealizationExercisesForCore(
                         trainingRoutineToAddExercisesCore, isMachines, isWeightlifting, isBasicCalisthenics, workoutAtHome
                     )
                 }
 
-                trainingRoutineToAddExercisesLegs = trainingRoutines.first {
-                    exercisesInRoutine = it.exercises.map { it.exercise }
-                    predominantMuscleGroup = getGroupFromLargestNumberOfPushOrPull(exercisesInRoutine)
-                    if(predominantMuscleGroup != null) predominantMuscleGroup == GroupMuscles.PUSH_UP
-                    else it.exercises.any { it.exercise.typeTensExercise == TypeTensExercise.PUSH_UP }
-                }
+                trainingRoutineToAddExercisesLegs = findTrainingRoutineFromGroupMuscles(GroupMuscles.PUSH_UP, trainingRoutines)
 
                 addRealizationExercisesForLegs(
                     trainingRoutineToAddExercisesLegs, isMachines, isWeightlifting, isBasicCalisthenics, workoutAtHome, dayOfWeekSize
@@ -485,6 +480,20 @@ class RegistrationQuestionsViewmodel(private val repositoryQuestions: Repository
         }
     }
 
+    private fun findTrainingRoutineFromGroupMuscles(groupMuscles: GroupMuscles, trainingRoutines: List<TrainingRoutine>): TrainingRoutine {
+        var predominantMuscleGroup: GroupMuscles?
+        var exercisesInRoutine: List<Exercise>
+        var typeTensExercise = if (groupMuscles == GroupMuscles.PUSH_UP) TypeTensExercise.PUSH_UP else TypeTensExercise.PULL_UP
+
+        return trainingRoutines.first {
+            exercisesInRoutine = it.exercises.map { it.exercise }
+            predominantMuscleGroup = getGroupFromLargestNumberOfPushOrPull(exercisesInRoutine)
+            if(predominantMuscleGroup != null) predominantMuscleGroup == groupMuscles
+            else it.exercises.any { it.exercise.typeTensExercise == typeTensExercise }
+        }
+    }
+
+    @SuppressLint("SuspiciousIndentation")
     private fun addRealizationExercisesForLegs(
         legTrainingRoutine: TrainingRoutine,
         isMachines: Boolean,
