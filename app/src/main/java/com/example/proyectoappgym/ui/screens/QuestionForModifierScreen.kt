@@ -43,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -58,6 +59,7 @@ import com.example.proyectoappgym.entity.questions.ResponsesType
 import com.example.proyectoappgym.ui.viewmodels.QuestionForModifierViewmodel
 import kotlinx.serialization.Serializable
 import kotlin.collections.set
+import kotlin.collections.toMutableList
 
 @Serializable
 data class QuestionForModifierRoute(
@@ -76,13 +78,7 @@ fun NavController.goToQuestionForModifier(
 
 fun NavGraphBuilder.questionForModifierDestination(backToEditProfile: () -> Unit) {
     composable<QuestionForModifierRoute> { navBackStackEntry ->
-        val questionForModifierViewmodel: QuestionForModifierViewmodel =
-            viewModel(navBackStackEntry) {
-                QuestionForModifierViewmodel(
-                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions
-                )
-            }
+        val questionForModifierViewmodel: QuestionForModifierViewmodel = hiltViewModel()
         val currentUser by questionForModifierViewmodel.currentUser.collectAsStateWithLifecycle()
         val hasChangeRoutine by questionForModifierViewmodel.isChangeRoutine.collectAsStateWithLifecycle()
         val questionForModifierRoute = navBackStackEntry.toRoute<QuestionForModifierRoute>()
@@ -152,61 +148,7 @@ fun QuestionForModifierScreen(
     val updateResponses: () -> Unit = {
         allStringResponses = allResponses.filterValues { it }.keys.toList()
 
-        if (allStringResponses.toSet() != selectedResponsesDb.toSet()) {
-            if (allStringResponses.isNotEmpty())
-                changeCorrectedResponse(questionForModifier, allStringResponses)
-                if(questionForRemove != null){
-                    if(questionForModifier == "What are your goals?" && (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) > 0) {
-                        changeCorrectedResponse(questionForRemove ?: "", newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.toMutableList().apply {
-                            this!!.remove("Machine exercises")
-                            if((newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) <= 1) add("Weightlifting exercises")
-                        } ?: emptyList())
-                    } else if(questionForModifier == "Are you more into calisthenics or gym workouts?" && questionForRemove == "What types of calisthenics exercises do you focus on or want to focus on?") {
-                        var responsesForGym = newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
 
-                        if("Machine exercises" !in responsesForGym) changeCorrectedResponse("What are your goals?", (actualAnsweredQuestions["What are your goals?"] ?: emptyList()).toMutableList().apply { remove("Build more muscle") })
-                        else if("Machine exercises" in responsesForGym) changeCorrectedResponse("What are your goals?", (actualAnsweredQuestions["What are your goals?"] ?: emptyList()).toMutableList().apply { add("Build more muscle") })
-                    } else removeResponsesOfQuestion(questionForRemove ?: "")
-                }
-                if(questionForModifier == "What types of gym exercises do you focus on or want to focus on?") {
-                    var responsesForGoals = newAnsweredQuestions["What are your goals?"] ?: emptyList()
-
-                    if("Machine exercises" in allStringResponses && "Build more muscle" !in responsesForGoals) {
-                        newAnsweredQuestions["What are your goals?"] = responsesForGoals.toMutableList().apply { add("Build more muscle") }
-                        changeCorrectedResponse("What are your goals?", newAnsweredQuestions["What are your goals?"] ?: emptyList())
-                    }
-                }
-                changeWeeklyRoutine(newAnsweredQuestions.toMutableMap().apply {
-                    set(questionForModifier, allStringResponses)
-                    if (questionForRemove != null) {
-                        if (questionForModifier == "What are your goals?") {
-                            set(
-                                "What types of gym exercises do you focus on or want to focus on?",
-                                newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.toMutableList()
-                                    .apply {
-                                        this!!.remove("Machine exercises")
-                                        if ((newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size
-                                                ?: 0) <= 1
-                                        ) add("Weightlifting exercises")
-                                    } ?: emptyList())
-                        } else if (questionForModifier == "Are you more into calisthenics or gym workouts?" && questionForRemove == "What types of calisthenics exercises do you focus on or want to focus on?") {
-                            var responsesForGym = newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
-
-                            if ("Machine exercises" !in responsesForGym) changeCorrectedResponse(
-                                "What are your goals?",
-                                (actualAnsweredQuestions["What are your goals?"]
-                                    ?: emptyList()).toMutableList()
-                                    .apply { remove("Build more muscle") })
-                            else if ("Machine exercises" in responsesForGym) changeCorrectedResponse(
-                                "What are your goals?",
-                                (actualAnsweredQuestions["What are your goals?"]
-                                    ?: emptyList()).toMutableList()
-                                    .apply { add("Build more muscle") })
-                        } else set(questionForRemove ?: "", emptyList())
-                    }
-                }
-                )
-        }
         backToEditProfile()
     }
     val undoChanges: () -> Unit = { //Dialogo para cuando se toque fuera del dialogo
@@ -446,6 +388,73 @@ fun QuestionForModifierScreen(
 
 
         }
+    }
+}
+
+fun updateResponses(allStringResponses: List<String>,
+                    selectedResponsesDb: List<String>,
+                    questionForModifier: String,
+                    questionForRemove: String?,
+                    actualAnsweredQuestions: Map<String, List<String>>,
+                    newAnsweredQuestions: MutableMap<String, List<String>>,
+                    changeCorrectedResponse: (String, List<String>) -> Unit,
+                    removeResponsesOfQuestion: (String) -> Unit,
+                    changeWeeklyRoutine: (Map<String, List<String>>) -> Unit) {
+
+    if (allStringResponses.toSet() != selectedResponsesDb.toSet()) {
+        if (allStringResponses.isNotEmpty())
+            changeCorrectedResponse(questionForModifier, allStringResponses)
+        if(questionForRemove != null){
+            if(questionForModifier == "What are your goals?" && (actualAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) > 0) {
+                changeCorrectedResponse(questionForRemove ?: "", newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.toMutableList().apply {
+                    this!!.remove("Machine exercises")
+                    if((newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size ?: 0) <= 1) add("Weightlifting exercises")
+                } ?: emptyList())
+            } else if(questionForModifier == "Are you more into calisthenics or gym workouts?" && questionForRemove == "What types of calisthenics exercises do you focus on or want to focus on?") {
+                var responsesForGym = newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
+
+                if("Machine exercises" !in responsesForGym) changeCorrectedResponse("What are your goals?", (actualAnsweredQuestions["What are your goals?"] ?: emptyList()).toMutableList().apply { remove("Build more muscle") })
+                else if("Machine exercises" in responsesForGym) changeCorrectedResponse("What are your goals?", (actualAnsweredQuestions["What are your goals?"] ?: emptyList()).toMutableList().apply { add("Build more muscle") })
+            } else removeResponsesOfQuestion(questionForRemove ?: "")
+        }
+        if(questionForModifier == "What types of gym exercises do you focus on or want to focus on?") {
+            var responsesForGoals = newAnsweredQuestions["What are your goals?"] ?: emptyList()
+
+            if("Machine exercises" in allStringResponses && "Build more muscle" !in responsesForGoals) {
+                newAnsweredQuestions["What are your goals?"] = responsesForGoals.toMutableList().apply { add("Build more muscle") }
+                changeCorrectedResponse("What are your goals?", newAnsweredQuestions["What are your goals?"] ?: emptyList())
+            }
+        }
+        changeWeeklyRoutine(newAnsweredQuestions.toMutableMap().apply {
+            set(questionForModifier, allStringResponses)
+            if (questionForRemove != null) {
+                if (questionForModifier == "What are your goals?") {
+                    set(
+                        "What types of gym exercises do you focus on or want to focus on?",
+                        newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.toMutableList()
+                            .apply {
+                                this!!.remove("Machine exercises")
+                                if ((newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"]?.size
+                                        ?: 0) <= 1
+                                ) add("Weightlifting exercises")
+                            } ?: emptyList())
+                } else if (questionForModifier == "Are you more into calisthenics or gym workouts?" && questionForRemove == "What types of calisthenics exercises do you focus on or want to focus on?") {
+                    var responsesForGym = newAnsweredQuestions["What types of gym exercises do you focus on or want to focus on?"] ?: emptyList()
+
+                    if ("Machine exercises" !in responsesForGym) changeCorrectedResponse(
+                        "What are your goals?",
+                        (actualAnsweredQuestions["What are your goals?"]
+                            ?: emptyList()).toMutableList()
+                            .apply { remove("Build more muscle") })
+                    else if ("Machine exercises" in responsesForGym) changeCorrectedResponse(
+                        "What are your goals?",
+                        (actualAnsweredQuestions["What are your goals?"]
+                            ?: emptyList()).toMutableList()
+                            .apply { add("Build more muscle") })
+                } else set(questionForRemove ?: "", emptyList())
+            }
+        }
+        )
     }
 }
 

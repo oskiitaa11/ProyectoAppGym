@@ -51,6 +51,7 @@ import com.example.proyectoappgym.ui.viewmodels.ExerciseViewmodel
 import com.google.gson.Gson
 import kotlinx.serialization.Serializable
 import androidx.core.net.toUri
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -72,11 +73,7 @@ fun NavController.goToExerciseRoute(exercise: RealizationExercise) {
 
 fun NavGraphBuilder.exerciseDestination(goBackToHome: () -> Unit) {
     composable<ExerciseRoute> { navBackStackEntry ->
-        val exerciseViewmodel: ExerciseViewmodel = viewModel(navBackStackEntry) {
-            ExerciseViewmodel(
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-            )
-        }
+        val exerciseViewmodel: ExerciseViewmodel = hiltViewModel()
         val json = Gson()
         val exerciseRoute: ExerciseRoute = navBackStackEntry.toRoute()
         val exercise: RealizationExercise = json.fromJson(exerciseRoute.exerciseString, RealizationExercise::class.java)

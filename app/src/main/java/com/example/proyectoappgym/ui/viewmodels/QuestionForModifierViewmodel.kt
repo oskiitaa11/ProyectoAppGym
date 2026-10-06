@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectoappgym.db.db_questions.RepositoryQuestions
 import com.example.proyectoappgym.db.db_users.UserRepository
+import com.example.proyectoappgym.entity.data.DataUserRequest
 import com.example.proyectoappgym.entity.users.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class QuestionForModifierViewmodel @Inject constructor(private val userRepository: UserRepository, val repositoryQuestions: RepositoryQuestions): ViewModel() {
+class QuestionForModifierViewmodel @Inject constructor(private val userRepository: UserRepository, private val repositoryQuestions: RepositoryQuestions): ViewModel() {
     var currentUser = MutableStateFlow(User())
     var allQuestions = repositoryQuestions.allQuestions()
     var isChangeRoutine: MutableStateFlow<Boolean?> = MutableStateFlow(null)
@@ -35,15 +36,18 @@ class QuestionForModifierViewmodel @Inject constructor(private val userRepositor
         }
     }*/
 
-    /*fun changeWeeklyRoutine(
+    fun changeWeeklyRoutine(
         newAnsweredQuestion: Map<String, List<String>>,
     ) {
+        val currentUserToUpdate = currentUser.value
+        val dataUserRequest = DataUserRequest(currentUserToUpdate.username, currentUserToUpdate.name,
+            currentUserToUpdate.birthdate, currentUserToUpdate.gender, newAnsweredQuestion,
+            currentUserToUpdate.idProfileAvatar)
+        var newUser = User()
+
         viewModelScope.launch {
-            isChangeRoutine.update {
-                userRepository.changeWeeklyRoutine(
-                    newAnsweredQuestion,
-                )
-            }
+            userRepository.updateCurrentUser(dataUserRequest).collect { newUser = it }
+            currentUser.update { newUser }
         }
-    }*/
+    }
 }

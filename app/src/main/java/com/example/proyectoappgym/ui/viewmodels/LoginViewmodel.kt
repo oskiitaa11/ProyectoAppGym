@@ -15,7 +15,6 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewmodel @Inject constructor(private val authRepository: AuthRepository): ViewModel() {
     var intCompletedSignIn: MutableStateFlow<Int> = MutableStateFlow(0)
-    val interceptor =
 
     fun signIn(password: String, email: String) {
         viewModelScope.launch {

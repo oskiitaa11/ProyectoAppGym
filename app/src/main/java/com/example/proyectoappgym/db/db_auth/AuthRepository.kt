@@ -3,7 +3,6 @@ package com.example.proyectoappgym.db.db_auth
 import android.annotation.SuppressLint
 import com.example.proyectoappgym.entity.data.TokenResponse
 import com.example.proyectoappgym.entity.users.User
-import com.example.proyectoappgym.remote.RetrofitClient
 import com.example.proyectoappgym.remote.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
@@ -31,13 +30,5 @@ class AuthRepository @Inject constructor(private val authApiService: AuthApiServ
     suspend fun deleteCurrentUser() {
         sessionManager.clearSession()
         authApiService.deleteCurrentUser()
-    }
-
-    @SuppressLint("SuspiciousIndentation")
-    suspend fun refreshToken(refreshToken: String): MutableStateFlow<TokenResponse> {
-        var tokenResponse: TokenResponse? = null
-
-        sessionManager.saveAccessToken(tokenResponse)
-        else throw IllegalArgumentException("There has been a problem with user session")
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CreateRestoreCredentialRequest
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -59,11 +60,7 @@ fun NavGraphBuilder.profileDestination(onEditProfileScreen: () -> Unit, onSettin
         enterTransition = { fadeIn(animationSpec = tween(800)) },
         exitTransition = { fadeOut(animationSpec = tween(800)) }
     ) { navBackStackEntry ->
-        val profileViewmodel: ProfileViewmodel = viewModel(navBackStackEntry) {
-            ProfileViewmodel(
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-            )
-        }
+        val profileViewmodel: ProfileViewmodel = hiltViewModel()
         val currentUser by profileViewmodel.currentUser.collectAsStateWithLifecycle()
 
         if(currentUser.username.isNotEmpty())

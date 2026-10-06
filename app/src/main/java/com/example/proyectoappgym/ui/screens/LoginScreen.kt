@@ -60,7 +60,7 @@ import com.example.proyectoappgym.GetLightGreen
 import com.example.proyectoappgym.R
 
 @Composable
-fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit, intCompletedSignIn: Int, /*isSuccessfulGoogleAuth: Boolean?*/ setNumberToZero: () -> Unit, reassignLoggedUser: () -> Unit /*launcher: () -> Unit*/){
+fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Unit){
     var isClickedRegisterText by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -73,7 +73,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
     var showWaitingDialog by remember { mutableStateOf(false) }
     var stateScroll = rememberScrollState()
 
-    if(intCompletedSignIn>0) ValidateSignIn(
+    /*if(intCompletedSignIn>0) ValidateSignIn(
         intCompletedSignIn,
         { errorText -> allErrorsText["email"] = errorText },
         { errorText ->
@@ -83,7 +83,7 @@ fun LoginScreen(onRegistrationScreen: () -> Unit, signIn: (String, String) -> Un
         setNumberToZero,
         reassignLoggedUser,
         { showWaitingDialog = false }
-    )
+    )*/
 
     if(showWaitingDialog) ShowWaitingDialog("Accessing to Home")
 
@@ -242,8 +242,8 @@ fun validatePasswordLogin(passwordValue: String, changeErrorText: (String) -> Un
     }
 }
 
-@Composable
-fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit, setNumberToZero: () -> Unit, reassignLoggedUser: () -> Unit, hideWaitingDialog: () -> Unit) {
+/*@Composable
+fun ValidateSignIn(changeErrorTextEmail: (String) -> Unit, changeErrorTextInFields: (String) -> Unit, hideWaitingDialog: () -> Unit) {
     val context = LocalContext.current
 
     LaunchedEffect(intCompletedSignIn) {
@@ -259,7 +259,7 @@ fun ValidateSignIn(intCompletedSignIn: Int, changeErrorTextEmail: (String) -> Un
         hideWaitingDialog()
         setNumberToZero()
     }
-}
+}*/
 
 
 fun showToast(text: String, context: Context) {

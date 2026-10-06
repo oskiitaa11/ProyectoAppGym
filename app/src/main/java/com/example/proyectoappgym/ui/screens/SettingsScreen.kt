@@ -1,6 +1,7 @@
 package com.example.proyectoappgym.ui.screens
 
 import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -21,12 +22,6 @@ fun NavController.goToSettingsScreen() {
 
 fun NavGraphBuilder.settingsDestination(backEditProfileScreen: () -> Unit) {
     composable<SettingsRoute> { navBackStackEntry ->
-        val settingsViewmodel: SettingsViewmodel = viewModel(navBackStackEntry) {
-            SettingsViewmodel(
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-            )
-        }
-
-
+        val settingsViewmodel: SettingsViewmodel = hiltViewModel()
     }
 }

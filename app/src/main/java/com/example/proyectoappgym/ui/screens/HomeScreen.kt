@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,14 +75,8 @@ fun NavGraphBuilder.homeDestination(onExerciseScreen: (RealizationExercise) -> U
         enterTransition = { fadeIn(animationSpec = tween(800)) },
         exitTransition = { fadeOut(animationSpec = tween(800)) }
     ) { navBackStackEntry ->
-        val homeViewmodel: HomeViewmodel = viewModel(navBackStackEntry) {
-            HomeViewmodel(
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
-            )
-        }
+        val homeViewmodel: HomeViewmodel = hiltViewModel()
         val currentUser by homeViewmodel.currentUser.collectAsStateWithLifecycle()
-
-        print(currentUser.username)
         if(currentUser.username.isNotEmpty())
             HomeScreen(currentUser, onProfileScreen, onExerciseScreen)
     }

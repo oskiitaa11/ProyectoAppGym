@@ -7,8 +7,8 @@ import retrofit2.http.POST
 
 interface RoutineApiService {
     @GET("/api/routines")
-    public fun getAllRoutines(): MutableStateFlow<List<TrainingRoutine>>
+    fun getAllRoutines(): MutableStateFlow<List<TrainingRoutine>>
 
     @POST("/api/routines/update-routine")
-    public fun updateRoutine(newTrainingRoutines: List<TrainingRoutine>)
+    fun updateRoutine(newTrainingRoutines: List<TrainingRoutine>)
 }

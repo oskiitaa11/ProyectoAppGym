@@ -4,41 +4,50 @@ import android.annotation.SuppressLint
 import com.example.proyectoappgym.db.db_auth.AuthRepository
 import com.example.proyectoappgym.entity.data.TokenResponse
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
+import okhttp3.Request
 import okhttp3.Response
 import javax.inject.Inject
 
-class AuthInterceptor @Inject constructor(private val sessionManager: SessionManager, private val authRepository: AuthRepository): Interceptor {
+class AuthInterceptor @Inject constructor(private val sessionManager: SessionManager): Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val token = sessionManager.getCurrentToken()
-        val request = chain.request().newBuilder().apply {
-            if(!token.isNullOrBlank()) addHeader("Authorization", "Bearer $token")
+        var token: TokenResponse? = sessionManager.tokenResponse.value
+        var request: Request? = null
+        var expiredAt: Long? = runBlocking { sessionManager.getExpiredAt() }
+        var finalToken: TokenResponse? = null
+
+        sessionManager.verifyToken(token, expiredAt)
+        finalToken = sessionManager.tokenResponse.value
+        request = chain.request().newBuilder().apply {
+            if(!finalToken?.accessToken.isNullOrBlank()) addHeader("Authorization", "Bearer $token")
         }.build()
 
         return chain.proceed(request)
     }
 
-    suspend fun verifyToken(refreshToken: String) {
-        val expiresIn = sessionManager.getExpiresIn() ?: throw IllegalArgumentException("There has been a problem with user session")
-        val expiredAt = sessionManager.getExpiredAt() ?: throw IllegalArgumentException("There has been a problem with user session")
-        val refreshToken = sessionManager.getRefreshToken() ?: throw IllegalArgumentException("There has been a problem with user session")
+    /*Preguntar dos veces por el token antes y despues de entrar en el synchronized,
+      permite que dos hilos no modifiquen el token dos veces y de error
+      cuando el segundo hilo va a ejecutar*//*
+    fun verifyToken(tokenResponse: TokenResponse?, expiredAt: Long?) {
+        val newToken: TokenResponse?
+        val newExpiredAt: Long?
 
-        if (System.currentTimeMillis() >= expiredAt - 60)
-            refreshToken(refreshToken)
+        if (tokenResponse != null && expiredAt != null)
+            synchronized(this) {
+                newToken = sessionManager.tokenResponse.value
+                newExpiredAt = runBlocking { sessionManager.getExpiredAt() }
+                if (isTokenExpired(tokenResponse.expiresIn, expiredAt))
+                    runBlocking {
+                        sessionManager.refreshToken(tokenResponse.refreshToken)
+                    }
+                else throw IllegalArgumentException("Error of session")
+            }
     }
 
-    @SuppressLint("SuspiciousIndentation")
-    suspend fun refreshToken(refreshToken: String): MutableStateFlow<TokenResponse> {
-        var tokenResponse: TokenResponse? = null
-
-        authRepository.refreshToken(refreshToken).collect { tokenResponse = it }
-        if (tokenResponse != null) {
-            sessionManager.saveAccessToken(tokenResponse)
-        } else {
-            throw IllegalArgumentException("There has been a problem with user session")
-        }
-
-    }
+    private fun isTokenExpired(expiresIn: Int, expiredAt: Long): Boolean {
+        return System.currentTimeMillis() + expiresIn >= expiredAt - 60
+    }*/
 
 }

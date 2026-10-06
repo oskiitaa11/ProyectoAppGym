@@ -1,7 +1,6 @@
 package com.example.proyectoappgym.db.db_routines
 
 import com.example.proyectoappgym.entity.trainingroutines.TrainingRoutine
-import com.example.proyectoappgym.remote.RetrofitClient
 import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 

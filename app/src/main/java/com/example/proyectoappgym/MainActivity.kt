@@ -43,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -59,6 +60,7 @@ import androidx.navigation.toRoute
 import com.example.proyectoappgym.entity.users.Gender
 import com.example.proyectoappgym.entity.users.User
 import com.example.proyectoappgym.entity.BottomBarItem
+import com.example.proyectoappgym.ui.SessionState
 import com.example.proyectoappgym.ui.graphs.HomeGraphRoute
 import com.example.proyectoappgym.ui.screens.HomeRoute
 import com.example.proyectoappgym.ui.screens.LoginScreen
@@ -75,8 +77,11 @@ import com.example.proyectoappgym.ui.screens.goToProfileScreen
 import com.example.proyectoappgym.ui.screens.homeDestination
 import com.example.proyectoappgym.ui.graphs.profileGraph
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
+import com.example.proyectoappgym.ui.viewmodels.SessionViewmodel
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
+import dagger.hilt.android.internal.lifecycle.HiltViewModelFactory
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.serialization.Serializable
@@ -114,13 +119,24 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            val contextMainAct = LocalContext.current
-            val app = contextMainAct.applicationContext as App
-            val thereIsLoggedUser by app.isLoggedUser.collectAsStateWithLifecycle(null)
-            val reassignUser = {
-                if(app.userDatabase.getUidLoggedUser() != null)
-                    app.addLoggedUserFromMain(app.userDatabase.getUidLoggedUser()!!)
+            ProyectoAppGymTheme {
+                val sessionViewmodel: SessionViewmodel = hiltViewModel()
+                val stateUser = sessionViewmodel.sessionState
+
+                when(stateUser) {
+                    SessionState.Loading -> installSplashScreen()
+                    SessionState.Authenticated -> NavScreensWithingLoginScreen()
+                    SessionState.Unauthenticated -> NavScreensWithLoginScreen()
+                    /*if(stateUser != State)
+                        if(thereIsLoggedUser as Boolean) {
+                            NavScreensWithingLoginScreen()
+                        } else {
+                            NavScreensWithLoginScreen(reassignUser)
+                        }
+    */
+                }
             }
+        }
             /*val signInGoogle: @Composable (Context, (String) -> Unit) -> Unit = { context, authWithGoogle ->
                 val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                     .requestIdToken(
@@ -136,16 +152,7 @@ class MainActivity : ComponentActivity() {
                 launcher(authWithGoogle).launch(sigInIntent)
             }*/
 
-            ProyectoAppGymTheme {
-                if(thereIsLoggedUser != null)
-                if(thereIsLoggedUser as Boolean) {
-                    NavScreensWithingLoginScreen()
-                } else {
-                    NavScreensWithLoginScreen(reassignUser)
-                }
 
-            }
-        }
     }
 }
 
@@ -185,7 +192,7 @@ fun NavScreensWithingLoginScreen() {
 
 @SuppressLint("UnusedCrossfadeTargetStateParameter", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context, (String) -> Unit) -> Unit*/) {
+fun NavScreensWithLoginScreen() {
     val navController = rememberNavController()
     //val enterTransition: EnterTransition = fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing))
     //val exitTransition: ExitTransition = fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing))
@@ -203,34 +210,19 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
 
 
         composable<LoginRoute> { navBackStackEntry ->
-            val loginViewmodel: LoginViewmodel = viewModel(navBackStackEntry) {
-                LoginViewmodel(
-                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
-                )
-            }
-            val intCompletedSignIn by loginViewmodel.intCompletedSignIn.collectAsStateWithLifecycle()
+            val loginViewmodel: LoginViewmodel = hiltViewModel()
 
             LoginScreen(
                 { navController.navigate(RegistrationRoute) },
                 { username, password ->
                     loginViewmodel.signIn(username, password)
-                },
-                intCompletedSignIn,
-                /*isSuccessfulWithAuthGoogle,*/
-                { loginViewmodel.setNumberCompletedSignInToZero() },
-                reassignLoggedUser
+                }
                 //{ launcher(context) { idToken -> loginViewmodel.authWithGoogle(idToken) } }
             )
         }
 
         composable<RegistrationRoute> { navBacStackEntry ->
-            val registrationViewmodel: RegistrationViewmodel = viewModel(navBacStackEntry) {
-                RegistrationViewmodel(
-                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
-                )
-            }
-            val userExist by registrationViewmodel.userExist.collectAsStateWithLifecycle()
-            val emailExist by registrationViewmodel.emailExist.collectAsStateWithLifecycle()
+            val registrationViewmodel: RegistrationViewmodel = hiltViewModel()
 
             RegistrationScreen(
                 { navController.popBackStack() },
@@ -239,23 +231,12 @@ fun NavScreensWithLoginScreen(reassignLoggedUser: () -> Unit/*launcher: (Context
                         RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)
                     )
                 },
-                { username -> registrationViewmodel.userExist(username) },
-                { email -> registrationViewmodel.emailExist(email) },
-                userExist,
-                emailExist,
-                { registrationViewmodel.setUserExistToNull() },
-                { registrationViewmodel.setEmailExistToNull() }
             )
         }
 
         composable<RegistrationQuestionsRoute> { navBackStackEntry ->
             val registrationQuestionsRoute: RegistrationQuestionsRoute = navBackStackEntry.toRoute()
-            val registrationQuestionsViewmodel: RegistrationQuestionsViewmodel = viewModel {
-                RegistrationQuestionsViewmodel(
-                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions,
-                    (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase
-                )
-            }
+            val registrationQuestionsViewmodel: RegistrationQuestionsViewmodel = hiltViewModel()
             val allQuestions = registrationQuestionsViewmodel.allQuestions
             var user : User
             with(registrationQuestionsRoute) {

@@ -59,7 +59,7 @@ import java.time.Year
 import java.util.Locale
 
 @Composable
-fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, askUserExist: (String) -> Unit, askEmailExist: (String) -> Unit, userExist: Boolean?, emailExist: Boolean?, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit) {
+fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, String, String, String, String, Gender) -> Unit, emailExist: Boolean, userExist: Boolean) {
     var stateScroll = rememberScrollState()
     var name by remember { mutableStateOf("") }
     var birthdate by remember { mutableStateOf("") }
@@ -95,8 +95,6 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
             userExist ?: false, //Si userlExist es null significa que no se ha preguntado por este y significa que ya se ha preguntado antes
             { errorText -> allErrorsFields["email"] = errorText },
             { errorText -> allErrorsFields["username"] = errorText },
-            setUserExistToNull,
-            setEmailExistToNull,
             //Despues se asigna las dos variables a null otra vez
             { showWaitingDialog = false }
         )
@@ -138,10 +136,9 @@ fun RegistrationScreen(onBack: () -> Unit, onRegistrationQuestion: (String, Stri
                 {
                     showWaitingDialog = true
                     validateFields()
-                    if(allErrorsFields.values.all { it.isEmpty() }) {
-                        askUserExist(username.trim())
-                        askEmailExist(email.lowercase().trim())
-                    } else showWaitingDialog = false
+                    if(!allErrorsFields.values.all { it.isEmpty() }) {
+                        showWaitingDialog = false
+                    }
                 }
             )
 
@@ -409,15 +406,14 @@ fun validateEmail(valueEmail: String, changeValueField: (String) -> Unit) {
 }
 
 
-fun validateFieldsIfExist(emailExist: Boolean, userExist: Boolean, changeErrorTextEmail: (String) -> Unit, changeErrorTextUser: (String) -> Unit, setUserExistToNull: () -> Unit, setEmailExistToNull: () -> Unit, hideWaitingDialog: () -> Unit) {
-    valueExist(emailExist, changeErrorTextEmail, setEmailExistToNull, "Email already registered", hideWaitingDialog)
-    valueExist(userExist, changeErrorTextUser, setUserExistToNull, "Username already registered", hideWaitingDialog)
+fun validateFieldsIfExist(emailExist: Boolean, userExist: Boolean, changeErrorTextEmail: (String) -> Unit, changeErrorTextUser: (String) -> Unit, hideWaitingDialog: () -> Unit) {
+    valueExist(emailExist, changeErrorTextEmail, "Email already registered", hideWaitingDialog)
+    valueExist(userExist, changeErrorTextUser, "Username already registered", hideWaitingDialog)
 }
 
-fun valueExist(fieldExist: Boolean, changeErrorTextField: (String) -> Unit, setFieldExistToNull: () -> Unit, errorText: String, hideWaitingDialog: () -> Unit){
+fun valueExist(fieldExist: Boolean, changeErrorTextField: (String) -> Unit, errorText: String, hideWaitingDialog: () -> Unit){
     if(fieldExist) {
         changeErrorTextField(errorText)
         hideWaitingDialog()
     }
-    setFieldExistToNull()
 }

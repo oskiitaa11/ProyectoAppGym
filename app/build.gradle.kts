@@ -106,4 +106,7 @@ dependencies {
     ksp(libs.androidx.room.compiler.v250)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.android)
+    runtimeOnly(libs.androidx.hilt.navigation.compose.v130)
+    implementation(libs.androidx.hilt.navigation.compose.v140)
+
 }

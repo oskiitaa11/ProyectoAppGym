@@ -75,6 +75,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -101,12 +102,7 @@ fun NavController.goToEditProfileScreen() {
 
 fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType, Map<String, List<String>>) -> Unit) {
     composable<EditProfileRoute> { navBackStackEntry ->
-        val editProfileViewmodel: EditProfileViewmodel = viewModel(navBackStackEntry) {
-            EditProfileViewmodel(
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).userDatabase,
-                (get(ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY) as App).repositoryQuestions
-            )
-        }
+        val editProfileViewmodel: EditProfileViewmodel = hiltViewModel()
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
         val allQuestions = editProfileViewmodel.allQuestions
         val showDialog by editProfileViewmodel.showDialog.collectAsStateWithLifecycle()

@@ -20,20 +20,20 @@ import kotlinx.coroutines.launch
 @HiltAndroidApp
 class App: Application() {
     val repositoryQuestions: RepositoryQuestions by lazy { QuestionsRegistration }
-    val userDatabase by lazy { UserRepository() }
-    private val datastore: DataStore<Preferences> by preferencesDataStore(name = "user_token")
+    private val sessionManager =
+    private val datastore: DataStore<Preferences> by preferencesDataStore(name = "user_session")
     val isLoggedUser: MutableStateFlow<Boolean?> = MutableStateFlow(null)
 
     override fun onCreate() {
         super.onCreate()
         val preferenceKey = stringPreferencesKey("user_token")
 
-        FirebaseApp.initializeApp(this)
+        //FirebaseApp.initializeApp(this)
         //userDatabase.initializerApp()
         GlobalScope.launch {
             changeUidLoggedUser()
-            userDatabase.updateUidLoggedUser(datastore.data.first()[preferenceKey])
-            if(isLoggedUser.value as Boolean) userDatabase.updateCurrentUser()
+            /*userDatabase.updateUidLoggedUser(datastore.data.first()[preferenceKey])
+            if(isLoggedUser.value as Boolean) userDatabase.updateCurrentUser()*/
         }
     }
 

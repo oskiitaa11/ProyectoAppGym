@@ -1,7 +1,11 @@
 package com.example.proyectoappgym.remote
 
+import android.content.Context
 import androidx.datastore.core.DataStore
+import androidx.datastore.core.DataStoreFactory
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.example.proyectoappgym.db.db_auth.AuthApiService
 import com.example.proyectoappgym.db.db_routines.RoutineApiService
 import com.example.proyectoappgym.db.db_users.UserApiService
@@ -9,6 +13,8 @@ import com.example.proyectoappgym.entity.data.TokenResponse
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.internal.Contexts
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
@@ -16,15 +22,29 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
 
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_session")
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkProvider {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
+    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return context.dataStore
+    }
+
+    @Provides
+    @Singleton
+    fun provideSessionManager(dataStore: DataStore<Preferences>, authApiService: Lazy<AuthApiService>): SessionManager {
+        return SessionManager(dataStore, authApiService)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(sessionManager: SessionManager): OkHttpClient {
         return OkHttpClient.Builder()
-            .addInterceptor(AuthInterceptor())
+            .addInterceptor(AuthInterceptor(sessionManager))
             .build()
     }
 
@@ -35,10 +55,7 @@ object NetworkProvider {
             GsonConverterFactory.create()).build()
     }
 
-    @Provides
-    fun provideToken(dataStore: DataStore<Preferences>) {
-        dataStore.data.map {  }
-    }
+
 
     @Provides
     @Singleton
