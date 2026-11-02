@@ -5,7 +5,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.navigation
 import com.example.proyectoappgym.ui.screens.ExerciseRoute
 import com.example.proyectoappgym.ui.screens.HomeRoute
+import com.example.proyectoappgym.ui.screens.errorDestination
 import com.example.proyectoappgym.ui.screens.exerciseDestination
+import com.example.proyectoappgym.ui.screens.goToErrorDestination
 import com.example.proyectoappgym.ui.screens.goToExerciseRoute
 import com.example.proyectoappgym.ui.screens.goToProfileScreen
 import com.example.proyectoappgym.ui.screens.homeDestination
@@ -17,7 +19,8 @@ object HomeGraphRoute
 
 fun NavGraphBuilder.homeGraph(navController: NavController) {
     navigation<HomeGraphRoute>(startDestination = HomeRoute) {
-        homeDestination({ exercise -> navController.goToExerciseRoute(exercise) }, { navController.goToProfileScreen() })
+        homeDestination({ exercise -> navController.goToExerciseRoute(exercise) }, { navController.goToProfileScreen() }, { error, message -> navController.goToErrorDestination(error, message) })
         exerciseDestination { navController.popBackStack() }
+        errorDestination()
     }
 }

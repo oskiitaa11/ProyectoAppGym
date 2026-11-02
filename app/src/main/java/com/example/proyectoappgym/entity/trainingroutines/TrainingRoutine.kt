@@ -1,5 +1,6 @@
 package com.example.proyectoappgym.entity.trainingroutines
 
+import com.example.proyectoappgym.entity.data.request.TrainingRoutineRequest
 import com.example.proyectoappgym.entity.trainingroutines.DayOfWeek
 import com.example.proyectoappgym.entity.realizationexercises.RealizationExercise
 import com.google.gson.annotations.Expose
@@ -27,9 +28,7 @@ data class TrainingRoutine(
         get() = _name
 
     fun addExercises(exercisesToAdd: List<RealizationExercise>) {
-        //var realizationExerciseExample = _exercises.find { it.exercise.type == typeExercise } ?: return
-        var newExercises = exercises.toMutableList()
-        //var realizationExerciseToAdd = exercisesToAdd.map { RealizationExercise(it, realizationExerciseExample.series, realizationExerciseExample.repetitions, realizationExerciseExample.restBetweenSeries) }
+        val newExercises = exercises.toMutableList()
 
         newExercises.addAll(exercisesToAdd)
         _exercises = newExercises
@@ -37,5 +36,13 @@ data class TrainingRoutine(
 
     fun changeName(newName: String) {
         _name = newName
+    }
+
+    companion object {
+        fun getTrainingRoutineFromResponse(trainingRoutine: TrainingRoutineRequest): TrainingRoutine {
+            val realizationExercises = trainingRoutine.exercises.map { RealizationExercise.getRealizationExerciseFromResponse(it) }
+
+            return TrainingRoutine(trainingRoutine.dayOfWeek, trainingRoutine.name, realizationExercises)
+        }
     }
 }

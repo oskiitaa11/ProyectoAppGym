@@ -5,6 +5,7 @@ import com.example.proyectoappgym.R
 enum class ExercisesName(val exercise: Exercise) {
     CHEST_PRESS_MACHINE(
         Exercise(
+            0,
             name = "Chest Press Machine",
             nameVideo = "chest_press_machine",
             description = "To work the pectorals, primarily the pectoralis major.",
@@ -25,6 +26,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     INCLINE_PRESS_MACHINE(
         Exercise(
+            1,
             name = "Incline Chest Press",
             nameVideo = "incline_chest_press",
             description = "Works the upper part of the pectoral muscle.",
@@ -46,6 +48,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LAT_PULL_DOWN_MACHINE(
         Exercise(
+            2,
             name = "Lat Pulldown Machine",
             nameVideo = "lat_pulldown_machine",
             description = "Ideal for working the lat muscles (latissimus dorsi).",
@@ -66,6 +69,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     SEATED_ROW_MACHINE(
         Exercise(
+            3,
             name = "Seated Row Machine",
             nameVideo = "seated_row_machine",
             description = "Works the middle back and trapezius.",
@@ -92,6 +96,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     PULL_OVER_MACHINE(
         Exercise(
+            4,
             name = "Pull Over Machine",
             nameVideo = "pull_over_machine",
             description = "Works the lats and upper back area.",
@@ -118,6 +123,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LEG_PRESS_MACHINE(
         Exercise(
+            5,
             name = "Leg Press Machine",
             nameVideo = "leg_press_machine",
             description = "Primarily works the quadriceps, glutes, and to a lesser extent the hamstrings.",
@@ -142,6 +148,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LEG_EXTENSION_MACHINE(
         Exercise(
+            6,
             name = "Leg Extension Press Machine",
             nameVideo = "leg_extension_press_machine",
             description = "Ideal for isolating the quadriceps.",
@@ -163,6 +170,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LEG_CURL_MACHINE(
         Exercise(
+            7,
             name = "Leg Curl Machine",
             nameVideo = "leg_curl_machine",
             description = "Works the hamstrings.",
@@ -184,6 +192,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     ABDUCTOR_MACHINE(
         Exercise(
+            8,
             name = "Abductor Machine",
             nameVideo = "abductor_machine",
             description = "Works the inner and outer thigh muscles (adductors and abductors).",
@@ -205,6 +214,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     CABLE_PULL_THROUGH(
         Exercise(
+            9,
             name = "Cable Pull Through",
             nameVideo = "cable_pull_through",
             description = "This exercise is excellent for improving hip hinge mechanics, strengthening the glutes, and reducing strain on the lower back, making it a great alternative to free-weight exercises like the deadlift.",
@@ -226,6 +236,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     SHOULDER_PRESS_MACHINE(
         Exercise(
+            10,
             name = "Shoulder Press Machine",
             nameVideo = "shoulder_press_machine",
             description = "Works the deltoid muscles and secondary muscles such as the triceps.",
@@ -246,6 +257,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LEVER_SEATED_ROW(
         Exercise(
+            11,
             name = "Lever Seated Row",
             nameVideo = "lever_seated_row",
             description = "It is an excellent movement for developing a thicker and stronger back, while minimizing lower back strain due to the seated and supported position.",
@@ -274,6 +286,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LATERAL_RAISE_MACHINE(
         Exercise(
+            12,
             name = "Lateral Raise Machine",
             nameVideo = "lateral_raise_machine",
             description = "Isolates the middle part of the deltoid.",
@@ -294,6 +307,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     BICEP_CURL_MACHINE(
         Exercise(
+            13,
             name = "Bicep Curl Machine",
             nameVideo = "bicep_curl_machine",
             description = "Perfect for isolating the biceps and working the inner part of the arm.",
@@ -314,6 +328,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     TRICEPS_EXTENSION_MACHINE(
         Exercise(
+            14,
             name = "Triceps Extension Machine",
             nameVideo = "triceps_extension_machine",
             description = "Works the posterior part of the arm, specifically the triceps.",
@@ -334,6 +349,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     PREACHER_CURL_MACHINE(
         Exercise(
+            15,
             name = "Preacher Curl Machine",
             nameVideo = "preacher_curl_machine",
             description = "For bicep isolation.",
@@ -354,6 +370,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     OBLIQUE_MACHINE(
         Exercise(
+            16,
             name = "Oblique Machine",
             nameVideo = "oblique_machine",
             description = "Ideal for working the lateral abdominal muscles.",
@@ -374,6 +391,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     CABLE_CRUNCH_MACHINE(
         Exercise(
+            17,
             name = "Cable Crunch Machine",
             nameVideo = "cable_crunch_machine",
             description = "Provides a more intense focus on the core.",
@@ -394,6 +412,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     BACK_EXTENSION_MACHINE(
         Exercise(
+            18,
             name = "Back Extension Machine",
             nameVideo = "back_extension_machine",
             description = "Targets the lower back and lumbar area.",
@@ -414,6 +433,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     TRAPEZE_MACHINE(
         Exercise(
+            19,
             name = "Trapezius Machine",
             nameVideo = "trapezius_machine",
             description = "Works the upper trapezius with movements such as shoulder shrugs.",
@@ -435,6 +455,7 @@ enum class ExercisesName(val exercise: Exercise) {
     //Calisthenics exercises
     PUSH_UPS(
         Exercise(
+            20,
             name = "Push-ups",
             description = "Standard push-ups that target the chest, triceps, and shoulders.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -458,6 +479,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     DIPS(
         Exercise(
+            21,
             name = "Dips",
             description = "Dips on parallel bars to target the chest and triceps.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -477,6 +499,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     DIPS_ON_STRAIGHT_BAR(
         Exercise(
+            22,
             name = "Dip on straight bar",
             description = "Dips on a parallel bar to target the chest and triceps",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -499,6 +522,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     CLOSED_GRIP_PUSH_UPS(
         Exercise(
+            23,
             name = "Closed-Grip Push-ups",
             description = "Push-ups performed with hands closer together to target the triceps more intensively.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -519,6 +543,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     PIKE_PUSH_UPS(
         Exercise(
+            24,
             name = "Pike push-ups",
             description = "Exercise to train the shoulders by doing a push-up toward the ground, with your torso straight and your legs in a L shape",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -538,6 +563,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     PULL_UPS(
         Exercise(
+            25,
             name = "Pull-ups",
             description = "Basic exercise to target the back, shoulders, and biceps using a bar.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -563,6 +589,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     ARCHER_PULL_UPS_BACK(
         Exercise(
+            26,
             name = "Archer-Pull-ups-Back",
             description = "Pull-ups with one arm, but bringing the chest towards one arm and leaving the other one extended",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -588,6 +615,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     CHIN_UPS(
         Exercise(
+            27,
             name = "Chin-ups",
             description = "Pull-ups with a supine grip (palms facing you), targeting the biceps more.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -610,6 +638,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     NEGATIVE_PULL_UPS(
         Exercise(
+            28,
             name = "Negative Pull-ups",
             description = "If you can't do a full pull-up yet, start at the top and lower yourself slowly.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -634,6 +663,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     TRICEPS_CLOSED_PUSH_UPS(
         Exercise(
+            29,
             name = "Triceps-closed-push-ups",
             description = "Exercise to train the triceps by doing a elbow flexion",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -653,6 +683,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     SQUATS(
         Exercise(
+            30,
             name = "Squats",
             description = "Bodyweight squats to work the legs and glutes.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -674,6 +705,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     JUMP_SQUATS(
         Exercise(
+            31,
             name = "Jump Squats",
             description = "Explosive squats with a jump to work strength and power.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -695,6 +727,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LUNGES(
         Exercise(
+            32,
             name = "Lunges",
             description = "Lunges to target quads, glutes, and stability.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -716,6 +749,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     STEP_UPS(
         Exercise(
+            33,
             name = "Step-ups",
             description = "Step onto an elevated platform (such as a bench or park structure) alternating legs.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -734,6 +768,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     CALF_RAISES(
         Exercise(
+            34,
             name = "Calf Raises",
             description = "Exercise to target the calves, done on an elevated structure or flat ground.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -752,6 +787,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     PLANK(
         Exercise(
+            35,
             name = "Plank",
             description = "An isometric exercise to strengthen the core.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -770,6 +806,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     CRUNCHES(
         Exercise(
+            36,
             name = "Crunches",
             description = "Classic exercise to target the abdominal muscles.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -791,6 +828,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     LEG_RAISES(
         Exercise(
+            37,
             name = "Leg Raises",
             description = "Exercise for the lower abs, done while hanging from a bar.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -808,6 +846,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     RUSSIAN_TWISTS(
         Exercise(
+            38,
             name = "Russian Twists",
             description = "Exercise for the obliques, performed seated with a twisting motion.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -824,6 +863,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     MOUNTAIN_CLIMBERS(
         Exercise(
+            39,
             name = "Mountain Climbers",
             description = "Cardio exercise that also works the abs and core.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -841,6 +881,7 @@ enum class ExercisesName(val exercise: Exercise) {
 
     TOE_TOUCHES(
         Exercise(
+            40,
             name = "Toe Touches",
             description = "Exercise for the abs, performed by touching your toes with your hands.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -859,6 +900,7 @@ enum class ExercisesName(val exercise: Exercise) {
     //Weightlifting exercises
     BENCH_PRESS(
         Exercise(
+            41,
             name = "Bench Press",
             description = "One of the fundamental exercises to work the chest.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -874,6 +916,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     INCLINE_BENCH_PRESS_WITH_BARBELL_OR_DUMBBELLS(
         Exercise(
+            42,
             name = "Incline Bench Press with Barbell or Dumbbells",
             description = "Focuses more on the upper part of the chest.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -887,6 +930,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     WEIGHTED_DIP(
         Exercise(
+            43,
             name = "Weighted Dips",
             description = "With the torso leaning forward, it targets the chest more.",
             exerciseLevel = ExerciseLevel.ADVANCED,
@@ -900,6 +944,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     FLAT_BENCH_DUMBBELL_FLIES(
         Exercise(
+            44,
             name = "Flat Bench Dumbbell Flyes",
             description = "Targets the outer chest.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -913,6 +958,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     INCLINE_DUMBBELL_FLIES(
         Exercise(
+            45,
             name = "Incline Dumbbell Flyes",
             description = "Focuses on the upper chest.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -926,6 +972,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     PULL_UPS_WEIGHTED(
         Exercise(
+            46,
             name = "Weighted Pull-Ups",
             description = "A classic exercise mainly working the back, though it also involves other muscles, using a weighted.",
             exerciseLevel = ExerciseLevel.ADVANCED,
@@ -940,6 +987,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     BARBELL_ROW(
         Exercise(
+            47,
             name = "Barbell Row",
             description = "Targets the mid-back.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -957,6 +1005,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     DUMBBELL_SHRUGS(
         Exercise(
+            48,
             name = "Dumbbell Shrugs",
             description = "Excellent for training the trapezius muscles in isolation.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -970,6 +1019,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     ONE_ARM_DUMBBELL_ROW(
         Exercise(
+            49,
             name = "One-Arm Dumbbell Row",
             description = "Excellent for isolating back muscles unilaterally.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -983,6 +1033,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     DUMBBELL_PULLOVER(
         Exercise(
+            50,
             name = "Dumbbell Pullover",
             description = "Isolates the upper back area.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -996,6 +1047,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     LAT_PULL_DOWN_CABLE(
         Exercise(
+            51,
             name = "Lat Pull down Machine",
             description = "Similar to pull-ups but using a cable machine.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -1009,6 +1061,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     BARBELL_SQUATS(
         Exercise(
+            52,
             name = "Barbell Squats",
             description = "The king of leg exercises.",
             exerciseLevel = ExerciseLevel.ADVANCED,
@@ -1026,6 +1079,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     LEG_PRESS(
         Exercise(
+            53,
             name = "Leg Press Machine",
             description = "Similar to squats but with a different angle and load.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -1039,6 +1093,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     DUMBBELL_LUNGES(
         Exercise(
+            54,
             name = "Dumbbell Lunges",
             description = "Isolates each leg.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
@@ -1056,6 +1111,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     STANDING_OR_SEATED_CALF_RAISES(
         Exercise(
+            55,
             name = "Standing or Seated Calf Raises",
             description = "Targets the calves.",
             exerciseLevel = ExerciseLevel.BEGINNER,
@@ -1069,8 +1125,9 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     STEP_UP_WITH_DUMBBELLS(
         Exercise(
+            56,
             name = "Step up with Dumbbells",
-            nameVideo = "step_up_with_dumbells",
+            nameVideo = "step_up_with_dumbbells",
             description = "This exercise works the almost all the muscles in the legs.",
             exerciseLevel = ExerciseLevel.INTERMEDIATE,
             type = TypeExercise.WEIGHTLIFTING,
@@ -1091,6 +1148,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     MILITARY_PRESS_WITH_BARBELL_OR_DUMBBELLS(
         Exercise(
+            57,
             name = "Military Press with Barbell or Dumbbells",
             nameVideo = "military_press_with_barbell_or_dumbbells",
             description = "To work the deltoids.",
@@ -1110,6 +1168,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     LATERAL_RAISES_WITH_DUMBBELLS(
         Exercise(
+            58,
             name = "Lateral Raises with Dumbbells",
             nameVideo = "lateral_raises_with_dumbbells",
             description = "For the middle deltoid.",
@@ -1127,6 +1186,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     FRONT_RAISES_WITH_DUMBBELLS_OR_BARBELL(
         Exercise(
+            59,
             name = "Front Raises with Dumbbells or Barbell",
             nameVideo = "front_raises_with_dumbbells_or_barbell",
             description = "For the anterior deltoid.",
@@ -1144,6 +1204,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     REVERSE_FLY_WITH_DUMBBELLS(
         Exercise(
+            60,
             name = "Reverse Fly with Dumbbells",
             nameVideo = "reverse_fly_with_dumbbells",
             description = "To target the rear deltoids.",
@@ -1165,6 +1226,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     BARBELL_CURL(
         Exercise(
+            61,
             name = "Barbell Curl",
             nameVideo = "barbell_curl",
             description = "A basic exercise for the biceps.",
@@ -1182,6 +1244,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     DUMBBELL_CURL(
         Exercise(
+            62,
             name = "Dumbbell Curl",
             nameVideo = "dumbbell_curl",
             description = "Can be done alternately or simultaneously.",
@@ -1199,6 +1262,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     HAMMER_CURL_WITH_DUMBBELLS(
         Exercise(
+            63,
             name = "Hammer Curl with Dumbbells",
             nameVideo = "hammer_curl_with_dumbbells",
             description = "Also works the forearms and outer biceps.",
@@ -1216,6 +1280,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     CONCENTRATION_CURL(
         Exercise(
+            64,
             name = "Concentration Curl",
             nameVideo = "concentration_curl",
             description = "To isolate the biceps and maximize contraction.",
@@ -1233,6 +1298,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     PREACHER_CURL(
         Exercise(
+            65,
             name = "Preacher Curl",
             nameVideo = "preacher_curl",
             description = "Completely isolates the biceps, eliminating momentum.",
@@ -1251,6 +1317,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     OVERHEAD_TRICEPS_EXTENSION_WITH_DUMBBELL(
         Exercise(
+            66,
             name = "Overhead Triceps Extension with Dumbbell",
             nameVideo = "overhead_triceps_extension_with_dumbbell",
             description = "To target the long head of the triceps.",
@@ -1268,6 +1335,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     FRENCH_PRESS_WITH_BARBELL_OR_DUMBBELLS(
         Exercise(
+            67,
             name = "French Press with Barbell or Dumbbells",
             nameVideo = "french_press_with_barbell_or_dumbbells",
             description = "A classic triceps exercise.",
@@ -1285,6 +1353,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     TRICEPS_KICKBACK_WITH_DUMBBELL(
         Exercise(
+            68,
             name = "Triceps Kickback with Dumbbell",
             nameVideo = "triceps_kickback_with_dumbbell",
             description = "Isolating the triceps at the back of the arm.",
@@ -1303,6 +1372,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     WEIGHTED_CRUNCH(
         Exercise(
+            69,
             name = "Weighted Crunch",
             nameVideo = "weighted_crunch",
             description = "You can add a barbell or dumbbell to your chest.",
@@ -1320,6 +1390,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     LEG_RAISES_WITH_WEIGHT(
         Exercise(
+            70,
             name = "Leg Raises with Weight",
             nameVideo = "leg_raises_with_weight",
             description = "To target the lower abs.",
@@ -1337,6 +1408,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE(
         Exercise(
+            71,
             name = "Russian Twist with Dumbbell or Plate",
             nameVideo = "russian_twist_with_dumbbell_or_plate",
             description = "To target the obliques.",
@@ -1354,6 +1426,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     WEIGHTED_PLANK(
         Exercise(
+            72,
             name = "Weighted Plank",
             nameVideo = "weighted_plank",
             description = "To strengthen the core in general.",
@@ -1373,6 +1446,7 @@ enum class ExercisesName(val exercise: Exercise) {
     //Tens exercises
     COMBOS_TENSION(
         Exercise(
+            73,
             name = "Combos Tension",
             nameVideo = "",
             description = "Tens exercise combos without getting off the parallel bar",
@@ -1391,6 +1465,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     PRESS_PLANK(
         Exercise(
+            74,
             name = "Press Plank",
             nameVideo = "",
             description = "Do press plank using a resistance band",
@@ -1409,6 +1484,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     PUSH_UP_PLANK(
         Exercise(
+            75,
             name = "Push-up Plank",
             nameVideo = "",
             description = "Do press plank using a resistance band",
@@ -1427,6 +1503,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     MALTESE_PLANK_PUSH_UP(
         Exercise(
+            76,
             name = "Maltese Plank push-up",
             nameVideo = "",
             description = "Perform a plank with a wider arm position, incorporating scapular retraction and protraction.",
@@ -1446,6 +1523,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     HANDSTAND_PUSH_UP(
         Exercise(
+            77,
             name = "Handstand push-up",
             nameVideo = "",
             description = "Perform a handstand and do push ups.",
@@ -1464,6 +1542,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     PULL_UP_FRONT_LEVER(
         Exercise(
+            78,
             name = "Pull-up front-lever",
             nameVideo = "",
             description = "Front lever pull-up: pull up to touch the bar, then return to front lever. Use a resistance band",
@@ -1482,6 +1561,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     PRESS_FRONT_LEVER(
         Exercise(
+            79,
             name = "Press front-lever",
             nameVideo = "",
             description = "Front lever press: lift legs to touch the bar, then return to front lever. Use a resistance band",
@@ -1500,6 +1580,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     MALTESE_FRONT_LEVER_PRESS(
         Exercise(
+            80,
             name = "Maltese front lever press",
             nameVideo = "",
             description = "Perform front lever press, with a wider arm position. Use a resistance band",
@@ -1519,6 +1600,7 @@ enum class ExercisesName(val exercise: Exercise) {
     ),
     PULL_UP_HOLDING_UP(
         Exercise(
+            81,
             name = "Pull-up holding up",
             nameVideo = "pull_up_holding_up",
             description = "Perform a pull-ups, but holding up. Use a resistance band if necessary",

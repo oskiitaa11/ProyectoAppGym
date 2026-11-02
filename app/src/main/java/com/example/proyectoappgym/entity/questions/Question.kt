@@ -39,7 +39,7 @@ class Question(val id: Int = _id++, val question: String, val responsesTypes: Re
     }
 
     fun addResponse(response: String) {
-        var actualResponse = responses.toMutableList()
+        val actualResponse = responses.toMutableList()
 
         if(_responses.any { it == response }) return
         actualResponse.add(response)
@@ -47,7 +47,7 @@ class Question(val id: Int = _id++, val question: String, val responsesTypes: Re
     }
 
     fun removeResponse(response: String) {
-        var actualResponse = responses.toMutableList()
+        val actualResponse = responses.toMutableList()
 
         if(!_responses.any { it == response }) return
         actualResponse.remove(response)

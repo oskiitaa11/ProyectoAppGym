@@ -1,17 +1,24 @@
 package com.example.proyectoappgym.ui.screens
 
 import android.annotation.SuppressLint
+import android.text.Layout
+import androidx.appcompat.widget.DialogTitle
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -23,13 +30,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -39,6 +51,7 @@ import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -53,6 +66,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,11 +98,15 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.example.proyectoappgym.App
 import com.example.proyectoappgym.R
+import com.example.proyectoappgym.entity.data.request.DataUserRequest
+import com.example.proyectoappgym.entity.exceptions.ErrorForShowing
+import com.example.proyectoappgym.entity.exceptions.ErrorType
 import com.example.proyectoappgym.entity.users.Avatars
 import com.example.proyectoappgym.entity.questions.Question
 import com.example.proyectoappgym.entity.questions.ResponsesType
 import com.example.proyectoappgym.entity.users.User
 import com.example.proyectoappgym.ui.viewmodels.EditProfileViewmodel
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
@@ -100,7 +118,7 @@ fun NavController.goToEditProfileScreen() {
     navigate(EditProfileRoute)
 }
 
-fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType, Map<String, List<String>>) -> Unit) {
+fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQuestionForModifierScreen: (String, ResponsesType) -> Unit, onError: (String, Int) -> Unit) {
     composable<EditProfileRoute> { navBackStackEntry ->
         val editProfileViewmodel: EditProfileViewmodel = hiltViewModel()
         val currentUser by editProfileViewmodel.currentUser.collectAsStateWithLifecycle()
@@ -110,29 +128,40 @@ fun NavGraphBuilder.editProfileDestination(backProfileScreen: () -> Unit, goToQu
         val allQuestionsFiltered = if(currentUser.allQuestionsAnswered.isNotEmpty())
             allQuestions.filter { question -> question.question in allStringQuestionUser }
         else emptyList()
+        val error by editProfileViewmodel.error.collectAsStateWithLifecycle(null)
+
+        LaunchedEffect(editProfileViewmodel.error) {
+            editProfileViewmodel.error.distinctUntilChanged().collect {
+                if (it != null && it.errorType == ErrorType.ERROR_IN_ERROR_SCREEN)
+                    onError(it.error, it.idIcon as Int)
+            }
+        }
 
         if(currentUser.username.isNotEmpty())
-        EditProfileScreen(
-            currentUser,
-            allQuestionsFiltered,
-            showDialog,
-            backProfileScreen,
-            { newName -> editProfileViewmodel.updateName(newName) },
-            { newAvatar -> editProfileViewmodel.updateAvatarProfile(newAvatar) },
-            { questionForModifier, selectedResponses, responseType -> goToQuestionForModifierScreen(questionForModifier, selectedResponses, responseType, currentUser.allQuestionsAnswered) },
-            { editProfileViewmodel.updateShowDialog() }
-        )
+            EditProfileScreen(
+                currentUser,
+                allQuestionsFiltered,
+                error,
+                showDialog,
+                backProfileScreen,
+                { name -> editProfileViewmodel.updateCurrentUser(name, Avatars.toAvatar(currentUser.idProfileAvatar)) },
+                { avatar -> editProfileViewmodel.updateCurrentUser(currentUser.name, avatar) },
+                { questionForModifier, responseType -> goToQuestionForModifierScreen(questionForModifier, responseType) },
+                { editProfileViewmodel.updateShowDialog() }
+            )
+        else
+            LoadingScreen()
     }
 }
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialog: Boolean, backProfileScreen: () -> Unit, updateName: (String) -> Unit, updateAvatarProfile: (Avatars) -> Unit, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
-    var isEdited by remember { mutableStateOf(false) }
+fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, error: ErrorForShowing?, showDialog: Boolean, backProfileScreen: () -> Unit, updateNameUser: (String) -> Unit, updateAvatar: (Avatars) -> Unit, goToQuestionForModifierScreen: (String, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
+    var isEdited by rememberSaveable { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
-    var textFieldValue by remember {
+    var textFieldValue by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(
             TextFieldValue(
                 text = currentUser.name,
@@ -141,17 +170,11 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
         )
     }
     val scale = remember { Animatable(1f) }
-    //var imageUri by remember { mutableStateOf<Uri?>(null) }
-    /*val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
-        imageUri = uri
-    }*/
-    var avatarDb = Avatars.toAvatar(currentUser.idProfileAvatar)
-    var currentAvatar by remember { mutableIntStateOf(avatarDb.idAvatarImage) }
-    var showSheet by remember { mutableStateOf(false) }
-    var widthTextField by remember { mutableIntStateOf(currentUser.name.length * 15) }
+    var showSheet by rememberSaveable { mutableStateOf(false) }
+    var errorForDialog by rememberSaveable { mutableStateOf(error) }
 
+    if (errorForDialog != null)
+        ShowErrorDialogForLogging(errorForDialog!!.error, errorForDialog?.idIcon as Int, { errorForDialog = null })
 
     ApplyAnimationForWhenOnClick(isEdited, scale)
 
@@ -168,21 +191,22 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
         }
     }
 
-    if(showSheet) ShowBottomSheet({ showSheet = false }, currentAvatar, { newAvatar -> currentAvatar = newAvatar })
+    if(showSheet) ShowBottomSheet(
+        { showSheet = false },
+        currentUser.idProfileAvatar,
+        { newAvatar -> if (currentUser.idProfileAvatar != newAvatar.idAvatar) updateAvatar(newAvatar) }
+    )
 
     Scaffold(
         topBar = {
-            ShowTopAppBarEditProfileScreen {
-                if(currentUser.name != textFieldValue.text) updateName(textFieldValue.text)
-                if(currentAvatar != avatarDb.idAvatarImage) updateAvatarProfile(Avatars.fromId(currentAvatar))
-                backProfileScreen()
-            }
+            ShowSimpleTopAppBar("Edit profile", backProfileScreen)
         }
     ) { innerpadding ->
-        Column(
+        LazyColumn(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.background(colorResource(R.color.lightBlack))
+            modifier = Modifier
+                .background(colorResource(R.color.lightBlack))
                 .padding(
                     top = innerpadding.calculateTopPadding(),
                     start = innerpadding.calculateStartPadding(LayoutDirection.Ltr),
@@ -194,83 +218,90 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
                         focusManager.clearFocus()
                         keyboardController?.hide()
                         isEdited = false
+                        validateFieldNameUser(
+                            textFieldValue.text,
+                            currentUser.name,
+                            { updateNameUser(textFieldValue.text) })
                     }
                 }
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            ShowProfileAvatar(currentAvatar) { showSheet = true }
-            //ShowUpdateProfileAvatar(painter) { galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
-            Spacer(modifier = Modifier.height(5.dp))
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 15.dp)
-            ) {
-                TextField(
-                    value = textFieldValue,
-                    onValueChange = {
-                        if(it.text.length <= 14) textFieldValue = it else it.text.substring(14)
-                        widthTextField = if(it.text.length <= 6 ) 80 else it.text.length * 15
-                    },
-
-                    enabled = isEdited,
-                    textStyle = TextStyle(
-                        textAlign = TextAlign.End,
-                        fontSize = 20.sp,
-                        color = Color.White
-                    ),
-                    maxLines = 1,
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            focusManager.clearFocus()
-                            keyboardController?.hide()
-                            isEdited = false
-                        }
-                    ),
-                    modifier = Modifier.focusRequester(focusRequester).width(widthTextField.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White,
-                        disabledTextColor = Color.White,
-                        cursorColor = Color.White,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        disabledContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent
-                    )
-                )
-                IconButton(
-                    { isEdited = true },
-                    modifier = Modifier.graphicsLayer {
-                        scaleX = scale.value
-                        scaleY = scale.value
-                    }
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+                ShowProfileAvatar(currentUser.idProfileAvatar) { showSheet = true }
+                Spacer(modifier = Modifier.height(5.dp))
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 35.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_edit_24),
-                        contentDescription = "Edit name",
-                        tint = colorResource(R.color.lightGreen)
-                    )
-                }
-            }
+                    TextField(
+                        value = textFieldValue,
+                        onValueChange = {
+                            if(it.text.length <= 14) textFieldValue = it else it.text.take(14)
+                        },
 
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                "User data for make routines",
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.fillMaxWidth().padding(start = 15.dp),
-                fontStyle = FontStyle.Italic
-            )
-            Spacer(modifier = Modifier.height(10.dp))
-            ShowQuestionsUser(
+                        enabled = isEdited,
+                        textStyle = TextStyle(
+                            textAlign = TextAlign.Center,
+                            fontSize = 20.sp,
+                            color = Color.White
+                        ),
+                        maxLines = 1,
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                keyboardController?.hide()
+                                isEdited = false
+                                validateFieldNameUser(textFieldValue.text, currentUser.name, { updateNameUser(textFieldValue.text) })
+                            }
+                        ),
+                        modifier = Modifier
+                            .focusRequester(focusRequester)
+                            .width(180.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            disabledTextColor = Color.White,
+                            cursorColor = Color.White,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            disabledContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent
+                        )
+                    )
+                    IconButton(
+                        { isEdited = true },
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = scale.value
+                            scaleY = scale.value
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_edit_24),
+                            contentDescription = "Edit name",
+                            tint = colorResource(R.color.lightGreen)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    "User data for make routines",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 15.dp),
+                    fontStyle = FontStyle.Italic
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+            }
+            showQuestionsUser(
                 allQuestions,
-                { question ->
-                    currentUser.allQuestionsAnswered[question] ?: emptyList()
-                },
                 showDialog,
                 goToQuestionForModifierScreen,
                 changeShowDialog
@@ -281,10 +312,10 @@ fun EditProfileScreen(currentUser: User, allQuestions: List<Question>, showDialo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowTopAppBarEditProfileScreen(backProfileScreen: () -> Unit) {
+fun ShowSimpleTopAppBar(title: String,backProfileScreen: () -> Unit) {
     Column {
         TopAppBar(
-            title = { Text("Edit profile") },
+            title = { Text(title) },
             colors = TopAppBarDefaults.topAppBarColors(containerColor = colorResource(R.color.lightBlack), navigationIconContentColor = Color.White, titleContentColor = Color.White, actionIconContentColor = Color.White),
             navigationIcon = {
                 IconButton(backProfileScreen) {
@@ -312,63 +343,40 @@ fun ApplyAnimationForWhenOnClick(isEdited: Boolean, scale: Animatable<Float, Ani
     }
 }
 
-/*
-@Composable
-fun ShowUpdateProfileAvatar(painter: Any, showLauncherGallery: () -> Unit) {
-    val imageModifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
-        .size(80.dp)
-        .clip(CircleShape)
-
-    Box(modifier = Modifier.size(80.dp)) {
-        if(painter is Uri) {
-            AsyncImage(
-                model = painter,
-                contentDescription = "Profile avatar",
-                modifier = imageModifier,
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Image(painterResource(painter as Int), "Profile avatar", modifier = imageModifier)
-        }
-
-
-        IconButton(
-            onClick = showLauncherGallery,
-            modifier = Modifier.align(Alignment.BottomEnd).size(32.dp)
-        ) {
-            Image(painterResource(R.drawable.ic_add_32), "Button for add", modifier = Modifier.fillMaxSize())
-        }
-    }
-}*/
-
 @Composable
 fun ShowProfileAvatar(idPainter: Int, showLauncherBottomSheet: () -> Unit) {
-    val imageModifier = Modifier.border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
+    val imageModifier = Modifier
+        .border(width = 3.dp, color = colorResource(R.color.lightGreen), shape = CircleShape)
         .size(80.dp)
         .clip(CircleShape)
+    val avatar = Avatars.toAvatar(idPainter)
 
     Box(modifier = Modifier.size(80.dp)) {
-        Image(painterResource(idPainter), "Profile avatar", modifier = imageModifier,)
+        Image(painterResource(avatar.idAvatarImage), "Profile avatar", modifier = imageModifier)
 
         IconButton(
             onClick = showLauncherBottomSheet,
-            modifier = Modifier.align(Alignment.BottomEnd).size(32.dp)
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .size(32.dp)
         ) {
             Image(painterResource(R.drawable.ic_add_32), "Button for add", modifier = Modifier.fillMaxSize())
         }
     }
 }
 
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvatarProfile: (Int) -> Unit) {
-    var sheetState = rememberModalBottomSheetState()
-    var scope = rememberCoroutineScope()
+fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvatarProfile: (Avatars) -> Unit) {
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
     val avatars = listOf(
         R.drawable.avatar1,
         R.drawable.avatar2_1,
         R.drawable.avatar3,
     )
+    val currentIdImg by mutableIntStateOf(Avatars.toAvatar(currentAvatar).idAvatarImage)
 
     ModalBottomSheet(
         onDismissRequest = {
@@ -399,9 +407,13 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
                     modifier = Modifier
                         .size(80.dp)
                         .clip(CircleShape)
-                        .border(2.dp, if (avatar == currentAvatar) Color.Blue else Color.Transparent, CircleShape)
+                        .border(
+                            2.dp,
+                            if (avatar == currentIdImg) Color.Blue else Color.Transparent,
+                            CircleShape
+                        )
                         .clickable {
-                            changeAvatarProfile(avatar)
+                            changeAvatarProfile(Avatars.fromId(avatar))
                             scope.launch {
                                 sheetState.hide()
                                 changeShowSheet()
@@ -414,47 +426,60 @@ fun ShowBottomSheet(changeShowSheet: () -> Unit, currentAvatar: Int, changeAvata
 }
 
 @SuppressLint("UnrememberedMutableState")
-@Composable
-fun ShowQuestionsUser(allQuestions: List<Question>, getSelectedResponsesOfQuestion: (String) -> List<String>, showDialog: Boolean, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
-    LazyColumn(horizontalAlignment = Alignment.CenterHorizontally) {
-        itemsIndexed(items = allQuestions, key = { _, question -> question.id }) { id, question ->
-            HorizontalDivider(thickness = 2.dp, color = Color.White.copy(alpha = 0.5f))
-            ShowQuestionInEditProfile(
-                question,
-                getSelectedResponsesOfQuestion(question.question),
-                showDialog,
-                goToQuestionForModifierScreen,
-                changeShowDialog
-            )
-        }
+fun LazyListScope.showQuestionsUser(allQuestions: List<Question>, showDialog: Boolean, goToQuestionForModifierScreen: (String, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
+    itemsIndexed(items = allQuestions, key = { _, question -> question.id }) { _, question ->
+        HorizontalDivider(thickness = 2.dp, color = Color.White.copy(alpha = 0.5f))
+        ShowItemWithDialog(
+            text = question.question,
+            textForDialog = "If you change your user data, your training routines will also change",
+            titleForDialog = "Try change the user data",
+            trailingIdIcon = R.drawable.ic_arrow_forward_ios_24,
+            showDialog = showDialog,
+            onClickConfirmButton = {
+                changeShowDialog()
+                goToQuestionForModifierScreen(question.question, question.responsesTypes)
+            }
+        )
     }
 }
 
 @Composable
-fun ShowQuestionInEditProfile(question: Question, selectedResponsesQuestion: List<String>, showDialog: Boolean, goToQuestionForModifierScreen: (String, List<String>, ResponsesType) -> Unit, changeShowDialog: () -> Unit) {
-    var itemIsClicked by remember { mutableStateOf(false) }
+fun ShowItemWithDialog(text: String, colorText: Color = Color.White, background: Color = Color.Transparent, textForDialog: String = "", titleForDialog: String = "", leadingIdIcon: Int? = null, trailingIdIcon: Int? = null, showDialog: Boolean, onClickConfirmButton: () -> Unit) {
+    var itemIsClicked by rememberSaveable { mutableStateOf(false) }
 
     ListItem(
-        headlineContent = { Text(question.question, color = Color.White) },
-        trailingContent = {
-            Icon(
-                painter = painterResource(R.drawable.ic_arrow_forward_ios_24),
-                contentDescription = "Icon for show text",
-                tint = Color.White
-            )
+        headlineContent = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (leadingIdIcon != null) {
+                    Icon(painterResource(leadingIdIcon), "reference icon", tint = colorText, modifier = Modifier.size(20.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                }
+                Text(text, color = colorText)
+            }
         },
-        colors = ListItemDefaults.colors(containerColor = Color.Transparent, headlineColor = Color.White, trailingIconColor = Color.White),
+        trailingContent = {
+            if (trailingIdIcon != null)
+                Icon(
+                    painter = painterResource(trailingIdIcon),
+                    contentDescription = "Icon for show text",
+                    modifier = Modifier.size(20.dp),
+                    tint = colorText
+                )
+        },
+        colors = ListItemDefaults.colors(containerColor = background, headlineColor = colorText, trailingIconColor = colorText),
         modifier = Modifier.clickable {
             if(showDialog)
-                itemIsClicked = true else
-                goToQuestionForModifierScreen(question.question, selectedResponsesQuestion, question.responsesTypes)
+                itemIsClicked = true
+            else
+                onClickConfirmButton()
         }
     )
 
     if(itemIsClicked) ShowWarningDialog(
+        titleForDialog,
+        textForDialog,
         {
-            changeShowDialog()
-            goToQuestionForModifierScreen(question.question, selectedResponsesQuestion, question.responsesTypes)
+            onClickConfirmButton()
         },
         { itemIsClicked = false },
         { itemIsClicked = false }
@@ -462,7 +487,7 @@ fun ShowQuestionInEditProfile(question: Question, selectedResponsesQuestion: Lis
 }
 
 @Composable
-fun ShowWarningDialog(confirmAction: () -> Unit, cancelAction: () -> Unit, onDismissRequest: () -> Unit) {
+fun ShowWarningDialog(title: String, text: String, confirmAction: () -> Unit, cancelAction: () -> Unit, onDismissRequest: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton =  {
@@ -475,8 +500,12 @@ fun ShowWarningDialog(confirmAction: () -> Unit, cancelAction: () -> Unit, onDis
                 Text("Cancel")
             }
         },
-        title = { Text("Try change the user data") },
-        text = { Text("If you change your user data, your training routines will also change") }
+        title = { Text(title) },
+        text = { Text(text) }
     )
+}
+
+fun validateFieldNameUser(newName: String, actualName: String, updateNameUser: () -> Unit) {
+    if (newName != actualName && newName.isNotEmpty()) updateNameUser()
 }
 

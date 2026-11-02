@@ -1,15 +1,17 @@
 package com.example.proyectoappgym.entity.realizationexercises
 
+import com.example.proyectoappgym.entity.data.request.RealizationExerciseRequest
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class RealizationExercise(
     private var _exercise: Exercise,
     private var _series: Int,
-    val repetitions: Int,
+    val maxRepetitions: Int,
+    val minRepetitions: Int,
     val restBetweenSeries: Int
 ) {
-    constructor(): this(ExercisesName.RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE.exercise, 0, 0, 0)
+    constructor(): this(ExercisesName.RUSSIAN_TWIST_WITH_DUMBBELL_OR_PLATE.exercise, 0, 0, 0, 0)
 
     val exercise: Exercise
         get() = _exercise
@@ -22,5 +24,17 @@ data class RealizationExercise(
 
     fun changeSets(newSets: Int) {
         _series = newSets
+    }
+
+    companion object {
+        fun getRealizationExerciseFromResponse(realizationExerciseRequest: RealizationExerciseRequest): RealizationExercise {
+            val exercise = ExercisesName.entries.first { realizationExerciseRequest.idExercise == it.exercise.id }.exercise
+
+            return RealizationExercise(exercise,
+                realizationExerciseRequest.sets,
+                realizationExerciseRequest.maxRepetitions,
+                realizationExerciseRequest.minRepetitions,
+                realizationExerciseRequest.restBetweenSeries)
+        }
     }
 }

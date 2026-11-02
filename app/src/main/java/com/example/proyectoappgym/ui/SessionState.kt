@@ -6,4 +6,6 @@ sealed interface SessionState {
     data object Authenticated: SessionState
 
     data object Unauthenticated: SessionState
+
+    data class Error(val error : String, val idIcon: Int): SessionState
 }

@@ -1,24 +1,25 @@
 package com.example.proyectoappgym
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -27,39 +28,29 @@ import androidx.compose.material3.NavigationBarItemColors
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.example.proyectoappgym.entity.users.Gender
-import com.example.proyectoappgym.entity.users.User
 import com.example.proyectoappgym.entity.BottomBarItem
+import com.example.proyectoappgym.entity.exceptions.ErrorForShowing
 import com.example.proyectoappgym.ui.SessionState
 import com.example.proyectoappgym.ui.graphs.HomeGraphRoute
 import com.example.proyectoappgym.ui.screens.HomeRoute
@@ -68,24 +59,15 @@ import com.example.proyectoappgym.ui.graphs.ProfileGraphRoute
 import com.example.proyectoappgym.ui.graphs.homeGraph
 import com.example.proyectoappgym.ui.viewmodels.LoginViewmodel
 import com.example.proyectoappgym.ui.screens.ProfileRoute
-import com.example.proyectoappgym.ui.screens.RegistrationQuestionsScreen
-import com.example.proyectoappgym.ui.viewmodels.RegistrationQuestionsViewmodel
-import com.example.proyectoappgym.ui.screens.RegistrationScreen
-import com.example.proyectoappgym.ui.viewmodels.RegistrationViewmodel
 import com.example.proyectoappgym.ui.screens.goToHomeScreen
 import com.example.proyectoappgym.ui.screens.goToProfileScreen
-import com.example.proyectoappgym.ui.screens.homeDestination
 import com.example.proyectoappgym.ui.graphs.profileGraph
+import com.example.proyectoappgym.ui.graphs.registrationGraph
+import com.example.proyectoappgym.ui.screens.ErrorScreen
 import com.example.proyectoappgym.ui.theme.ProyectoAppGymTheme
 import com.example.proyectoappgym.ui.viewmodels.SessionViewmodel
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.common.api.ApiException
-import dagger.hilt.android.internal.lifecycle.HiltViewModelFactory
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.serialization.Serializable
-import kotlin.jvm.java
 
 @Serializable
 object SplashScreen
@@ -96,62 +78,24 @@ object RegistrationRoute
 @Serializable
 data class RegistrationQuestionsRoute(val name: String, val username: String, val password: String, val email: String, val birthdate: String, val gender: Gender)
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-
-    private lateinit var launcher: ((String) -> Unit) -> ActivityResultLauncher<Intent>
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
-
-        launcher = { authWithGoogle ->
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-                try {
-                    val account = task.getResult(ApiException::class.java)
-                    authWithGoogle(account.idToken!!)
-                } catch (e: ApiException) {
-                    Log.w("TAG", "Google sign in failed", e)
-                }
-            }
-        }
+        installSplashScreen()
 
         enableEdgeToEdge()
         setContent {
             ProyectoAppGymTheme {
                 val sessionViewmodel: SessionViewmodel = hiltViewModel()
-                val stateUser = sessionViewmodel.sessionState
+                val stateUser by sessionViewmodel.sessionState.collectAsStateWithLifecycle(
+                    SessionState.Loading)
+                val showAnimation by sessionViewmodel.showAnimation.collectAsStateWithLifecycle()
 
-                when(stateUser) {
-                    SessionState.Loading -> installSplashScreen()
-                    SessionState.Authenticated -> NavScreensWithingLoginScreen()
-                    SessionState.Unauthenticated -> NavScreensWithLoginScreen()
-                    /*if(stateUser != State)
-                        if(thereIsLoggedUser as Boolean) {
-                            NavScreensWithingLoginScreen()
-                        } else {
-                            NavScreensWithLoginScreen(reassignUser)
-                        }
-    */
-                }
+                ShowScreensWithAnimation(stateUser, showAnimation)
             }
         }
-            /*val signInGoogle: @Composable (Context, (String) -> Unit) -> Unit = { context, authWithGoogle ->
-                val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestIdToken(
-                        ContextCompat.getString(
-                            context,
-                            R.string.default_web_client_id
-                        )
-                    )
-                    .requestEmail()
-                    .build()
-                val googleSignInClient = GoogleSignIn.getClient(context, gso)
-                val sigInIntent = googleSignInClient.signInIntent
-                launcher(authWithGoogle).launch(sigInIntent)
-            }*/
-
 
     }
 }
@@ -179,7 +123,8 @@ fun NavScreensWithingLoginScreen() {
             enterTransition = { slideInHorizontally(animationSpec = tween(800)) },
             exitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
             modifier = Modifier
-                .fillMaxSize().padding(bottom = innerpadding.calculateBottomPadding())
+                .fillMaxSize()
+                .padding(bottom = innerpadding.calculateBottomPadding())
         ) {
 
             homeGraph(navController)
@@ -190,16 +135,16 @@ fun NavScreensWithingLoginScreen() {
 }
 
 
-@SuppressLint("UnusedCrossfadeTargetStateParameter", "UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedCrossfadeTargetStateParameter", "UnusedMaterial3ScaffoldPaddingParameter",
+    "FlowOperatorInvokedInComposition", "UnrememberedMutableState", "WrongStartDestinationType"
+)
 @Composable
 fun NavScreensWithLoginScreen() {
     val navController = rememberNavController()
-    //val enterTransition: EnterTransition = fadeIn(initialAlpha = 1f, animationSpec = tween(2000, easing = LinearOutSlowInEasing))
-    //val exitTransition: ExitTransition = fadeOut(targetAlpha = 0f, animationSpec = tween(2000,  easing = LinearOutSlowInEasing))
 
     NavHost(
         navController = navController,
-        startDestination = RegistrationQuestionsRoute("", "", "", "", "", Gender.M),
+        startDestination = LoginRoute,
         modifier = Modifier.fillMaxSize(),
         popExitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
         popEnterTransition = { slideInHorizontally(animationSpec = tween(800)) },
@@ -207,53 +152,21 @@ fun NavScreensWithLoginScreen() {
         exitTransition = { slideOutHorizontally(animationSpec = tween(800)) },
     ) {
 
-
-
         composable<LoginRoute> { navBackStackEntry ->
             val loginViewmodel: LoginViewmodel = hiltViewModel()
+            val errorToSignIn: ErrorForShowing? by loginViewmodel.errorToSignIn.collectAsStateWithLifecycle(null)
 
             LoginScreen(
+                errorToSignIn,
+                { loginViewmodel.updateErrorToNullToSignIn() },
                 { navController.navigate(RegistrationRoute) },
                 { username, password ->
                     loginViewmodel.signIn(username, password)
                 }
-                //{ launcher(context) { idToken -> loginViewmodel.authWithGoogle(idToken) } }
             )
         }
 
-        composable<RegistrationRoute> { navBacStackEntry ->
-            val registrationViewmodel: RegistrationViewmodel = hiltViewModel()
-
-            RegistrationScreen(
-                { navController.popBackStack() },
-                { name, username, password, email, birthdate, gender ->
-                    navController.navigate(
-                        RegistrationQuestionsRoute(name, username, password, email, birthdate, gender)
-                    )
-                },
-            )
-        }
-
-        composable<RegistrationQuestionsRoute> { navBackStackEntry ->
-            val registrationQuestionsRoute: RegistrationQuestionsRoute = navBackStackEntry.toRoute()
-            val registrationQuestionsViewmodel: RegistrationQuestionsViewmodel = hiltViewModel()
-            val allQuestions = registrationQuestionsViewmodel.allQuestions
-            var user : User
-            with(registrationQuestionsRoute) {
-                user = User(username, password, email, name.ifEmpty { username }, birthdate, gender)
-            }
-            val thereIsErrorToAddUser by registrationQuestionsViewmodel.thereIsErrorToAddUser.distinctUntilChanged { old, new -> new == null }.collectAsStateWithLifecycle(null)
-
-            RegistrationQuestionsScreen(
-                user,
-                allQuestions,
-                thereIsErrorToAddUser,
-                { userForAdd -> registrationQuestionsViewmodel.addUser(userForAdd) },
-                { registrationQuestionsViewmodel.setThereIsErrorToNull() },
-                { navController.navigate(LoginRoute) },
-                { navController.popBackStack() }
-            )
-        }
+        registrationGraph(navController)
     }
 }
 
@@ -265,7 +178,7 @@ fun BottomBar(
     val items = listOf(
         BottomBarItem(
             title = "Home",
-            iconSelectedBottom = Icons.Default.Home,
+            iconSelectedBottom = ImageVector.vectorResource(R.drawable.ic_home_24),
             iconBottom = ImageVector.vectorResource(R.drawable.ic_outline_home_24),
             selected = currentDestination?.hierarchy?.any { it.hasRoute<HomeRoute>() } == true,
             onClick = { navController.goToHomeScreen() }
@@ -300,36 +213,46 @@ fun BottomBar(
 
 }
 
-@SuppressLint("ComposableDestinationInComposeScope")
 @Composable
-fun NavGraphBuilder.SplashScreenDestination(navController: NavHostController, homeRoute: HomeRoute) {
-    composable<SplashScreen> {
-        SplashScreen(navController, homeRoute)
-    }
-}
-
-@Composable
-fun SplashScreen(navController: NavHostController, route: Any) {
-    LaunchedEffect(Unit) {
-        delay(2000) // Espera 2 segundos (puedes cargar datos aquí)
-        navController.navigate(route) {
-            popUpTo(SplashScreen) { inclusive = true }
+fun ShowScreensWithAnimation(stateUser: SessionState, showAnimation: Boolean) {
+    AnimatedContent(
+        targetState = stateUser,
+        transitionSpec = {
+            if (showAnimation) {
+                slideInHorizontally { width -> width } + fadeIn() togetherWith
+                        slideOutHorizontally { width -> -width } + fadeOut()
+            } else {
+                EnterTransition.None togetherWith ExitTransition.None
+            }
+        }
+    ) { state ->
+        when(state) {
+            SessionState.Loading -> Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = colorResource(R.color.lightBlack)),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) { CircularProgressIndicator(color = colorResource(R.color.lightGreen)) }
+            SessionState.Authenticated -> NavScreensWithingLoginScreen()
+            SessionState.Unauthenticated -> NavScreensWithLoginScreen()
+            is SessionState.Error -> ErrorScreenAtTheBeginning(state.error, state.idIcon)
         }
     }
+}
 
-    Box(
-        modifier = Modifier.fillMaxSize().background(colorResource(R.color.lightBlack)),
-        contentAlignment = Alignment.Center
+@Composable
+fun ErrorScreenAtTheBeginning(error: String, idIcon: Int) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "My Fitness App",
-            color = colorResource(R.color.lightGreen),
-            fontSize = 30.sp,
-            textAlign = TextAlign.Center,
-            fontFamily = FontFamily(Font(R.font.lobster_two_bold_italic))
-        )
+        ErrorScreen(error, idIcon)
     }
 }
+
+
 
 @Composable
 fun GetLightGreen(): Color {

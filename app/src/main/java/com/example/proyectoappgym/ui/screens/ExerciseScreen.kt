@@ -90,7 +90,8 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
     val uri = "android.resource://${context.packageName}/raw/${realizationExercise.exercise.nameVideo}".toUri()
 
     Scaffold(
-        topBar = { ShowTopAppBarExerciseScreen(realizationExercise.exercise.name, goBackToHome) }
+        topBar = { ShowSimpleTopAppBar(realizationExercise.exercise.name, goBackToHome) },
+        containerColor = colorResource(R.color.lightBlack)
     ) { innerpadding ->
         Column(
             verticalArrangement = Arrangement.Top,
@@ -132,20 +133,6 @@ fun ExerciseScreen(realizationExercise: RealizationExercise, goBackToHome: () ->
             Spacer(modifier = Modifier.height(20.dp))
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ShowTopAppBarExerciseScreen(nameExercise: String, goBackToHome: () -> Unit) {
-    TopAppBar(
-        title = { Text(nameExercise, fontSize = 15.sp) },
-        navigationIcon = {
-            IconButton(goBackToHome) {
-                Icon(painter = painterResource(R.drawable.ic_arrow_back_24), contentDescription = "Icon back", tint = Color.White)
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = colorResource(R.color.lightBlack), titleContentColor = Color.White)
-    )
 }
 
 @SuppressLint("DiscouragedApi")

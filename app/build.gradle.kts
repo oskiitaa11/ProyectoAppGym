@@ -6,14 +6,14 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
     id("kotlin-parcelize")
-    id("com.google.gms.google-services")
+    //id("com.google.gms.google-services")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
 }
 
 android {
     namespace = "com.example.proyectoappgym"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.example.proyectoappgym"
@@ -39,12 +39,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
-    kotlinOptions {
-        jvmTarget = "1.8"
+
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
     }
+
     buildFeatures {
         compose = true
     }
@@ -68,19 +72,19 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation(libs.google.firebase.firestore)
+//    implementation(libs.google.firebase.firestore)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation(platform(libs.firebase.bom.v33120))
+//    implementation(platform(libs.firebase.bom.v33120))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.navigation.compose.v290)
     implementation(libs.kotlinx.serialization.json.v181)
-    implementation(platform(libs.firebase.bom))
+    /*implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation(libs.google.firebase.auth)
+    implementation(libs.google.firebase.auth)*/
     implementation(libs.accompanist.navigation.animation)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
@@ -93,11 +97,10 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.coil.compose.v270)
     //noinspection UseTomlInstead
-    implementation("androidx.activity:activity-compose:1.13.0")
     implementation(libs.material3)
     implementation(libs.material)
     implementation(libs.androidx.core.splashscreen)
-    implementation(libs.firebase.storage)
+    //implementation(libs.firebase.storage)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.coil.gif)
@@ -106,7 +109,6 @@ dependencies {
     ksp(libs.androidx.room.compiler.v250)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.android)
-    runtimeOnly(libs.androidx.hilt.navigation.compose.v130)
     implementation(libs.androidx.hilt.navigation.compose.v140)
 
 }

@@ -7,9 +7,13 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="lightGreen">#1CF4BA</color>
+    <color name="darkGreen">#0F735C</color>
+    <color name="ultraLightGreen">#92FADB</color>
     <color name="lightBlack">#2F2A2A</color>
     <color name="pink">#FF69B4</color>
     <color name="blue">#1E90FF</color>
     <color name="red_error">#FF4848</color>
+    <color name="red">#FF1D1D</color>
+    <color name="light_error">#41FFDEDE</color>
     <color name="dark_blue">#3d5673</color>
 </resources>

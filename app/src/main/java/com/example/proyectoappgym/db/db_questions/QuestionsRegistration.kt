@@ -3,7 +3,7 @@ package com.example.proyectoappgym.db.db_questions
 import com.example.proyectoappgym.entity.questions.Question
 import com.example.proyectoappgym.entity.questions.ResponsesType
 
-object QuestionsRegistration: RepositoryQuestions {
+object QuestionsRegistration {
     val allQuestions = listOf(
         Question(
             question = "Are you more into calisthenics or gym workouts?",
@@ -13,7 +13,7 @@ object QuestionsRegistration: RepositoryQuestions {
         Question(
             question = "What are your goals?",
             responsesTypes = ResponsesType.CHECKBOX,
-            _responses = listOf("Gain more strength", "Build more muscle").toTypedArray()
+            _responses = listOf("Gain more strength", "Build more muscle", "Improving in tension exercises").toTypedArray()
         ),
         Question(
             question = "Do you work out at home or at the gym?",
@@ -52,8 +52,4 @@ object QuestionsRegistration: RepositoryQuestions {
             ).toTypedArray()
         )
     )
-
-    override fun allQuestions(): List<Question> {
-        return allQuestions
-    }
 }

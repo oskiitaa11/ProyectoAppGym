@@ -2,27 +2,24 @@ package com.example.proyectoappgym.remote
 
 import android.content.Context
 import androidx.datastore.core.DataStore
-import androidx.datastore.core.DataStoreFactory
-import androidx.datastore.dataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.example.proyectoappgym.db.db_auth.AuthApiService
 import com.example.proyectoappgym.db.db_routines.RoutineApiService
 import com.example.proyectoappgym.db.db_users.UserApiService
-import com.example.proyectoappgym.entity.data.TokenResponse
+import dagger.Lazy
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.internal.Contexts
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.flow.map
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
-
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_session")
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,7 +28,7 @@ object NetworkProvider {
     @Provides
     @Singleton
     fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
-        return context.dataStore
+        return PreferenceDataStoreFactory.create { context.preferencesDataStoreFile("user_session") }
     }
 
     @Provides
@@ -42,7 +39,15 @@ object NetworkProvider {
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(sessionManager: SessionManager): OkHttpClient {
+    @Named("public")
+    fun providePublicClient(): OkHttpClient {
+        return OkHttpClient.Builder().build()
+    }
+
+    @Provides
+    @Singleton
+    @Named("authenticated")
+    fun provideAuthenticatedClient(sessionManager: SessionManager): OkHttpClient {
         return OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(sessionManager))
             .build()
@@ -50,28 +55,45 @@ object NetworkProvider {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
-        return Retrofit.Builder().baseUrl("http://localhost:8080").client(okHttpClient).addConverterFactory(
-            GsonConverterFactory.create()).build()
+    @Named("authenticated")
+    fun provideAuthenticatedRetrofit(
+        @Named("authenticated") client: OkHttpClient
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("http://192.168.1.62:8080/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
-
-
 
     @Provides
     @Singleton
-    fun provideUserApi(retrofit: Retrofit): UserApiService {
+    @Named("public")
+    fun providePublicRetrofit(
+        @Named("public") client: OkHttpClient
+    ): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("http://192.168.1.62:8080/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserApi(@Named("authenticated") retrofit: Retrofit): UserApiService {
         return retrofit.create(UserApiService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideAuthApi(retrofit: Retrofit): AuthApiService {
+    fun provideAuthApi(@Named("public") retrofit: Retrofit): AuthApiService {
         return retrofit.create(AuthApiService::class.java)
     }
 
     @Provides
     @Singleton
-    fun provideRoutineApi(retrofit: Retrofit): RoutineApiService {
+    fun provideRoutineApi(@Named("authenticated") retrofit: Retrofit): RoutineApiService {
         return retrofit.create(RoutineApiService::class.java)
     }
 }
